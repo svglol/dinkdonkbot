@@ -22,21 +22,17 @@
   },
   "dependencies": {
     "discord-interactions": "^3.4.0",
-    "drizzle-orm": "^0.30.7",
-    "itty-router": "^4.0.13",
-    "tsx": "^4.7.2"
+    "drizzle-orm": "^0.30.8",
+    "itty-router": "^4.2.2"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^2.13.2",
+    "@antfu/eslint-config": "^2.13.3",
     "@cloudflare/workers-types": "^4.20240405.0",
-    "dotenv": "^16.0.3",
+    "dotenv": "^16.4.5",
     "drizzle-kit": "^0.20.14",
-    "eslint": "^8.41.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-prettier": "^5.0.0",
-    "mocha": "^10.2.0",
+    "eslint": "^9.0.0",
     "ngrok": "5.0.0-beta.2",
-    "sinon": "^17.0.0",
-    "wrangler": "^3.0.1"
+    "tsx": "^4.7.2",
+    "wrangler": "^3.49.0"
   }
 }
