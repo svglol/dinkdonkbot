@@ -305,7 +305,6 @@ router.post('/', async (request, env: Env) => {
 
 // Twitch Event Sub Webhook
 router.post('/twitch-eventsub', async (request, env: Env) => {
-  // TODO handle duplicates https://dev.twitch.tv/docs/eventsub/ store in KV
   const signature = request.headers.get('Twitch-Eventsub-Message-Signature')
   const messageId = request.headers.get('Twitch-Eventsub-Message-Id')
   const messageTimestamp = request.headers.get('Twitch-Eventsub-Message-Timestamp')
@@ -328,6 +327,15 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
 
   if (`sha256=${hexSignature}` !== signature)
     return new Response('Signature verification failed', { status: 403 })
+
+  const messageStore = await env.KV.get(`twitch-eventsub-${messageId}`)
+  if (messageStore)
+    return new Response('Duplicate message', { status: 409 })
+
+  await env.KV.put(`twitch-eventsub-${messageId}`, 'true', { expirationTtl: 600 })
+
+  if (new Date(messageTimestamp) < new Date(Date.now() - (10 * 60 * 1000)))
+    return new Response('Message timestamp is older than 10 minutes', { status: 403 })
 
   const payload = JSON.parse(body) as SubscriptionEventResponseData
 
