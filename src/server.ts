@@ -267,6 +267,7 @@ router.post('/', async (request, env: Env) => {
           case 'test':{
             const test = interaction.data.options.find(option => option.name === 'test') as DiscordSubCommand
             const streamer = test.options.find(option => option.name === 'streamer').value as string
+            const global = test.options.find(option => option.name === 'global')
             const stream = await useDB(env).query.streams.findFirst({
               where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
             })
@@ -281,15 +282,38 @@ router.post('/', async (request, env: Env) => {
             }
             const message = liveMessageBuilder(stream)
             const embed = await liveMessageEmbedBuilder(stream, env)
-
-            await sendMessage(stream.channelId, message, env.DISCORD_TOKEN, embed)
-            return new JsonResponse({
-              type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-              data: {
-                content: `Sending test message for **${streamer}**`,
-                flags: InteractionResponseFlags.EPHEMERAL,
-              },
-            })
+            if (global) {
+              if (global.value as boolean) {
+                await sendMessage(stream.channelId, message, env.DISCORD_TOKEN, embed)
+                return new JsonResponse({
+                  type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                  data: {
+                    content: `Successfully sent test message for **${streamer}**`,
+                    flags: InteractionResponseFlags.EPHEMERAL,
+                  },
+                })
+              }
+              else {
+                return new JsonResponse({
+                  type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                  data: {
+                    content: message,
+                    embeds: [embed],
+                    flags: InteractionResponseFlags.EPHEMERAL,
+                  },
+                })
+              }
+            }
+            else {
+              return new JsonResponse({
+                type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                data: {
+                  content: message,
+                  embeds: [embed],
+                  flags: InteractionResponseFlags.EPHEMERAL,
+                },
+              })
+            }
           }
         }
       }

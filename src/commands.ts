@@ -82,6 +82,10 @@ export const TWITCH_COMMAND = {
       name: 'streamer',
       description: 'The name of the streamer',
       required: true,
+    }, {
+      type: 5,
+      name: 'global',
+      description: 'Show the notification for everyone',
     }],
   }],
 }
