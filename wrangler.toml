@@ -1,6 +1,7 @@
 name = "dinkdonkbot"
 main = "./src/server.ts"
 compatibility_date = "2023-05-18"
+kv_namespaces = [ { binding = "KV", id = "2368012e59c642ada32014c95609dd1b" } ]
 
 [[d1_databases]]
 binding = "DB"

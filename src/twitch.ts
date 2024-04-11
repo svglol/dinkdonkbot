@@ -1,8 +1,7 @@
-// TODO save this to KV maybe and only update it when needed
-let token: string | undefined
 async function getToken(env: Env) {
-  if (token !== undefined)
-    return token
+  const token = await env.KV.get('twitch-token', { type: 'json' }) as TwitchToken | null
+  if (token)
+    return token.access_token
 
   const res = await fetch('https://id.twitch.tv/oauth2/token', {
     method: 'POST',
@@ -15,8 +14,8 @@ async function getToken(env: Env) {
     throw new Error(`Failed to fetch access token: ${JSON.stringify(await res.json())}`)
 
   const data = await res.json() as TwitchToken
-  token = data.access_token as string
-  return token
+  await env.KV.put('twitch-token', JSON.stringify({ ...data }), { expirationTtl: data.expires_in })
+  return data.access_token as string
 }
 
 export async function getChannelId(broadcasterLoginName: string, env: Env) {
@@ -36,6 +35,16 @@ export async function getChannelId(broadcasterLoginName: string, env: Env) {
 }
 
 export async function subscribe(broadcasterUserId: string, env: Env) {
+  const subscriptionsRes = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+    headers: {
+      'Client-ID': env.TWITCH_CLIENT_ID,
+      'Authorization': `Bearer ${await getToken(env)}`,
+    },
+  })
+  const subscriptions = await subscriptionsRes.json() as SubscriptionResponse
+  const subscription = subscriptions.data.find(sub => sub.type === 'stream.online' && sub.condition.broadcaster_user_id === broadcasterUserId)
+  if (subscription)
+    return true
   const subscriptionData = {
     type: 'stream.online',
     version: '1',
@@ -57,7 +66,6 @@ export async function subscribe(broadcasterUserId: string, env: Env) {
     },
     body: JSON.stringify(subscriptionData),
   })
-
   return response.ok
 }
 
@@ -70,7 +78,7 @@ export async function removeSubscription(broadcasterUserId, env: Env) {
   })
 
   const subscriptions = await subscriptionsRes.json() as SubscriptionResponse
-  const subscription = subscriptions.data.find(sub => sub.type === 1 && sub.condition.broadcaster_user_id === broadcasterUserId)
+  const subscription = subscriptions.data.find(sub => sub.type === 'stream.online' && sub.condition.broadcaster_user_id === broadcasterUserId)
 
   if (subscription) {
     const deleteSubscriptionRes = await fetch(`https://api.twitch.tv/helix/eventsub/subscriptions?id=${subscription.id}`, {
