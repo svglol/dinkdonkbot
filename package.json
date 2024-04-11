@@ -1,0 +1,42 @@
+{
+  "name": "dinkdonkbot",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A discord bot that posts notifications when twitch streamers go live",
+  "author": "Matthew Trotman <savageguy@gmail.com>",
+  "license": "MIT",
+  "keywords": [],
+  "main": "src/server.ts",
+  "scripts": {
+    "start": "tsx src/server.ts",
+    "dev": "wrangler dev src/server.ts",
+    "ngrok": "ngrok http 8787",
+    "fix": "eslint --fix .",
+    "lint": "eslint .",
+    "register": "tsx src/register.ts",
+    "publish": "wrangler deploy",
+    "db:generate": "drizzle-kit generate:sqlite",
+    "db:migrations": "wrangler d1 migrations apply DB --remote",
+    "db:migrations-local": "wrangler d1 migrations apply DB"
+  },
+  "dependencies": {
+    "discord-interactions": "^3.4.0",
+    "drizzle-orm": "^0.30.7",
+    "itty-router": "^4.0.13",
+    "tsx": "^4.7.2"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^2.13.2",
+    "@cloudflare/workers-types": "^4.20240405.0",
+    "dotenv": "^16.0.3",
+    "drizzle-kit": "^0.20.14",
+    "eslint": "^8.41.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "mocha": "^10.2.0",
+    "ngrok": "5.0.0-beta.2",
+    "sinon": "^17.0.0",
+    "wrangler": "^3.0.1"
+  }
+}
