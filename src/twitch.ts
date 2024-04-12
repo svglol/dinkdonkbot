@@ -113,15 +113,14 @@ export async function removeSubscription(broadcasterUserId, env: Env) {
   const subscriptions = await subscriptionsRes.json() as SubscriptionResponse
   const subscriptionsToDelete = subscriptions.data.filter(sub => (sub.type === 'stream.online' || sub.type === 'stream.offline') && sub.condition.broadcaster_user_id === broadcasterUserId)
 
-  for (const subscription of subscriptionsToDelete) {
-    await fetch(`https://api.twitch.tv/helix/eventsub/subscriptions?id=${subscription.id}`, {
-      method: 'DELETE',
-      headers: {
-        'Client-ID': env.TWITCH_CLIENT_ID,
-        'Authorization': `Bearer ${await getToken(env)}`,
-      },
-    })
-  }
+  const promises = subscriptionsToDelete.map(async sub => fetch(`https://api.twitch.tv/helix/eventsub/subscriptions?id=${sub.id}`, {
+    method: 'DELETE',
+    headers: {
+      'Client-ID': env.TWITCH_CLIENT_ID,
+      'Authorization': `Bearer ${await getToken(env)}`,
+    },
+  }))
+  await Promise.allSettled(promises)
   return true
 }
 
