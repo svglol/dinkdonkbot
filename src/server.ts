@@ -443,6 +443,9 @@ async function sendMessage(channelId: string, messageContent: string, discordTok
       },
       body: JSON.stringify(body),
     })
+    if (!message.ok)
+      throw new Error(`Failed to send message: ${await message.text()}`)
+
     const data = await message.json() as { id: string }
     return data.id
   }
@@ -469,6 +472,9 @@ async function updateMessage(channelId: string, messageId: string, messageConten
       },
       body: JSON.stringify(body),
     })
+    if (!message.ok)
+      throw new Error(`Failed to update message: ${await message.text()}`)
+
     const data = await message.json() as { id: string }
     return data.id
   }
