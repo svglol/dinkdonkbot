@@ -168,6 +168,26 @@ declare global {
     is_mature: boolean
   }
 
+  interface DiscordEmbed {
+    title: string
+    color: number
+    description: string
+    fields: {
+      name: string
+      value: string
+    }[]
+    url: string
+    image: {
+      url: string
+    }
+    thumbnail: {
+      url: string
+    }
+    timestamp: string
+    footer: {
+      text: string
+    }
+  }
 }
 
 export {}

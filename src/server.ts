@@ -349,8 +349,10 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
   const computedSignature = await crypto.subtle.sign('HMAC', cryptoKey, data)
   const hexSignature = Array.from(new Uint8Array(computedSignature), b => b.toString(16).padStart(2, '0')).join('')
 
-  if (`sha256=${hexSignature}` !== signature)
+  if (`sha256=${hexSignature}` !== signature) {
+    console.error('Signature verification failed')
     return new Response('Signature verification failed', { status: 403 })
+  }
 
   const messageStore = await env.KV.get(`twitch-eventsub-${messageId}`)
   if (messageStore)
@@ -370,7 +372,7 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
 
   if (payload.event) {
     const event = payload.event
-    if (event.type === 'live') {
+    if (payload.subscription.type === 'stream.online') {
       const broadcasterId = event.broadcaster_user_id
 
       const subscriptions = await useDB(env).query.streams.findMany({
@@ -378,15 +380,43 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
       })
 
       // send message to all subscriptions
+      const messages: { messageId: string, channelId: string, embed: DiscordEmbed }[] = []
       for (const sub of subscriptions) {
         const message = liveMessageBuilder(sub)
         const embed = await liveMessageEmbedBuilder(sub, env)
-        await sendMessage(sub.channelId, message, env.DISCORD_TOKEN, embed)
+        const messageId = await sendMessage(sub.channelId, message, env.DISCORD_TOKEN, embed)
+        messages.push({ messageId, channelId: sub.channelId, embed })
       }
+
+      // add message IDs to KV
+      const messagesToUpdate = { messages }
+      env.KV.put(`discord-messages-${broadcasterId}`, JSON.stringify(messagesToUpdate), { expirationTtl: 50 * 60 * 60 })
 
       // remove subscription if no one is subscribed
       if (subscriptions.length === 0)
         await removeSubscription(broadcasterId, env)
+    }
+    else if (payload.subscription.type === 'stream.offline') {
+      const broadcasterId = event.broadcaster_user_id
+      const broadcasterName = event.broadcaster_user_name
+      const streamerData = await getStreamerDetails(broadcasterName, env)
+      const messagesToUpdate = await env.KV.get(`discord-messages-${broadcasterId}`, { type: 'json' }) as { messages: { messageId: string, channelId: string, embed: DiscordEmbed }[] }
+      if (messagesToUpdate) {
+        for (const message of messagesToUpdate.messages) {
+          // update embed with offline message
+          const liveTimeInMilliseconds = Date.now() - new Date(message.embed.timestamp).getTime()
+
+          message.embed.timestamp = new Date().toISOString()
+          message.embed.description = `Streamed for **${formatDuration(liveTimeInMilliseconds)}**`
+          message.embed.footer.text = 'Last online'
+          if (streamerData.offline_image_url)
+            message.embed.image.url = streamerData.offline_image_url
+          message.embed.fields = []
+          await updateMessage(message.channelId, message.messageId, `**${broadcasterName}** was live`, env.DISCORD_TOKEN, message.embed)
+        }
+
+        await env.KV.delete(`discord-messages-${broadcasterId}`)
+      }
     }
   }
 
@@ -405,7 +435,7 @@ async function sendMessage(channelId: string, messageContent: string, discordTok
     body.embeds.push(embed)
 
   try {
-    await fetch(url, {
+    const message = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -413,6 +443,34 @@ async function sendMessage(channelId: string, messageContent: string, discordTok
       },
       body: JSON.stringify(body),
     })
+    const data = await message.json() as { id: string }
+    return data.id
+  }
+  catch (error) {
+    console.error('Error sending message:', error)
+  }
+}
+
+async function updateMessage(channelId: string, messageId: string, messageContent: string, discordToken: string, embed?: any) {
+  const url = `https://discord.com/api/channels/${channelId}/messages/${messageId}`
+  const body = {
+    content: messageContent,
+    embeds: [],
+  }
+  if (embed)
+    body.embeds.push(embed)
+
+  try {
+    const message = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bot ${discordToken}`,
+      },
+      body: JSON.stringify(body),
+    })
+    const data = await message.json() as { id: string }
+    return data.id
   }
   catch (error) {
     console.error('Error sending message:', error)
@@ -473,5 +531,21 @@ async function liveMessageEmbedBuilder(sub: {
       url: streamerData.profile_image_url,
     },
     timestamp,
+    footer: {
+      text: 'Online',
+    },
   }
+}
+
+function formatDuration(durationInMilliseconds: number) {
+  const seconds = Math.floor(durationInMilliseconds / 1000)
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = seconds % 60
+
+  const formattedHours = hours > 0 ? `${hours}h` : ''
+  const formattedMinutes = minutes > 0 ? `${minutes}m` : ''
+  const formattedSeconds = remainingSeconds > 0 ? `${remainingSeconds}s` : ''
+
+  return `${formattedHours}${formattedMinutes}${formattedSeconds}`
 }

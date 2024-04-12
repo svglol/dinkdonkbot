@@ -41,32 +41,65 @@ export async function subscribe(broadcasterUserId: string, env: Env) {
       'Authorization': `Bearer ${await getToken(env)}`,
     },
   })
+  // check if subscription already exists for stream.online and stream.offline
   const subscriptions = await subscriptionsRes.json() as SubscriptionResponse
-  const subscription = subscriptions.data.find(sub => sub.type === 'stream.online' && sub.condition.broadcaster_user_id === broadcasterUserId)
-  if (subscription)
+  const onlineSubscription = subscriptions.data.find(sub => sub.type === 'stream.online' && sub.condition.broadcaster_user_id === broadcasterUserId)
+  const offlineSubscription = subscriptions.data.find(sub => sub.type === 'stream.offline' && sub.condition.broadcaster_user_id === broadcasterUserId)
+  if (onlineSubscription && offlineSubscription)
     return true
-  const subscriptionData = {
-    type: 'stream.online',
-    version: '1',
-    condition: {
-      broadcaster_user_id: broadcasterUserId,
-    },
-    transport: {
-      method: 'webhook',
-      callback: `${env.WEBHOOK_URL}/twitch-eventsub`,
-      secret: env.TWITCH_EVENT_SECRET,
-    },
+
+  let response = false
+  // create stream.online subscription
+  if (!onlineSubscription) {
+    const onlineResponse = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+      method: 'POST',
+      headers: {
+        'Client-ID': env.TWITCH_CLIENT_ID,
+        'Authorization': `Bearer ${await getToken(env)}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: 'stream.online',
+        version: '1',
+        condition: {
+          broadcaster_user_id: broadcasterUserId,
+        },
+        transport: {
+          method: 'webhook',
+          callback: `${env.WEBHOOK_URL}/twitch-eventsub`,
+          secret: env.TWITCH_EVENT_SECRET,
+        },
+      }),
+    })
+    if (onlineResponse.ok)
+      response = true
   }
-  const response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
-    method: 'POST',
-    headers: {
-      'Client-ID': env.TWITCH_CLIENT_ID,
-      'Authorization': `Bearer ${await getToken(env)}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(subscriptionData),
-  })
-  return response.ok
+  // create stream.offline subscription
+  if (!offlineSubscription) {
+    const offlineResponse = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+      method: 'POST',
+      headers: {
+        'Client-ID': env.TWITCH_CLIENT_ID,
+        'Authorization': `Bearer ${await getToken(env)}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: 'stream.offline',
+        version: '1',
+        condition: {
+          broadcaster_user_id: broadcasterUserId,
+        },
+        transport: {
+          method: 'webhook',
+          callback: `${env.WEBHOOK_URL}/twitch-eventsub`,
+          secret: env.TWITCH_EVENT_SECRET,
+        },
+      }),
+    })
+    if (offlineResponse.ok)
+      response = true
+  }
+  return response
 }
 
 export async function removeSubscription(broadcasterUserId, env: Env) {
@@ -78,19 +111,18 @@ export async function removeSubscription(broadcasterUserId, env: Env) {
   })
 
   const subscriptions = await subscriptionsRes.json() as SubscriptionResponse
-  const subscription = subscriptions.data.find(sub => sub.type === 'stream.online' && sub.condition.broadcaster_user_id === broadcasterUserId)
+  const subscriptionsToDelete = subscriptions.data.filter(sub => (sub.type === 'stream.online' || sub.type === 'stream.offline') && sub.condition.broadcaster_user_id === broadcasterUserId)
 
-  if (subscription) {
-    const deleteSubscriptionRes = await fetch(`https://api.twitch.tv/helix/eventsub/subscriptions?id=${subscription.id}`, {
+  for (const subscription of subscriptionsToDelete) {
+    await fetch(`https://api.twitch.tv/helix/eventsub/subscriptions?id=${subscription.id}`, {
       method: 'DELETE',
       headers: {
         'Client-ID': env.TWITCH_CLIENT_ID,
         'Authorization': `Bearer ${await getToken(env)}`,
       },
     })
-    return deleteSubscriptionRes.ok
   }
-  return false
+  return true
 }
 
 export async function getSubscriptions(env: Env) {
