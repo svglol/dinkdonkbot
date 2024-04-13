@@ -1,6 +1,7 @@
 /**
  * The core server that runs on a Cloudflare worker.
  */
+import type { IRequest } from 'itty-router'
 import { Router } from 'itty-router'
 import {
   InteractionResponseFlags,
@@ -45,8 +46,8 @@ async function verifyDiscordRequest(request, env: Env) {
 
 const server = {
   verifyDiscordRequest,
-  async fetch(request, env: Env, ctx: ExecutionContext) {
-    return router.handle(request, env, ctx)
+  async fetch(request: IRequest, env: Env, ctx: ExecutionContext) {
+    return router.fetch(request, env, ctx)
   },
 }
 
