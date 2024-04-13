@@ -148,13 +148,12 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
       })
 
       // send message to all subscriptions
-      const messages: { messageId: string, channelId: string, embed: DiscordEmbed }[] = []
-      for (const sub of subscriptions) {
+      const messagesPromises = subscriptions.map(async (sub) => {
         const message = liveMessageBuilder(sub)
         const embed = await liveMessageEmbedBuilder(sub, env)
-        const messageId = await sendMessage(sub.channelId, message, env.DISCORD_TOKEN, embed)
-        messages.push({ messageId, channelId: sub.channelId, embed })
-      }
+        return sendMessage(sub.channelId, message, env.DISCORD_TOKEN, embed).then(messageId => ({ messageId, channelId: sub.channelId, embed }))
+      })
+      const messages = await Promise.all(messagesPromises)
 
       // add message IDs to KV
       const messagesToUpdate = { messages }
@@ -170,7 +169,7 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
       const streamerData = await getStreamerDetails(broadcasterName, env)
       const messagesToUpdate = await env.KV.get(`discord-messages-${broadcasterId}`, { type: 'json' }) as { messages: { messageId: string, channelId: string, embed: DiscordEmbed }[] }
       if (messagesToUpdate) {
-        for (const message of messagesToUpdate.messages) {
+        const updatePromises = messagesToUpdate.messages.map((message) => {
           // update embed with offline message
           const liveTimeInMilliseconds = Date.now() - new Date(message.embed.timestamp).getTime()
 
@@ -180,8 +179,10 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
           if (streamerData.offline_image_url)
             message.embed.image.url = streamerData.offline_image_url
           message.embed.fields = []
-          await updateMessage(message.channelId, message.messageId, `**${broadcasterName}** was live`, env.DISCORD_TOKEN, message.embed)
-        }
+
+          return updateMessage(message.channelId, message.messageId, `**${broadcasterName}** was live`, env.DISCORD_TOKEN, message.embed)
+        })
+        await Promise.all(updatePromises)
 
         await env.KV.delete(`discord-messages-${broadcasterId}`)
       }
