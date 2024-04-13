@@ -261,10 +261,13 @@ function liveMessageBuilder(sub: {
   roleId: string
   message: string
 }) {
-  let message = sub.message
+  let message = ''
   if (sub.roleId && sub.roleId !== sub.guildId)
     message += ` <@&${sub.roleId}> `
-  return `${message} **${sub.name}** is now live https://twitch.tv/${sub.name}`
+
+  message += sub.message.replace(/\{\{name\}\}/gi, sub.name)
+
+  return message
 }
 
 async function liveMessageEmbedBuilder(sub: {
@@ -477,11 +480,11 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
               return await updateInteraction(interaction, { content: `Successfully sent test message for **${streamer}**` }, env)
             }
             else {
-              return await updateInteraction(interaction, { content: `Successfully sent test message for **${streamer}**`, embeds: [embed] }, env)
+              return await updateInteraction(interaction, { content: message, embeds: [embed] }, env)
             }
           }
           else {
-            return await updateInteraction(interaction, { content: `Successfully sent test message for **${streamer}**`, embeds: [embed] }, env)
+            return await updateInteraction(interaction, { content: message, embeds: [embed] }, env)
           }
         }
       }
