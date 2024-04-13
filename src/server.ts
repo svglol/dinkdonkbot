@@ -323,15 +323,7 @@ function formatDuration(durationInMilliseconds: number) {
   return `${formattedHours}${formattedMinutes}${formattedSeconds}`
 }
 
-async function updateInteraction(interaction: DiscordInteraction, updatedMessage: string, env: Env, embed?: any) {
-  const body = {
-    content: updatedMessage,
-    flags: InteractionResponseFlags.EPHEMERAL,
-    embeds: [],
-  }
-  if (embed)
-    body.embeds.push(embed)
-
+async function updateInteraction(interaction: DiscordInteraction, body: object, env: Env) {
   try {
     const defer = await fetch(`https://discord.com/api/v10/webhooks/${env.DISCORD_APPLICATION_ID}/${interaction.token}/messages/@original`, {
       method: 'PATCH',
@@ -346,6 +338,7 @@ async function updateInteraction(interaction: DiscordInteraction, updatedMessage
   catch (error) {
     console.error('Error updating interaction:', error)
   }
+  return true
 }
 
 async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
@@ -353,7 +346,7 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
     case INVITE_COMMAND.name.toLowerCase(): {
       const applicationId = env.DISCORD_APPLICATION_ID
       const INVITE_URL = `https://discord.com/oauth2/authorize?client_id=${applicationId}&permissions=131072&scope=applications.commands+bot`
-      return await updateInteraction(interaction, INVITE_URL, env)
+      return await updateInteraction(interaction, { content: INVITE_URL }, env)
     }
     case TWITCH_COMMAND.name.toLowerCase(): {
       const option = interaction.data.options[0].name
@@ -367,24 +360,24 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
           const message = add.options.find(option => option.name === 'message')
           // make sure we have all arguments
           if (!server || !streamer || !channel)
-            return await updateInteraction(interaction, 'Invalid arguments', env)
+            return await updateInteraction(interaction, { content: 'Invalid arguments' }, env)
 
           // check if already subscribed to this channel
           const subscriptions = await useDB(env).query.streams.findMany({
             where: (streams, { eq, and, like }) => and(eq(streams.guildId, server), like(streams.name, streamer)),
           })
           if (subscriptions.length > 0)
-            return await updateInteraction(interaction, 'Already subscribed to this streamer', env)
+            return await updateInteraction(interaction, { content: 'Already subscribed to this streamer' }, env)
 
           // check if twitch channel exists
           const channelId = await getChannelId(streamer, env)
           if (!channelId)
-            return await updateInteraction(interaction, 'Could not find twitch channel', env)
+            return await updateInteraction(interaction, { content: 'Could not find twitch channel' }, env)
 
           // subscribe to event sub for this channel
           const subscribed = await subscribe(channelId, env)
           if (!subscribed)
-            return await updateInteraction(interaction, 'Could not subscribe to this twitch channel', env)
+            return await updateInteraction(interaction, { content: 'Could not subscribe to this twitch channel' }, env)
 
           let roleId: string | undefined
           if (role) {
@@ -405,7 +398,7 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
             message: messageText,
           })
 
-          return await updateInteraction(interaction, `Successfully subscribed to notifications for **${streamer}** in <#${channel}>`, env)
+          return await updateInteraction(interaction, { content: `Successfully subscribed to notifications for **${streamer}** in <#${channel}>` }, env)
         }
         case 'remove': {
           const remove = interaction.data.options.find(option => option.name === 'remove') as DiscordSubCommand
@@ -414,7 +407,7 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
             where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
           })
           if (!stream)
-            return await updateInteraction(interaction, 'Could not find subscription', env)
+            return await updateInteraction(interaction, { content: 'Could not find subscription' }, env)
 
           await useDB(env).delete(tables.streams).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
           const subscriptions = await useDB(env).query.streams.findMany({
@@ -423,7 +416,7 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
           if (subscriptions.length === 0 && stream)
             await removeSubscription(stream.broadcasterId, env)
 
-          return await updateInteraction(interaction, `Successfully unsubscribed to notifications for **${streamer}**`, env)
+          return await updateInteraction(interaction, { content: `Successfully unsubscribed to notifications for **${streamer}**` }, env)
         }
         case 'edit':{
           const server = interaction.guild_id
@@ -433,7 +426,7 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
             where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
           })
           if (!dbStream)
-            return await updateInteraction(interaction, 'Could not find subscription', env)
+            return await updateInteraction(interaction, { content: 'Could not find subscription' }, env)
 
           const channel = edit.options.find(option => option.name === 'discord-channel')
           if (channel)
@@ -452,7 +445,7 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
           if (message)
             await useDB(env).update(tables.streams).set({ message: message.value as string }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
 
-          return await updateInteraction(interaction, `Successfully edited notifications for **${streamer}**`, env)
+          return await updateInteraction(interaction, { content: `Successfully edited notifications for **${streamer}**` }, env)
         }
         case 'list': {
           const streams = await useDB(env).query.streams.findMany({
@@ -462,7 +455,7 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
           if (streams.length > 0)
             streamList = streams.map(stream => `**${stream.name}** - <#${stream.channelId}>`).join('\n')
 
-          return await updateInteraction(interaction, streamList, env)
+          return await updateInteraction(interaction, { content: streamList }, env)
         }
         case 'test':{
           const test = interaction.data.options.find(option => option.name === 'test') as DiscordSubCommand
@@ -472,21 +465,21 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
             where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
           })
           if (!stream)
-            return await updateInteraction(interaction, 'Could not find subscription', env)
+            return await updateInteraction(interaction, { content: 'Could not find subscription' }, env)
 
           const message = liveMessageBuilder(stream)
           const embed = await liveMessageEmbedBuilder(stream, env)
           if (global) {
             if (global.value as boolean) {
               await sendMessage(stream.channelId, message, env.DISCORD_TOKEN, embed)
-              return await updateInteraction(interaction, `Successfully sent test message for **${streamer}**`, env)
+              return await updateInteraction(interaction, { content: `Successfully sent test message for **${streamer}**` }, env)
             }
             else {
-              return await updateInteraction(interaction, `Successfully sent test message for **${streamer}**`, env, embed)
+              return await updateInteraction(interaction, { content: `Successfully sent test message for **${streamer}**`, embeds: [embed] }, env)
             }
           }
           else {
-            return await updateInteraction(interaction, `Successfully sent test message for **${streamer}**`, env, embed)
+            return await updateInteraction(interaction, { content: `Successfully sent test message for **${streamer}**`, embeds: [embed] }, env)
           }
         }
       }
