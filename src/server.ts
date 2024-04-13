@@ -157,7 +157,7 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
 
       // add message IDs to KV
       const messagesToUpdate = { messages }
-      env.KV.put(`discord-messages-${broadcasterId}`, JSON.stringify(messagesToUpdate), { expirationTtl: 50 * 60 * 60 })
+      await env.KV.put(`discord-messages-${broadcasterId}`, JSON.stringify(messagesToUpdate), { expirationTtl: 50 * 60 * 60 })
 
       // remove subscription if no one is subscribed
       if (subscriptions.length === 0)
