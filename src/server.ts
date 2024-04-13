@@ -151,7 +151,8 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
       const messagesPromises = subscriptions.map(async (sub) => {
         const message = liveMessageBuilder(sub)
         const embed = await liveMessageEmbedBuilder(sub, env)
-        return sendMessage(sub.channelId, message, env.DISCORD_TOKEN, embed).then(messageId => ({ messageId, channelId: sub.channelId, embed }))
+        const components = liveMessageComponentsBuilder(sub)
+        return sendMessage(sub.channelId, message, env.DISCORD_TOKEN, embed).then(messageId => ({ messageId, channelId: sub.channelId, embed, components }))
       })
       const messages = await Promise.all(messagesPromises)
 
@@ -194,14 +195,13 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
 
 router.all('*', () => new Response('Not Found.', { status: 404 }))
 
-async function sendMessage(channelId: string, messageContent: string, discordToken: string, embed?: any) {
+async function sendMessage(channelId: string, messageContent: string, discordToken: string, embed?: any, components?: any[]) {
   const url = `https://discord.com/api/channels/${channelId}/messages`
   const body = {
     content: messageContent,
-    embeds: [],
+    embeds: embed ? [embed] : [],
+    components: components ? [...components] : [],
   }
-  if (embed)
-    body.embeds.push(embed)
 
   try {
     const message = await fetch(url, {
@@ -223,14 +223,13 @@ async function sendMessage(channelId: string, messageContent: string, discordTok
   }
 }
 
-async function updateMessage(channelId: string, messageId: string, messageContent: string, discordToken: string, embed?: any) {
+async function updateMessage(channelId: string, messageId: string, messageContent: string, discordToken: string, embed?: any, components?: any[]) {
   const url = `https://discord.com/api/channels/${channelId}/messages/${messageId}`
   const body = {
     content: messageContent,
-    embeds: [],
+    embeds: embed ? [embed] : [],
+    components: components ? [...components] : [],
   }
-  if (embed)
-    body.embeds.push(embed)
 
   try {
     const message = await fetch(url, {
@@ -250,6 +249,30 @@ async function updateMessage(channelId: string, messageId: string, messageConten
   catch (error) {
     console.error('Error sending message:', error)
   }
+}
+
+function liveMessageComponentsBuilder(sub: {
+  name: string
+  id: number
+  broadcasterId: string
+  guildId: string
+  channelId: string
+  roleId: string
+  message: string
+}) {
+  return [
+    {
+      type: 1,
+      components: [
+        {
+          type: 2,
+          label: 'View on Twitch',
+          url: `https://twitch.tv/${sub.name}`,
+          style: 5,
+        },
+      ],
+    },
+  ]
 }
 
 function liveMessageBuilder(sub: {
@@ -474,9 +497,10 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
 
           const message = liveMessageBuilder(stream)
           const embed = await liveMessageEmbedBuilder(stream, env)
+          const components = liveMessageComponentsBuilder(stream)
           if (global) {
             if (global.value as boolean) {
-              await sendMessage(stream.channelId, message, env.DISCORD_TOKEN, embed)
+              await sendMessage(stream.channelId, message, env.DISCORD_TOKEN, embed, components)
               return await updateInteraction(interaction, { content: `Successfully sent test message for **${streamer}**` }, env)
             }
             else {
