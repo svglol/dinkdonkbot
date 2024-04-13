@@ -10,7 +10,7 @@ import {
   verifyKey,
 } from 'discord-interactions'
 import { INVITE_COMMAND, TWITCH_COMMAND } from './commands'
-import { getChannelId, getStreamDetails, getStreamerDetails, removeSubscription, subscribe } from './twitch'
+import { getChannelId, getLatestVOD, getStreamDetails, getStreamerDetails, removeSubscription, subscribe } from './twitch'
 import { and, eq, like, tables, useDB } from './database/db'
 
 class JsonResponse extends Response {
@@ -170,6 +170,23 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
       const streamerData = await getStreamerDetails(broadcasterName, env)
       const messagesToUpdate = await env.KV.get(`discord-messages-${broadcasterId}`, { type: 'json' }) as { messages: { messageId: string, channelId: string, embed: DiscordEmbed }[] }
       if (messagesToUpdate) {
+        const components = []
+        const latestVOD = await getLatestVOD(broadcasterId, env)
+        if (latestVOD && latestVOD.viewable === 'public' && latestVOD.type === 'archive') {
+          components.push(
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  label: 'Watch VOD',
+                  url: latestVOD.url,
+                  style: 5,
+                },
+              ],
+            },
+          )
+        }
         const updatePromises = messagesToUpdate.messages.map((message) => {
           // update embed with offline message
           const liveTimeInMilliseconds = Date.now() - new Date(message.embed.timestamp).getTime()
@@ -181,7 +198,7 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
             message.embed.image.url = streamerData.offline_image_url
           message.embed.fields = []
 
-          return updateMessage(message.channelId, message.messageId, `**${broadcasterName}** was live`, env.DISCORD_TOKEN, message.embed)
+          return updateMessage(message.channelId, message.messageId, `**${broadcasterName}** was live`, env.DISCORD_TOKEN, message.embed, components)
         })
         await Promise.all(updatePromises)
 

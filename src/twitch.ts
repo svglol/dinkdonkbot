@@ -225,3 +225,25 @@ export async function getStreamerDetails(user: string, env: Env) {
     console.error('Error fetching streamer details:', error)
   }
 }
+
+export async function getLatestVOD(userid: string, env: Env) {
+  try {
+    const vodRes = await fetch(`https://api.twitch.tv/helix/videos?user_id=${userid}&first=1`, {
+      headers: {
+        'Client-ID': env.TWITCH_CLIENT_ID,
+        'Authorization': `Bearer ${await getToken(env)}`,
+      },
+    })
+    if (!vodRes.ok)
+      throw new Error(`Failed to fetch vod: ${JSON.stringify(await vodRes.json())}`)
+
+    const vodData = await vodRes.json() as VideoResponseData
+    if (vodData.data.length === 0)
+      return null
+    const vod = vodData.data[0]
+    return vod
+  }
+  catch (error) {
+    console.error('Error fetching streamer details:', error)
+  }
+}
