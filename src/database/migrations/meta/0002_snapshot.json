@@ -1,8 +1,8 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "aed043fb-c365-4c49-80c6-33d8f124a069",
-  "prevId": "a0eb3071-4ee6-4440-aa28-dc897079d611",
+  "id": "2c225bb9-27d9-4cb8-a469-ffd7e54efb0c",
+  "prevId": "aed043fb-c365-4c49-80c6-33d8f124a069",
   "tables": {
     "streams": {
       "name": "streams",
@@ -55,36 +55,28 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
-          "default": "'@everyone {{name}} is now live @ https://twitch.tv/{{name}}'"
+          "default": "'@everyone {{name}} is now live @ {{url}}'"
         }
       },
       "indexes": {
         "idIdx": {
           "name": "idIdx",
-          "columns": [
-            "id"
-          ],
+          "columns": ["id"],
           "isUnique": true
         },
         "nameIdx": {
           "name": "nameIdx",
-          "columns": [
-            "name"
-          ],
+          "columns": ["name"],
           "isUnique": false
         },
         "broadcasterIdIdx": {
           "name": "broadcasterIdIdx",
-          "columns": [
-            "broadcasterId"
-          ],
+          "columns": ["broadcasterId"],
           "isUnique": false
         },
         "guildIdIdx": {
           "name": "guildIdIdx",
-          "columns": [
-            "guild"
-          ],
+          "columns": ["guild"],
           "isUnique": false
         }
       },

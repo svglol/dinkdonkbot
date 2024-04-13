@@ -265,7 +265,7 @@ function liveMessageBuilder(sub: {
   if (sub.roleId && sub.roleId !== sub.guildId)
     message += ` <@&${sub.roleId}> `
 
-  message += sub.message.replace(/\{\{name\}\}/gi, sub.name)
+  message += sub.message.replace(/\{\{name\}\}/gi, sub.name).replace(/\{\{url\}\}/gi, `https://twitch.tv/${sub.name}`)
 
   return message
 }
