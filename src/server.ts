@@ -45,8 +45,8 @@ async function verifyDiscordRequest(request, env: Env) {
 
 const server = {
   verifyDiscordRequest,
-  async fetch(request, env: Env) {
-    return router.handle(request, env)
+  async fetch(request, env: Env, ctx: ExecutionContext) {
+    return router.handle(request, env, ctx)
   },
 }
 
@@ -64,7 +64,7 @@ router.get('/', (request, env: Env) => {
  * include a JSON payload described here:
  * https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object
  */
-router.post('/', async (request, env: Env) => {
+router.post('/', async (request, env: Env, ctx: ExecutionContext) => {
   const { isValid, interaction } = await server.verifyDiscordRequest(
     request,
     env,
@@ -81,246 +81,13 @@ router.post('/', async (request, env: Env) => {
   }
 
   if (interaction.type === InteractionType.APPLICATION_COMMAND) {
-    // Most user commands will come as `APPLICATION_COMMAND`.
-    switch (interaction.data.name.toLowerCase()) {
-      case INVITE_COMMAND.name.toLowerCase(): {
-        const applicationId = env.DISCORD_APPLICATION_ID
-        const INVITE_URL = `https://discord.com/oauth2/authorize?client_id=${applicationId}&permissions=131072&scope=applications.commands+bot`
-        return new JsonResponse({
-          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {
-            content: INVITE_URL,
-            flags: InteractionResponseFlags.EPHEMERAL,
-          },
-        })
-      }
-      case TWITCH_COMMAND.name.toLowerCase(): {
-        const option = interaction.data.options[0].name
-        switch (option) {
-          case 'add': {
-            const server = interaction.guild_id
-            const add = interaction.data.options.find(option => option.name === 'add') as DiscordSubCommand
-            const streamer = add.options.find(option => option.name === 'streamer').value as string
-            const channel = add.options.find(option => option.name === 'discord-channel').value as string
-            const role = add.options.find(option => option.name === 'ping-role')
-            const message = add.options.find(option => option.name === 'message')
-            // make sure we have all arguments
-            if (!server || !streamer || !channel) {
-              return new JsonResponse({
-                type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: {
-                  content: 'Invalid arguments',
-                  flags: InteractionResponseFlags.EPHEMERAL,
-                },
-              })
-            }
-
-            // check if already subscribed to this channel
-            const subscriptions = await useDB(env).query.streams.findMany({
-              where: (streams, { eq, and, like }) => and(eq(streams.guildId, server), like(streams.name, streamer)),
-            })
-            if (subscriptions.length > 0) {
-              return new JsonResponse({
-                type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: {
-                  content: 'Already subscribed to this streamer',
-                  flags: InteractionResponseFlags.EPHEMERAL,
-                },
-              })
-            }
-
-            // check if twitch channel exists
-            const channelId = await getChannelId(streamer, env)
-            if (!channelId) {
-              return new JsonResponse({
-                type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: {
-                  content: 'Could not find twitch channel',
-                  flags: InteractionResponseFlags.EPHEMERAL,
-                },
-              })
-            }
-
-            // subscribe to event sub for this channel
-            const subscribed = await subscribe(channelId, env)
-            if (!subscribed) {
-              return new JsonResponse({
-                type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: {
-                  content: 'Could not subscribe to this twitch channel',
-                  flags: InteractionResponseFlags.EPHEMERAL,
-                },
-              })
-            }
-            let roleId: string | undefined
-            if (role) {
-              roleId = role.value as string
-              if (roleId === server)
-                roleId = undefined
-            }
-
-            const messageText = message ? message.value as string : undefined
-
-            // add to database
-            await useDB(env).insert(tables.streams).values({
-              name: (await getStreamerDetails(streamer, env)).display_name,
-              broadcasterId: channelId,
-              guildId: server,
-              channelId: channel,
-              roleId,
-              message: messageText,
-            })
-
-            return new JsonResponse({
-              type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-              data: {
-                content: `Successfully subscribed to notifications for **${streamer}** in <#${channel}>`,
-                flags: InteractionResponseFlags.EPHEMERAL,
-              },
-            })
-          }
-          case 'remove': {
-            const remove = interaction.data.options.find(option => option.name === 'remove') as DiscordSubCommand
-            const streamer = remove.options.find(option => option.name === 'streamer').value as string
-            const stream = await useDB(env).query.streams.findFirst({
-              where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
-            })
-            if (!stream) {
-              return new JsonResponse({
-                type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: {
-                  content: 'Could not find subscription',
-                  flags: InteractionResponseFlags.EPHEMERAL,
-                },
-              })
-            }
-            await useDB(env).delete(tables.streams).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
-            const subscriptions = await useDB(env).query.streams.findMany({
-              where: (streams, { eq }) => eq(streams.name, streamer),
-            })
-            if (subscriptions.length === 0 && stream)
-              await removeSubscription(stream.broadcasterId, env)
-
-            return new JsonResponse({
-              type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-              data: {
-                content: `Successfully unsubscribed to notifications for **${streamer}**`,
-                flags: InteractionResponseFlags.EPHEMERAL,
-              },
-            })
-          }
-          case 'edit':{
-            const server = interaction.guild_id
-            const edit = interaction.data.options.find(option => option.name === 'edit') as DiscordSubCommand
-            const streamer = edit.options.find(option => option.name === 'streamer').value as string
-            const dbStream = await useDB(env).query.streams.findFirst({
-              where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
-            })
-            if (!dbStream) {
-              return new JsonResponse({
-                type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: {
-                  content: 'Invalid arguments',
-                  flags: InteractionResponseFlags.EPHEMERAL,
-                },
-              })
-            }
-            const channel = edit.options.find(option => option.name === 'discord-channel')
-            if (channel)
-              await useDB(env).update(tables.streams).set({ channelId: String(channel.value) }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
-            const role = edit.options.find(option => option.name === 'ping-role')
-            let roleId: string | undefined
-            if (role) {
-              roleId = role.value as string
-              if (roleId === server)
-                roleId = undefined
-            }
-            if (roleId)
-              await useDB(env).update(tables.streams).set({ roleId }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
-
-            const message = edit.options.find(option => option.name === 'message')
-            if (message)
-              await useDB(env).update(tables.streams).set({ message: message.value as string }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
-            return new JsonResponse({
-              type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-              data: {
-                content: `Successfully edited notifications for **${streamer}**`,
-                flags: InteractionResponseFlags.EPHEMERAL,
-              },
-            })
-          }
-          case 'list': {
-            const streams = await useDB(env).query.streams.findMany({
-              where: (streams, { eq }) => eq(streams.guildId, interaction.guild_id),
-            })
-            let streamList = 'Not subscribed to any streams'
-            if (streams.length > 0)
-              streamList = streams.map(stream => `**${stream.name}** - <#${stream.channelId}>`).join('\n')
-            return new JsonResponse({
-              type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-              data: {
-                content: streamList,
-                flags: InteractionResponseFlags.EPHEMERAL,
-              },
-            })
-          }
-          case 'test':{
-            const test = interaction.data.options.find(option => option.name === 'test') as DiscordSubCommand
-            const streamer = test.options.find(option => option.name === 'streamer').value as string
-            const global = test.options.find(option => option.name === 'global')
-            const stream = await useDB(env).query.streams.findFirst({
-              where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
-            })
-            if (!stream) {
-              return new JsonResponse({
-                type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: {
-                  content: 'Invalid arguments',
-                  flags: InteractionResponseFlags.EPHEMERAL,
-                },
-              })
-            }
-            const message = liveMessageBuilder(stream)
-            const embed = await liveMessageEmbedBuilder(stream, env)
-            if (global) {
-              if (global.value as boolean) {
-                await sendMessage(stream.channelId, message, env.DISCORD_TOKEN, embed)
-                return new JsonResponse({
-                  type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                  data: {
-                    content: `Successfully sent test message for **${streamer}**`,
-                    flags: InteractionResponseFlags.EPHEMERAL,
-                  },
-                })
-              }
-              else {
-                return new JsonResponse({
-                  type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                  data: {
-                    content: message,
-                    embeds: [embed],
-                    flags: InteractionResponseFlags.EPHEMERAL,
-                  },
-                })
-              }
-            }
-            else {
-              return new JsonResponse({
-                type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                data: {
-                  content: message,
-                  embeds: [embed],
-                  flags: InteractionResponseFlags.EPHEMERAL,
-                },
-              })
-            }
-          }
-        }
-      }
-        break
-      default:
-        return new JsonResponse({ error: 'Unknown Type' }, { status: 400 })
-    }
+    ctx.waitUntil(proccessInteraction(interaction, env))
+    return new JsonResponse({
+      type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+      data: {
+        flags: InteractionResponseFlags.EPHEMERAL,
+      },
+    })
   }
 
   console.error('Unknown Type')
@@ -554,4 +321,175 @@ function formatDuration(durationInMilliseconds: number) {
   const formattedSeconds = remainingSeconds > 0 ? `${remainingSeconds}s` : ''
 
   return `${formattedHours}${formattedMinutes}${formattedSeconds}`
+}
+
+async function updateInteraction(interaction: DiscordInteraction, updatedMessage: string, env: Env, embed?: any) {
+  const body = {
+    content: updatedMessage,
+    flags: InteractionResponseFlags.EPHEMERAL,
+    embeds: [],
+  }
+  if (embed)
+    body.embeds.push(embed)
+
+  try {
+    const defer = await fetch(`https://discord.com/api/v10/webhooks/${env.DISCORD_APPLICATION_ID}/${interaction.token}/messages/@original`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    if (!defer.ok)
+      throw new Error(`Failed to update interaction: ${await defer.text()}`)
+  }
+  catch (error) {
+    console.error('Error updating interaction:', error)
+  }
+}
+
+async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
+  switch (interaction.data.name.toLowerCase()) {
+    case INVITE_COMMAND.name.toLowerCase(): {
+      const applicationId = env.DISCORD_APPLICATION_ID
+      const INVITE_URL = `https://discord.com/oauth2/authorize?client_id=${applicationId}&permissions=131072&scope=applications.commands+bot`
+      return await updateInteraction(interaction, INVITE_URL, env)
+    }
+    case TWITCH_COMMAND.name.toLowerCase(): {
+      const option = interaction.data.options[0].name
+      switch (option) {
+        case 'add': {
+          const server = interaction.guild_id
+          const add = interaction.data.options.find(option => option.name === 'add') as DiscordSubCommand
+          const streamer = add.options.find(option => option.name === 'streamer').value as string
+          const channel = add.options.find(option => option.name === 'discord-channel').value as string
+          const role = add.options.find(option => option.name === 'ping-role')
+          const message = add.options.find(option => option.name === 'message')
+          // make sure we have all arguments
+          if (!server || !streamer || !channel)
+            return await updateInteraction(interaction, 'Invalid arguments', env)
+
+          // check if already subscribed to this channel
+          const subscriptions = await useDB(env).query.streams.findMany({
+            where: (streams, { eq, and, like }) => and(eq(streams.guildId, server), like(streams.name, streamer)),
+          })
+          if (subscriptions.length > 0)
+            return await updateInteraction(interaction, 'Already subscribed to this streamer', env)
+
+          // check if twitch channel exists
+          const channelId = await getChannelId(streamer, env)
+          if (!channelId)
+            return await updateInteraction(interaction, 'Could not find twitch channel', env)
+
+          // subscribe to event sub for this channel
+          const subscribed = await subscribe(channelId, env)
+          if (!subscribed)
+            return await updateInteraction(interaction, 'Could not subscribe to this twitch channel', env)
+
+          let roleId: string | undefined
+          if (role) {
+            roleId = role.value as string
+            if (roleId === server)
+              roleId = undefined
+          }
+
+          const messageText = message ? message.value as string : undefined
+
+          // add to database
+          await useDB(env).insert(tables.streams).values({
+            name: (await getStreamerDetails(streamer, env)).display_name,
+            broadcasterId: channelId,
+            guildId: server,
+            channelId: channel,
+            roleId,
+            message: messageText,
+          })
+
+          return await updateInteraction(interaction, `Successfully subscribed to notifications for **${streamer}** in <#${channel}>`, env)
+        }
+        case 'remove': {
+          const remove = interaction.data.options.find(option => option.name === 'remove') as DiscordSubCommand
+          const streamer = remove.options.find(option => option.name === 'streamer').value as string
+          const stream = await useDB(env).query.streams.findFirst({
+            where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
+          })
+          if (!stream)
+            return await updateInteraction(interaction, 'Could not find subscription', env)
+
+          await useDB(env).delete(tables.streams).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+          const subscriptions = await useDB(env).query.streams.findMany({
+            where: (streams, { eq }) => eq(streams.name, streamer),
+          })
+          if (subscriptions.length === 0 && stream)
+            await removeSubscription(stream.broadcasterId, env)
+
+          return await updateInteraction(interaction, `Successfully unsubscribed to notifications for **${streamer}**`, env)
+        }
+        case 'edit':{
+          const server = interaction.guild_id
+          const edit = interaction.data.options.find(option => option.name === 'edit') as DiscordSubCommand
+          const streamer = edit.options.find(option => option.name === 'streamer').value as string
+          const dbStream = await useDB(env).query.streams.findFirst({
+            where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
+          })
+          if (!dbStream)
+            return await updateInteraction(interaction, 'Could not find subscription', env)
+
+          const channel = edit.options.find(option => option.name === 'discord-channel')
+          if (channel)
+            await useDB(env).update(tables.streams).set({ channelId: String(channel.value) }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+          const role = edit.options.find(option => option.name === 'ping-role')
+          let roleId: string | undefined
+          if (role) {
+            roleId = role.value as string
+            if (roleId === server)
+              roleId = undefined
+          }
+          if (roleId)
+            await useDB(env).update(tables.streams).set({ roleId }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+
+          const message = edit.options.find(option => option.name === 'message')
+          if (message)
+            await useDB(env).update(tables.streams).set({ message: message.value as string }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+
+          return await updateInteraction(interaction, `Successfully edited notifications for **${streamer}**`, env)
+        }
+        case 'list': {
+          const streams = await useDB(env).query.streams.findMany({
+            where: (streams, { eq }) => eq(streams.guildId, interaction.guild_id),
+          })
+          let streamList = 'Not subscribed to any streams'
+          if (streams.length > 0)
+            streamList = streams.map(stream => `**${stream.name}** - <#${stream.channelId}>`).join('\n')
+
+          return await updateInteraction(interaction, streamList, env)
+        }
+        case 'test':{
+          const test = interaction.data.options.find(option => option.name === 'test') as DiscordSubCommand
+          const streamer = test.options.find(option => option.name === 'streamer').value as string
+          const global = test.options.find(option => option.name === 'global')
+          const stream = await useDB(env).query.streams.findFirst({
+            where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
+          })
+          if (!stream)
+            return await updateInteraction(interaction, 'Could not find subscription', env)
+
+          const message = liveMessageBuilder(stream)
+          const embed = await liveMessageEmbedBuilder(stream, env)
+          if (global) {
+            if (global.value as boolean) {
+              await sendMessage(stream.channelId, message, env.DISCORD_TOKEN, embed)
+              return await updateInteraction(interaction, `Successfully sent test message for **${streamer}**`, env)
+            }
+            else {
+              return await updateInteraction(interaction, `Successfully sent test message for **${streamer}**`, env, embed)
+            }
+          }
+          else {
+            return await updateInteraction(interaction, `Successfully sent test message for **${streamer}**`, env, embed)
+          }
+        }
+      }
+    }
+  }
 }
