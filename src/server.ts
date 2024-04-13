@@ -487,6 +487,62 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
             return await updateInteraction(interaction, { content: message, embeds: [embed] }, env)
           }
         }
+        case 'details': {
+          const details = interaction.data.options.find(option => option.name === 'details') as DiscordSubCommand
+          const streamer = details.options.find(option => option.name === 'streamer').value as string
+          const stream = await useDB(env).query.streams.findFirst({
+            where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
+          })
+          let message = `Streamer: \`${stream.name}\`\n`
+          message += `Channel: <#${stream.channelId}>\n`
+          message += `Message: \`${stream.message}\`\n`
+          if (stream.roleId)
+            message += `\n Role: <@&${stream.roleId}>`
+
+          return await updateInteraction(interaction, { content: message }, env)
+        }
+        case 'help': {
+          const embed = {
+            title: 'Available commands',
+            description: '',
+            color: 0x00EA5E9,
+            fields: [
+              {
+                name: '/twitch add <streamer> <discord-channel> <ping-role> <message>',
+                value: 'Add a twitch streamer',
+              },
+              {
+                name: '/twitch edit <streamer> <discord-channel> <ping-role> <message>',
+                value: 'Edit a twitch streamer',
+              },
+              {
+                name: '/twitch remove <streamer>',
+                value: 'Remove a streamer',
+              },
+              {
+                name: '/twitch list',
+                value: 'List the twitch streamers',
+              },
+              {
+                name: '/twitch test <streamer> <global>',
+                value: 'Test a notification for a streamer \n Global - true/false - show to everyone or not',
+              },
+              {
+                name: '/twitch details <streamer>',
+                value: 'Get details for a streamer',
+              },
+              {
+                name: '/twitch help',
+                value: 'Get this help message',
+              },
+              {
+                name: 'Message variables',
+                value: '```{{name}} = the name of the streamer\n{{url}} = the url for the stream```',
+              },
+            ],
+          }
+          return await updateInteraction(interaction, { embeds: [embed] }, env)
+        }
       }
     }
   }

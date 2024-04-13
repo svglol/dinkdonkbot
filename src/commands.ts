@@ -87,5 +87,19 @@ export const TWITCH_COMMAND = {
       name: 'global',
       description: 'Show the notification for everyone',
     }],
+  }, {
+    type: 1,
+    name: 'details',
+    description: 'Show the notification details for a streamer',
+    options: [{
+      type: 3,
+      name: 'streamer',
+      description: 'The name of the streamer',
+      required: true,
+    }],
+  }, {
+    type: 1,
+    name: 'help',
+    description: 'Show help for the twitch command',
   }],
 }
