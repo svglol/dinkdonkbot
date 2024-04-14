@@ -173,19 +173,26 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
         const components = []
         const latestVOD = await getLatestVOD(broadcasterId, env)
         if (latestVOD && latestVOD.viewable === 'public' && latestVOD.type === 'archive') {
-          components.push(
-            {
-              type: 1,
-              components: [
-                {
-                  type: 2,
-                  label: 'Watch VOD',
-                  url: latestVOD.url,
-                  style: 5,
-                },
-              ],
-            },
-          )
+          const liveTime = new Date(messagesToUpdate.messages[0].embed.timestamp)
+          const publishedAt = new Date(latestVOD.published_at)
+          const thirtyMinutes = 30 * 60 * 1000
+          const timeDifference = Math.abs(liveTime.getTime() - publishedAt.getTime())
+          const isWithinThirtyMinutes = timeDifference <= thirtyMinutes
+          if (isWithinThirtyMinutes) {
+            components.push(
+              {
+                type: 1,
+                components: [
+                  {
+                    type: 2,
+                    label: 'Watch VOD',
+                    url: latestVOD.url,
+                    style: 5,
+                  },
+                ],
+              },
+            )
+          }
         }
         const updatePromises = messagesToUpdate.messages.map((message) => {
           // update embed with offline message
