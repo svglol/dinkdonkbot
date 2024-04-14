@@ -1,0 +1,1 @@
+ALTER TABLE streams ADD `offlineMessage` text DEFAULT '{{name}} is now offline';

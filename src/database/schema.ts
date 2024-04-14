@@ -7,7 +7,8 @@ export const streams = sqliteTable('streams', {
   guildId: text('guild').notNull(),
   channelId: text('channel').notNull(),
   roleId: text('roleId'),
-  message: text('message').default('@everyone {{name}} is now live @ {{url}}'),
+  liveMessage: text('message').default('@everyone {{name}} is now live @ {{url}}'),
+  offlineMessage: text('offlineMessage').default('{{name}} is now offline'),
 }, streams => ({
   idIdx: uniqueIndex('idIdx').on(streams.id),
   nameIdx: index('nameIdx').on(streams.name),

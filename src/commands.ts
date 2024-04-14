@@ -33,8 +33,12 @@ export const TWITCH_COMMAND = {
       description: 'What role to @ when the streamer goes live',
     }, {
       type: 3,
-      name: 'message',
+      name: 'live-message',
       description: 'The message to post when the streamer goes live',
+    }, {
+      type: 3,
+      name: 'offline-message',
+      description: 'The message to post when the streamer goes offline',
     }],
   }, {
     type: 1,
@@ -66,8 +70,12 @@ export const TWITCH_COMMAND = {
       description: 'What role/who to @ when the streamer goes live',
     }, {
       type: 3,
-      name: 'message',
+      name: 'live-message',
       description: 'The message to post when the streamer goes live',
+    }, {
+      type: 3,
+      name: 'offline-message',
+      description: 'The message to post when the streamer goes offline',
     }],
   }, {
     type: 1,

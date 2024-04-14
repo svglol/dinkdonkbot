@@ -152,7 +152,7 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
         const message = liveMessageBuilder(sub)
         const embed = await liveMessageEmbedBuilder(sub, env)
         const components = liveMessageComponentsBuilder(sub)
-        return sendMessage(sub.channelId, message, env.DISCORD_TOKEN, embed).then(messageId => ({ messageId, channelId: sub.channelId, embed, components }))
+        return sendMessage(sub.channelId, message, env.DISCORD_TOKEN, embed).then(messageId => ({ messageId, channelId: sub.channelId, embed, components, dbStreamId: sub.id }))
       })
       const messages = await Promise.all(messagesPromises)
 
@@ -168,7 +168,7 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
       const broadcasterId = event.broadcaster_user_id
       const broadcasterName = event.broadcaster_user_name
       const streamerData = await getStreamerDetails(broadcasterName, env)
-      const messagesToUpdate = await env.KV.get(`discord-messages-${broadcasterId}`, { type: 'json' }) as { streamId: string, messages: { messageId: string, channelId: string, embed: DiscordEmbed }[] }
+      const messagesToUpdate = await env.KV.get(`discord-messages-${broadcasterId}`, { type: 'json' }) as { streamId: string, messages: { messageId: string, channelId: string, embed: DiscordEmbed, dbStreamId: number }[] }
       if (messagesToUpdate) {
         const components = []
         const latestVOD = await getLatestVOD(broadcasterId, messagesToUpdate.streamId, env)
@@ -187,7 +187,7 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
             },
           )
         }
-        const updatePromises = messagesToUpdate.messages.map((message) => {
+        const updatePromises = messagesToUpdate.messages.map(async (message) => {
           // update embed with offline message
           const liveTimeInMilliseconds = Date.now() - new Date(message.embed.timestamp).getTime()
 
@@ -197,8 +197,10 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
           if (streamerData.offline_image_url)
             message.embed.image.url = streamerData.offline_image_url
           message.embed.fields = []
-
-          return updateMessage(message.channelId, message.messageId, `**${broadcasterName}** was live`, env.DISCORD_TOKEN, message.embed, components)
+          const sub = await useDB(env).query.streams.findFirst({
+            where: (streams, { eq }) => eq(streams.id, message.dbStreamId),
+          })
+          return updateMessage(message.channelId, message.messageId, offlineMessageBuilder(sub), env.DISCORD_TOKEN, message.embed, components)
         })
         await Promise.all(updatePromises)
 
@@ -275,7 +277,8 @@ function liveMessageComponentsBuilder(sub: {
   guildId: string
   channelId: string
   roleId: string
-  message: string
+  liveMessage: string
+  offlineMessage: string
 }) {
   return [
     {
@@ -299,13 +302,31 @@ function liveMessageBuilder(sub: {
   guildId: string
   channelId: string
   roleId: string
-  message: string
+  liveMessage: string
+  offlineMessage: string
 }) {
   let message = ''
   if (sub.roleId && sub.roleId !== sub.guildId)
     message += ` <@&${sub.roleId}> `
 
-  message += sub.message.replace(/\{\{name\}\}/gi, sub.name).replace(/\{\{url\}\}/gi, `https://twitch.tv/${sub.name}`)
+  message += sub.liveMessage.replace(/\{\{name\}\}/gi, sub.name).replace(/\{\{url\}\}/gi, `https://twitch.tv/${sub.name}`)
+
+  return message
+}
+
+function offlineMessageBuilder(sub: {
+  name: string
+  id: number
+  broadcasterId: string
+  guildId: string
+  channelId: string
+  roleId: string
+  liveMessage: string
+  offlineMessage: string
+}) {
+  let message = ''
+
+  message += sub.offlineMessage.replace(/\{\{name\}\}/gi, sub.name).replace(/\{\{url\}\}/gi, `https://twitch.tv/${sub.name}`)
 
   return message
 }
@@ -316,8 +337,8 @@ async function liveMessageEmbedBuilder(sub: {
   broadcasterId: string
   guildId: string
   channelId: string
-  roleId: string
-  message: string
+  liveMessage: string
+  offlineMessage: string
 }, env: Env) {
   const streamerData = await getStreamerDetails(sub.name, env)
   const streamData = await getStreamDetails(sub.name, env)
@@ -402,7 +423,8 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
           const streamer = add.options.find(option => option.name === 'streamer').value as string
           const channel = add.options.find(option => option.name === 'discord-channel').value as string
           const role = add.options.find(option => option.name === 'ping-role')
-          const message = add.options.find(option => option.name === 'message')
+          const message = add.options.find(option => option.name === 'live-message')
+          const offlineMessage = add.options.find(option => option.name === 'offline-message')
           // make sure we have all arguments
           if (!server || !streamer || !channel)
             return await updateInteraction(interaction, { content: 'Invalid arguments' }, env)
@@ -431,7 +453,8 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
               roleId = undefined
           }
 
-          const messageText = message ? message.value as string : undefined
+          const liveText = message ? message.value as string : undefined
+          const offlineText = offlineMessage ? offlineMessage.value as string : undefined
 
           // add to database
           await useDB(env).insert(tables.streams).values({
@@ -440,7 +463,8 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
             guildId: server,
             channelId: channel,
             roleId,
-            message: messageText,
+            liveMessage: liveText,
+            offlineMessage: offlineText,
           })
 
           return await updateInteraction(interaction, { content: `Successfully subscribed to notifications for **${streamer}** in <#${channel}>` }, env)
@@ -486,9 +510,13 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
           if (roleId)
             await useDB(env).update(tables.streams).set({ roleId }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
 
-          const message = edit.options.find(option => option.name === 'message')
+          const message = edit.options.find(option => option.name === 'live-message')
           if (message)
-            await useDB(env).update(tables.streams).set({ message: message.value as string }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+            await useDB(env).update(tables.streams).set({ liveMessage: message.value as string }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+
+          const offlineMessage = edit.options.find(option => option.name === 'offline-message')
+          if (offlineMessage)
+            await useDB(env).update(tables.streams).set({ offlineMessage: offlineMessage.value as string }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
 
           return await updateInteraction(interaction, { content: `Successfully edited notifications for **${streamer}**` }, env)
         }
@@ -536,7 +564,8 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
           })
           let message = `Streamer: \`${stream.name}\`\n`
           message += `Channel: <#${stream.channelId}>\n`
-          message += `Message: \`${stream.message}\`\n`
+          message += `Live Message: \`${stream.liveMessage}\`\n`
+          message += `Offline Message: \`${stream.offlineMessage}\`\n`
           if (stream.roleId)
             message += `\n Role: <@&${stream.roleId}>`
 
@@ -549,11 +578,11 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
             color: 0x00EA5E9,
             fields: [
               {
-                name: '/twitch add <streamer> <discord-channel> <ping-role> <message>',
+                name: '/twitch add <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
                 value: 'Add a twitch streamer',
               },
               {
-                name: '/twitch edit <streamer> <discord-channel> <ping-role> <message>',
+                name: '/twitch edit <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
                 value: 'Edit a twitch streamer',
               },
               {
