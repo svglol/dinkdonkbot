@@ -157,7 +157,7 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
       const messages = await Promise.all(messagesPromises)
 
       // add message IDs to KV
-      const messagesToUpdate = { messages }
+      const messagesToUpdate = { streamId: event.id, messages }
       await env.KV.put(`discord-messages-${broadcasterId}`, JSON.stringify(messagesToUpdate), { expirationTtl: 50 * 60 * 60 })
 
       // remove subscription if no one is subscribed
@@ -168,31 +168,24 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
       const broadcasterId = event.broadcaster_user_id
       const broadcasterName = event.broadcaster_user_name
       const streamerData = await getStreamerDetails(broadcasterName, env)
-      const messagesToUpdate = await env.KV.get(`discord-messages-${broadcasterId}`, { type: 'json' }) as { messages: { messageId: string, channelId: string, embed: DiscordEmbed }[] }
+      const messagesToUpdate = await env.KV.get(`discord-messages-${broadcasterId}`, { type: 'json' }) as { streamId: string, messages: { messageId: string, channelId: string, embed: DiscordEmbed }[] }
       if (messagesToUpdate) {
         const components = []
-        const latestVOD = await getLatestVOD(broadcasterId, env)
-        if (latestVOD && latestVOD.viewable === 'public' && latestVOD.type === 'archive') {
-          const liveTime = new Date(messagesToUpdate.messages[0].embed.timestamp)
-          const publishedAt = new Date(latestVOD.published_at)
-          const thirtyMinutes = 30 * 60 * 1000
-          const timeDifference = Math.abs(liveTime.getTime() - publishedAt.getTime())
-          const isWithinThirtyMinutes = timeDifference <= thirtyMinutes
-          if (isWithinThirtyMinutes) {
-            components.push(
-              {
-                type: 1,
-                components: [
-                  {
-                    type: 2,
-                    label: 'Watch VOD',
-                    url: latestVOD.url,
-                    style: 5,
-                  },
-                ],
-              },
-            )
-          }
+        const latestVOD = await getLatestVOD(broadcasterId, messagesToUpdate.streamId, env)
+        if (latestVOD) {
+          components.push(
+            {
+              type: 1,
+              components: [
+                {
+                  type: 2,
+                  label: 'Watch VOD',
+                  url: latestVOD.url,
+                  style: 5,
+                },
+              ],
+            },
+          )
         }
         const updatePromises = messagesToUpdate.messages.map((message) => {
           // update embed with offline message

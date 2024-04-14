@@ -226,9 +226,9 @@ export async function getStreamerDetails(user: string, env: Env) {
   }
 }
 
-export async function getLatestVOD(userid: string, env: Env) {
+export async function getLatestVOD(userid: string, streamID: string, env: Env) {
   try {
-    const vodRes = await fetch(`https://api.twitch.tv/helix/videos?user_id=${userid}&first=1`, {
+    const vodRes = await fetch(`https://api.twitch.tv/helix/videos?user_id=${userid}&type=archive&period=week`, {
       headers: {
         'Client-ID': env.TWITCH_CLIENT_ID,
         'Authorization': `Bearer ${await getToken(env)}`,
@@ -240,7 +240,8 @@ export async function getLatestVOD(userid: string, env: Env) {
     const vodData = await vodRes.json() as VideoResponseData
     if (vodData.data.length === 0)
       return null
-    const vod = vodData.data[0]
+
+    const vod = vodData.data.find(vod => vod.stream_id === streamID)
     return vod
   }
   catch (error) {
