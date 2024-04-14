@@ -350,7 +350,7 @@ async function liveMessageEmbedBuilder(sub: {
 
   if (streamData) {
     title = streamData.title
-    thumbnail = streamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')
+    thumbnail = `${streamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamData.id}`
     timestamp = new Date(streamData.started_at).toISOString()
   }
 
