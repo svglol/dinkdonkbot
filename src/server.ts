@@ -200,7 +200,9 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
           const sub = await useDB(env).query.streams.findFirst({
             where: (streams, { eq }) => eq(streams.id, message.dbStreamId),
           })
-          return updateMessage(message.channelId, message.messageId, offlineMessageBuilder(sub), env.DISCORD_TOKEN, message.embed, components)
+          const offlineMessage = sub ? offlineMessageBuilder(sub) : '{{name}} is now offline'
+
+          return updateMessage(message.channelId, message.messageId, offlineMessage, env.DISCORD_TOKEN, message.embed, components)
         })
         await Promise.all(updatePromises)
 
