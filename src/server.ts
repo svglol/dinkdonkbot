@@ -152,7 +152,7 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
         const message = liveMessageBuilder(sub)
         const embed = await liveMessageEmbedBuilder(sub, env)
         const components = liveMessageComponentsBuilder(sub)
-        return sendMessage(sub.channelId, message, env.DISCORD_TOKEN, embed).then(messageId => ({ messageId, channelId: sub.channelId, embed, components, dbStreamId: sub.id }))
+        return sendMessage(sub.channelId, message, env.DISCORD_TOKEN, embed, components).then(messageId => ({ messageId, channelId: sub.channelId, embed, dbStreamId: sub.id }))
       })
       const messages = await Promise.all(messagesPromises)
 
