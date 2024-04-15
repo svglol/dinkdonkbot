@@ -9,7 +9,7 @@ import {
   InteractionType,
   verifyKey,
 } from 'discord-interactions'
-import { INVITE_COMMAND, TWITCH_COMMAND } from './commands'
+import * as commands from './commands'
 import { getChannelId, getLatestVOD, getStreamDetails, getStreamerDetails, removeSubscription, subscribe } from './twitch'
 import { and, eq, like, tables, useDB } from './database/db'
 
@@ -411,12 +411,12 @@ async function updateInteraction(interaction: DiscordInteraction, body: object, 
 
 async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
   switch (interaction.data.name.toLowerCase()) {
-    case INVITE_COMMAND.name.toLowerCase(): {
+    case commands.INVITE_COMMAND.name.toLowerCase(): {
       const applicationId = env.DISCORD_APPLICATION_ID
       const INVITE_URL = `https://discord.com/oauth2/authorize?client_id=${applicationId}&permissions=131072&scope=applications.commands+bot`
       return await updateInteraction(interaction, { content: INVITE_URL }, env)
     }
-    case TWITCH_COMMAND.name.toLowerCase(): {
+    case commands.TWITCH_COMMAND.name.toLowerCase(): {
       const option = interaction.data.options[0].name
       switch (option) {
         case 'add': {
