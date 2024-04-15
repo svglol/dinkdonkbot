@@ -1,0 +1,31 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    ":labels(dependencies, chore)",
+    ":pinDependencies",
+    ":pinDevDependencies",
+    ":maintainLockFilesWeekly",
+    ":pinAllExceptPeerDependencies",
+    ":widenPeerDependencies",
+    ":semanticCommitTypeAll(chore)",
+    "group:monorepos",
+    "group:recommended"
+  ],
+  "packageRules": [
+    { "matchPackagePatterns": ["*"], "rangeStrategy": "pin" },
+    {
+      "extends": ["packages:test"],
+      "matchPackageNames": ["c8", "happy-dom", "jsdom", "vitest"],
+      "matchPackagePatterns": ["^@vitest/"],
+      "groupName": "test packages"
+    },
+    {
+      "extends": ["packages:linters"],
+      "matchPackageNames": ["@commitlint", "stylelint"],
+      "groupName": "all linters"
+    }
+  ],
+  "timezone": "Pacific/Auckland",
+  "prCreation": "immediate"
+}
