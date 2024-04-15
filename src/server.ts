@@ -482,7 +482,7 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
 
           await useDB(env).delete(tables.streams).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
           const subscriptions = await useDB(env).query.streams.findMany({
-            where: (streams, { eq }) => eq(streams.name, streamer),
+            where: (streams, { like }) => like(streams.name, streamer),
           })
           if (subscriptions.length === 0 && stream)
             await removeSubscription(stream.broadcasterId, env)
