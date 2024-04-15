@@ -189,10 +189,9 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
         }
         const updatePromises = messagesToUpdate.messages.map(async (message) => {
           // update embed with offline message
-          const liveTimeInMilliseconds = Date.now() - new Date(message.embed.timestamp).getTime()
-
+          const duration = latestVOD ? latestVOD.duration : formatDuration(Date.now() - new Date(message.embed.timestamp).getTime())
           message.embed.timestamp = new Date().toISOString()
-          message.embed.description = `Streamed for **${formatDuration(liveTimeInMilliseconds)}**`
+          message.embed.description = `Streamed for **${duration}**`
           message.embed.footer.text = 'Last online'
           if (streamerData.offline_image_url)
             message.embed.image.url = streamerData.offline_image_url
