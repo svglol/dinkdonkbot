@@ -131,7 +131,7 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
   if (new Date(messageTimestamp) < new Date(Date.now() - (10 * 60 * 1000)))
     return new Response('Message timestamp is older than 10 minutes', { status: 403 })
 
-  const payload = JSON.parse(body) as SubscriptionEventResponseData
+  const payload = JSON.parse(body) as SubscriptionEventResponseData<SubscriptionType>
 
   if (payload.subscription.status === 'webhook_callback_verification_pending') {
     const challenge = payload.challenge
@@ -139,8 +139,8 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
   }
 
   if (payload.event) {
-    const event = payload.event
     if (payload.subscription.type === 'stream.online') {
+      const event = payload.event as OnlineEventData
       const broadcasterId = event.broadcaster_user_id
 
       const subscriptions = await useDB(env).query.streams.findMany({
@@ -165,10 +165,11 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
         await removeSubscription(broadcasterId, env)
     }
     else if (payload.subscription.type === 'stream.offline') {
+      const event = payload.event as OfflineEventData
       const broadcasterId = event.broadcaster_user_id
       const broadcasterName = event.broadcaster_user_name
       const streamerData = await getStreamerDetails(broadcasterName, env)
-      const messagesToUpdate = await env.KV.get(`discord-messages-${broadcasterId}`, { type: 'json' }) as { streamId: string, messages: { messageId: string, channelId: string, embed: DiscordEmbed, dbStreamId: number }[] }
+      const messagesToUpdate = await env.KV.get(`discord-messages-${broadcasterId}`, { type: 'json' }) as KVDiscordMessage
       if (messagesToUpdate) {
         const components = []
         const latestVOD = await getLatestVOD(broadcasterId, messagesToUpdate.streamId, env)
@@ -215,7 +216,7 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
 
 router.all('*', () => new Response('Not Found.', { status: 404 }))
 
-async function sendMessage(channelId: string, messageContent: string, discordToken: string, embed?: any, components?: any[]) {
+async function sendMessage(channelId: string, messageContent: string, discordToken: string, embed?: DiscordEmbed, components?: DiscordComponent[]) {
   const url = `https://discord.com/api/channels/${channelId}/messages`
   const body = {
     content: messageContent,
@@ -243,7 +244,7 @@ async function sendMessage(channelId: string, messageContent: string, discordTok
   }
 }
 
-async function updateMessage(channelId: string, messageId: string, messageContent: string, discordToken: string, embed?: any, components?: any[]) {
+async function updateMessage(channelId: string, messageId: string, messageContent: string, discordToken: string, embed?: DiscordEmbed, components?: DiscordComponent[]) {
   const url = `https://discord.com/api/channels/${channelId}/messages/${messageId}`
   const body = {
     content: messageContent,

@@ -18,6 +18,11 @@ declare global {
     token_type: string
   }
 
+  interface KVDiscordMessage {
+    streamId: string
+    messages: { messageId: string, channelId: string, embed: DiscordEmbed, dbStreamId: number }[]
+  }
+
   interface TwitchUserData {
     data: {
       id: string
@@ -37,16 +42,13 @@ declare global {
   interface SubscriptionCondition {
     broadcaster_user_id?: string
     user_id?: string
-    // Add more properties as needed based on possible conditions
   }
 
-  // Interface for the transport object within each subscription
   interface SubscriptionTransport {
     method: string
     callback: string
   }
 
-  // Interface for an individual subscription object
   interface Subscription {
     id: string
     status: string
@@ -58,30 +60,31 @@ declare global {
     transport: SubscriptionTransport
   }
 
-  // Interface for the entire response object
   interface SubscriptionResponse {
     data: Subscription[]
     total: number
     total_cost: number
     max_total_cost: number
-    pagination: Record<string, unknown> // Placeholder for pagination data
+    pagination: Record<string, unknown>
   }
 
-  // Interface for the condition object within the subscription
   interface SubscriptionConditionData {
     broadcaster_user_id: string
   }
 
-  // Interface for the transport object within the subscription
   interface SubscriptionTransportData {
     method: string
     callback: string
   }
 
-  // Interface for the subscription object
+  enum SubscriptionType {
+    Online = 'stream.online',
+    Offline = 'stream.offline',
+  }
+
   interface SubscriptionData {
     id: string
-    type: string
+    type: 'stream.online' | 'stream.offline'
     version: string
     status: string
     cost: number
@@ -90,8 +93,7 @@ declare global {
     created_at: string
   }
 
-  // Interface for the event object
-  interface EventData {
+  interface OnlineEventData {
     id: string
     broadcaster_user_id: string
     broadcaster_user_login: string
@@ -100,50 +102,55 @@ declare global {
     started_at: string
   }
 
-  // Interface for the entire response object
-  interface SubscriptionEventResponseData {
+  interface OfflineEventData {
+    broadcaster_user_id: string
+    broadcaster_user_login: string
+    broadcaster_user_name: string
+  }
+  type SubscriptionEventByType<T extends SubscriptionType> = T extends SubscriptionType.Online
+    ? OnlineEventData
+    : T extends SubscriptionType.Offline
+      ? OfflineEventData
+      : never
+
+  interface SubscriptionEventResponseData<T extends SubscriptionType> {
     subscription: SubscriptionData
-    event?: EventData
+    event?: SubscriptionEventByType<T>
     challenge?: string
   }
 
-  // Interface representing an option within a Discord interaction
   interface DiscordInteractionOption {
-    name: string // Name of the option
-    value: string | number | boolean // Value of the option (can be string, number, or boolean)
+    name: string
+    value: string | number | boolean
   }
 
-  // Interface representing a sub-command within a Discord interaction
   interface DiscordSubCommand {
-    name: string // Name of the sub-command
-    options?: DiscordInteractionOption[] // Optional array of options for the sub-command
+    name: string
+    options?: DiscordInteractionOption[]
   }
 
-  // Interface representing a top-level command or interaction
   interface DiscordInteraction {
-    id: string // Unique ID of the interaction
-    type: number // Type of interaction (1 for Ping, 2 for Application Command)
+    id: string
+    type: number
     data?: {
-      name: string // Name of the invoked command or sub-command
-      options?: DiscordInteractionOption[] | DiscordSubCommand[] // Options or sub-commands provided
+      name: string
+      options?: DiscordInteractionOption[] | DiscordSubCommand[]
     }
-    guild_id: string // ID of the guild (server) where the interaction occurred
-    channel_id: string // ID of the channel where the interaction occurred
-    member?: DiscordInteractionMember // Information about the member who issued the interaction
-    token: string // Token used to respond to the interaction
+    guild_id: string
+    channel_id: string
+    member?: DiscordInteractionMember
+    token: string
   }
 
-  // Interface representing a member in a Discord interaction
   interface DiscordInteractionMember {
     user: {
-      id: string // ID of the user
-      username: string // Username of the user
-      discriminator: string // Discriminator of the user (e.g., #1234)
-      avatar: string | null // Avatar URL of the user (or null if no avatar)
+      id: string
+      username: string
+      discriminator: string
+      avatar: string | null
     }
-    roles: string[] // Array of role IDs assigned to the member
-    permissions: string // Permissions of the member in the guild
-    // Add more properties as needed to represent member information
+    roles: string[]
+    permissions: string
   }
 
   interface TwitchStreamResponse {
@@ -157,36 +164,110 @@ declare global {
     user_name: string
     game_id: string
     game_name: string
-    type: string // Assuming 'type' can be 'live' or 'vod' (video on demand), adjust as needed
+    type: string
     title: string
-    tags: string[] // Assuming 'tags' are strings
+    tags: string[]
     viewer_count: number
-    started_at: string // ISO 8601 date-time string
+    started_at: string
     language: string
-    thumbnail_url: string // Placeholder URL with {width}x{height} variables
-    tag_ids: string[] // Assuming 'tag_ids' are strings
+    thumbnail_url: string
+    tag_ids: string[]
     is_mature: boolean
   }
 
   interface DiscordEmbed {
     title: string
-    color: number
-    description: string
-    fields: {
+    color?: number
+    description?: string
+    fields?: {
       name: string
       value: string
     }[]
-    url: string
-    image: {
+    url?: string
+    image?: {
       url: string
     }
-    thumbnail: {
+    thumbnail?: {
       url: string
     }
-    timestamp: string
-    footer: {
+    timestamp?: string
+    footer?: {
       text: string
+      iconURL?: string
     }
+    author?: {
+      name: string
+      url?: string
+      iconURL?: string
+    }
+    video?: {
+      url: string
+    }
+    provider?: {
+      name?: string
+      url?: string
+    }
+    type?: 'rich' | 'image' | 'video' | 'gifv' | 'article' | 'link'
+    files?: {
+      name: string
+      url: string
+    }[]
+  }
+
+  interface DiscordComponent {
+    type: DiscordComponentType
+    components?: DiscordComponentData[]
+    custom_id?: string
+    disabled?: boolean
+    placeholder?: string
+    min_values?: number
+    max_values?: number
+  }
+
+  interface DiscordComponentData {
+    type: DiscordComponentType
+    label?: string
+    style?: DiscordButtonStyle
+    emoji?: DiscordEmoji
+    custom_id?: string
+    url?: string
+    options?: DiscordComponentOption[]
+    placeholder?: string
+    min_values?: number
+    max_values?: number
+  }
+
+  interface DiscordComponentOption {
+    label: string
+    value: string
+    description?: string
+    emoji?: DiscordEmoji
+    default?: boolean
+  }
+
+  interface DiscordEmoji {
+    id?: string
+    name?: string
+    animated?: boolean
+  }
+
+  enum DiscordComponentType {
+    ActionRow = 1,
+    Button = 2,
+    StringSelect = 3,
+    TextInput = 4,
+    UserSelect = 5,
+    RoleSelect = 6,
+    MentionableSelect = 7,
+    ChannelSelect = 8,
+  }
+
+  enum DiscordButtonStyle {
+    Primary = 1,
+    Secondary = 2,
+    Success = 3,
+    Danger = 4,
+    Link = 5,
   }
 
   interface MutedSegment {
@@ -215,7 +296,6 @@ declare global {
   }
 
   interface PaginationData {
-    // Define properties for pagination data if needed
   }
 
   interface VideoResponseData {
