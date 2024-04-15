@@ -581,27 +581,27 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
             fields: [
               {
                 name: '/twitch add <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
-                value: 'Add a twitch streamer',
+                value: 'Add a Twitch streamer to receive notifications for going online or offline',
               },
               {
                 name: '/twitch edit <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
-                value: 'Edit a twitch streamer',
+                value: 'Edit a Twitch streamer\'s settings',
               },
               {
                 name: '/twitch remove <streamer>',
-                value: 'Remove a streamer',
+                value: 'Remove a Twitch streamer from receiving notifications for going online or offline',
               },
               {
                 name: '/twitch list',
-                value: 'List the twitch streamers',
+                value: 'List the twitch streamers that you are subscribed to',
               },
               {
                 name: '/twitch test <streamer> <global>',
-                value: 'Test a notification for a streamer \n Global - true/false - show to everyone or not',
+                value: 'Test the notification for a streamer \n Global - true/false - show to everyone or not',
               },
               {
                 name: '/twitch details <streamer>',
-                value: 'Get details for a streamer',
+                value: 'Show the details for a streamer you are subscribed to',
               },
               {
                 name: '/twitch help',

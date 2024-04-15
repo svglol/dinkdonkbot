@@ -15,16 +15,16 @@ export const TWITCH_COMMAND = {
   options: [{
     type: 1,
     name: 'add',
-    description: 'Add a twitch streamer',
+    description: 'Add a Twitch streamer to receive notifications for going online or offline',
     options: [{
       type: 3,
       name: 'streamer',
-      description: 'The name of the streamer',
+      description: 'The name of the streamer to add',
       required: true,
     }, {
       type: 7,
       name: 'discord-channel',
-      description: 'The discord channel to post to',
+      description: 'The discord channel to post to when the streamer goes live',
       required: true,
       channel_types: [0],
     }, {
@@ -43,26 +43,26 @@ export const TWITCH_COMMAND = {
   }, {
     type: 1,
     name: 'remove',
-    description: 'Remove a twitch streamer',
+    description: 'Remove a Twitch streamer from receiving notifications for going online or offline',
     options: [{
       type: 3,
       name: 'streamer',
-      description: 'The name of the streamer',
+      description: 'The name of the streamer to remove',
       required: true,
     }],
   }, {
     type: 1,
     name: 'edit',
-    description: 'Edit a twitch streamer',
+    description: 'Edit a Twitch streamer\'s settings',
     options: [{
       type: 3,
       name: 'streamer',
-      description: 'The name of the streamer',
+      description: 'The name of the streamer to edit',
       required: true,
     }, {
       type: 7,
       name: 'discord-channel',
-      description: 'The discord channel to post to',
+      description: 'The discord channel to post to when the streamer goes live',
       channel_types: [0],
     }, {
       type: 8,
@@ -80,7 +80,7 @@ export const TWITCH_COMMAND = {
   }, {
     type: 1,
     name: 'list',
-    description: 'List the twitch streamers',
+    description: 'List the twitch streamers that you are subscribed to',
   }, {
     type: 1,
     name: 'test',
@@ -88,26 +88,26 @@ export const TWITCH_COMMAND = {
     options: [{
       type: 3,
       name: 'streamer',
-      description: 'The name of the streamer',
+      description: 'The name of the streamer to test',
       required: true,
     }, {
       type: 5,
       name: 'global',
-      description: 'Show the notification for everyone',
+      description: 'Show the notification for everyone in the server',
     }],
   }, {
     type: 1,
     name: 'details',
-    description: 'Show the notification details for a streamer',
+    description: 'Show the details for a streamer you are subscribed to',
     options: [{
       type: 3,
       name: 'streamer',
-      description: 'The name of the streamer',
+      description: 'The name of the streamer to show',
       required: true,
     }],
   }, {
     type: 1,
     name: 'help',
-    description: 'Show help for the twitch command',
+    description: 'Show help for the twitch command and its subcommands',
   }],
 }
