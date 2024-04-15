@@ -6,27 +6,27 @@ settings:
 
 dependencies:
   discord-interactions:
-    specifier: ^3.4.0
+    specifier: 3.4.0
     version: 3.4.0
   drizzle-orm:
-    specifier: ^0.30.8
+    specifier: 0.30.8
     version: 0.30.8(@cloudflare/workers-types@4.20240405.0)
   itty-router:
-    specifier: ^5.0.12
-    version: 5.0.12
+    specifier: 4.0.13
+    version: 4.0.13
 
 devDependencies:
   '@antfu/eslint-config':
-    specifier: ^2.13.3
+    specifier: 2.13.3
     version: 2.13.3(@vue/compiler-sfc@3.4.21)(eslint@9.0.0)(typescript@5.4.4)
   '@cloudflare/workers-types':
-    specifier: ^4.20240405.0
+    specifier: 4.20240405.0
     version: 4.20240405.0
   dotenv:
-    specifier: ^16.4.5
+    specifier: 16.4.5
     version: 16.4.5
   drizzle-kit:
-    specifier: ^0.20.14
+    specifier: 0.20.14
     version: 0.20.14
   eslint:
     specifier: ^9.0.0
@@ -35,7 +35,7 @@ devDependencies:
     specifier: 5.0.0-beta.2
     version: 5.0.0-beta.2
   tsx:
-    specifier: ^4.7.2
+    specifier: 4.7.2
     version: 4.7.2
   wrangler:
     specifier: ^3.49.0
@@ -3036,8 +3036,8 @@ packages:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
     dev: true
 
-  /itty-router@5.0.12:
-    resolution: {integrity: sha512-mL+QBfOhEeclImvZuZZpJUozsEf3wjlyIxvYNgAtOfcLKiQ23kE7S9ZTooDEbl7tUabU3dbbjtiSfOiCloWT9w==}
+  /itty-router@4.0.13:
+    resolution: {integrity: sha512-iiQ9k1nQgaal/MteVft5pwYkvzuZx3idPT9tYpKWl7rKH74tyz5VVSVUCXUO0iBh5HDXjHYsix90UrFKPfThHg==}
     dev: false
 
   /js-tokens@4.0.0:
