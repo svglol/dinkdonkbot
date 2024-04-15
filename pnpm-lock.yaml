@@ -29,7 +29,7 @@ devDependencies:
     specifier: 0.20.14
     version: 0.20.14
   eslint:
-    specifier: ^9.0.0
+    specifier: 9.0.0
     version: 9.0.0
   ngrok:
     specifier: 5.0.0-beta.2
