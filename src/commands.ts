@@ -12,10 +12,12 @@ export const TWITCH_COMMAND = {
   name: 'twitch',
   description: 'Twitch streamer notifications',
   default_member_permissions: '0',
+  dm_permission: false,
   options: [{
     type: 1,
     name: 'add',
     description: 'Add a Twitch streamer to receive notifications for going online or offline',
+    dm_permission: false,
     options: [{
       type: 3,
       name: 'streamer',
@@ -44,6 +46,7 @@ export const TWITCH_COMMAND = {
     type: 1,
     name: 'remove',
     description: 'Remove a Twitch streamer from receiving notifications for going online or offline',
+    dm_permission: false,
     options: [{
       type: 3,
       name: 'streamer',
@@ -54,6 +57,7 @@ export const TWITCH_COMMAND = {
     type: 1,
     name: 'edit',
     description: 'Edit a Twitch streamer\'s settings',
+    dm_permission: false,
     options: [{
       type: 3,
       name: 'streamer',
@@ -81,10 +85,12 @@ export const TWITCH_COMMAND = {
     type: 1,
     name: 'list',
     description: 'List the twitch streamers that you are subscribed to',
+    dm_permission: false,
   }, {
     type: 1,
     name: 'test',
     description: 'Test the notification for a streamer',
+    dm_permission: false,
     options: [{
       type: 3,
       name: 'streamer',
@@ -99,6 +105,7 @@ export const TWITCH_COMMAND = {
     type: 1,
     name: 'details',
     description: 'Show the details for a streamer you are subscribed to',
+    dm_permission: false,
     options: [{
       type: 3,
       name: 'streamer',
@@ -109,5 +116,6 @@ export const TWITCH_COMMAND = {
     type: 1,
     name: 'help',
     description: 'Show help for the twitch command and its subcommands',
+    dm_permission: false,
   }],
 }
