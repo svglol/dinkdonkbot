@@ -304,51 +304,23 @@ function liveMessageComponentsBuilder(sub: {
   ]
 }
 
-function liveMessageBuilder(sub: {
-  name: string
-  id: number
-  broadcasterId: string
-  guildId: string
-  channelId: string
-  roleId: string
-  liveMessage: string
-  offlineMessage: string
-}) {
-  let message = ''
-  if (sub.roleId && sub.roleId !== sub.guildId)
-    message += ` <@&${sub.roleId}> `
-
-  message += sub.liveMessage.replace(/\{\{name\}\}/gi, sub.name).replace(/\{\{url\}\}/gi, `https://twitch.tv/${sub.name}`)
-
-  return message
+function messageBuilder(message: string, streamName: string) {
+  return message.replace(/\{\{name\}\}/gi, streamName)
+    .replace(/\{\{url\}\}/gi, `https://twitch.tv/${streamName}`)
+    .replace(/\{\{everyone\}\}/gi, '@everyone')
+    .replace(/\{\{here\}\}/gi, '@here')
 }
 
-function offlineMessageBuilder(sub: {
-  name: string
-  id: number
-  broadcasterId: string
-  guildId: string
-  channelId: string
-  roleId: string
-  liveMessage: string
-  offlineMessage: string
-}) {
-  let message = ''
-
-  message += sub.offlineMessage.replace(/\{\{name\}\}/gi, sub.name).replace(/\{\{url\}\}/gi, `https://twitch.tv/${sub.name}`)
-
-  return message
+function liveMessageBuilder(sub: Stream) {
+  const roleMention = sub.roleId && sub.roleId !== sub.guildId ? `<@&${sub.roleId}> ` : ''
+  return `${roleMention}${messageBuilder(sub.liveMessage, sub.name)}`
 }
 
-async function liveMessageEmbedBuilder(sub: {
-  name: string
-  id: number
-  broadcasterId: string
-  guildId: string
-  channelId: string
-  liveMessage: string
-  offlineMessage: string
-}, env: Env) {
+function offlineMessageBuilder(sub: Stream) {
+  return messageBuilder(sub.offlineMessage, sub.name)
+}
+
+async function liveMessageEmbedBuilder(sub: Stream, env: Env) {
   const streamerData = await getStreamerDetails(sub.name, env)
   const streamData = await getStreamDetails(sub.name, env)
   let title = `${streamerData.display_name} is live!`
@@ -616,7 +588,7 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
               },
               {
                 name: 'Message variables',
-                value: '```{{name}} = the name of the streamer\n{{url}} = the url for the stream```',
+                value: '```{{name}} = the name of the streamer\n{{url}} = the url for the stream\n{{everyone}} = @everyone\n{{here}} = @here```',
               },
             ],
           }
