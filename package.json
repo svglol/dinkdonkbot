@@ -3,6 +3,7 @@
   "type": "module",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@8.15.5",
   "description": "A discord bot that posts notifications when twitch streamers go live",
   "author": "Matthew Trotman <savageguy@gmail.com>",
   "license": "MIT",
@@ -14,6 +15,7 @@
     "ngrok": "ngrok http 8787",
     "fix": "eslint --fix .",
     "lint": "eslint .",
+    "test": "vitest run",
     "register": "tsx src/register.ts",
     "publish": "wrangler deploy",
     "db:generate": "drizzle-kit generate:sqlite",
@@ -27,12 +29,14 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "2.13.3",
+    "@cloudflare/vitest-pool-workers": "0.1.19",
     "@cloudflare/workers-types": "4.20240405.0",
     "dotenv": "16.4.5",
     "drizzle-kit": "0.20.14",
     "eslint": "9.0.0",
     "ngrok": "5.0.0-beta.2",
     "tsx": "4.7.2",
+    "vitest": "1.3.0",
     "wrangler": "3.50.0"
   }
 }

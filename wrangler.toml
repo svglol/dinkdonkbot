@@ -3,6 +3,7 @@ main = "./src/server.ts"
 compatibility_date = "2023-05-18"
 kv_namespaces = [ { binding = "KV", id = "2368012e59c642ada32014c95609dd1b" } ]
 tail_consumers = [ { service = "dinkdonkbot-tail" } ]
+compatibility_flags = [ "nodejs_compat" ]
 
 [triggers]
 crons = [ "0 0 * * *" ]

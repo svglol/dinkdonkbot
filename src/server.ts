@@ -1,7 +1,6 @@
 /**
  * The core server that runs on a Cloudflare worker.
  */
-import type { IRequest } from 'itty-router'
 import { Router } from 'itty-router'
 import {
   InteractionResponseFlags,
@@ -46,14 +45,13 @@ async function verifyDiscordRequest(request, env: Env) {
 }
 
 const server = {
-  verifyDiscordRequest,
-  async fetch(request: IRequest, env: Env, ctx: ExecutionContext) {
+  async fetch(request, env: Env, ctx: ExecutionContext) {
     return router.fetch(request, env, ctx)
   },
   async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext) {
     ctx.waitUntil(scheduledCheck(env))
   },
-}
+} satisfies ExportedHandler<Env>
 
 export default server
 
@@ -70,7 +68,7 @@ router.get('/', (request, env: Env) => {
  * https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object
  */
 router.post('/', async (request, env: Env, ctx: ExecutionContext) => {
-  const { isValid, interaction } = await server.verifyDiscordRequest(
+  const { isValid, interaction } = await verifyDiscordRequest(
     request,
     env,
   )
