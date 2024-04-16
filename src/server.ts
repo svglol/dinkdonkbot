@@ -288,7 +288,7 @@ function liveMessageComponentsBuilder(streamName: string) {
       components: [
         {
           type: 2,
-          label: 'View on Twitch',
+          label: 'Watch Stream',
           url: `https://twitch.tv/${streamName}`,
           style: 5,
         },
