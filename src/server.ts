@@ -151,25 +151,27 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
       })
 
       // send message to all subscriptions
-      const messagesPromises = subscriptions.map(async (sub) => {
-        const message = liveMessageBuilder(sub)
-        const embed = await liveMessageEmbedBuilder(sub, env)
-        const components = liveMessageComponentsBuilder(sub)
-        return sendMessage(sub.channelId, message, env.DISCORD_TOKEN, embed, components)
-          .then((messageId) => {
-            if (messageId)
-              return { messageId, channelId: sub.channelId, embed, dbStreamId: sub.id }
-          })
-      })
-      const messages = await Promise.all(messagesPromises)
+      if (subscriptions.length > 0) {
+        const embed = await liveMessageEmbedBuilder(event.broadcaster_user_name, env)
+        const components = liveMessageComponentsBuilder(event.broadcaster_user_name)
+        const messagesPromises = subscriptions.map(async (sub) => {
+          const message = liveMessageBuilder(sub)
+          return sendMessage(sub.channelId, message, env.DISCORD_TOKEN, embed, components)
+            .then((messageId) => {
+              if (messageId)
+                return { messageId, channelId: sub.channelId, embed, dbStreamId: sub.id }
+            })
+        })
+        const messages = await Promise.all(messagesPromises)
 
-      // add message IDs to KV
-      const messagesToUpdate = { streamId: event.id, messages }
-      await env.KV.put(`discord-messages-${broadcasterId}`, JSON.stringify(messagesToUpdate), { expirationTtl: 50 * 60 * 60 })
-
+        // add message IDs to KV
+        const messagesToUpdate = { streamId: event.id, messages }
+        await env.KV.put(`discord-messages-${broadcasterId}`, JSON.stringify(messagesToUpdate), { expirationTtl: 50 * 60 * 60 })
+      }
+      else {
       // remove subscription if no one is subscribed
-      if (subscriptions.length === 0)
         await removeSubscription(broadcasterId, env)
+      }
     }
     else if (payload.subscription.type === 'stream.offline') {
       const event = payload.event as OfflineEventData
@@ -279,16 +281,7 @@ async function updateMessage(channelId: string, messageId: string, messageConten
   }
 }
 
-function liveMessageComponentsBuilder(sub: {
-  name: string
-  id: number
-  broadcasterId: string
-  guildId: string
-  channelId: string
-  roleId: string
-  liveMessage: string
-  offlineMessage: string
-}) {
+function liveMessageComponentsBuilder(streamName: string) {
   return [
     {
       type: 1,
@@ -296,7 +289,7 @@ function liveMessageComponentsBuilder(sub: {
         {
           type: 2,
           label: 'View on Twitch',
-          url: `https://twitch.tv/${sub.name}`,
+          url: `https://twitch.tv/${streamName}`,
           style: 5,
         },
       ],
@@ -320,9 +313,9 @@ function offlineMessageBuilder(sub: Stream) {
   return messageBuilder(sub.offlineMessage, sub.name)
 }
 
-async function liveMessageEmbedBuilder(sub: Stream, env: Env) {
-  const streamerData = await getStreamerDetails(sub.name, env)
-  const streamData = await getStreamDetails(sub.name, env)
+async function liveMessageEmbedBuilder(streamName: string, env: Env) {
+  const streamerData = await getStreamerDetails(streamName, env)
+  const streamData = await getStreamDetails(streamName, env)
   let title = `${streamerData.display_name} is live!`
   let thumbnail = streamerData.offline_image_url
   let timestamp = new Date().toISOString()
@@ -336,14 +329,14 @@ async function liveMessageEmbedBuilder(sub: Stream, env: Env) {
   return {
     title,
     color: 0x00EA5E9,
-    description: `**${sub.name} is live!**`,
+    description: `**${streamName} is live!**`,
     fields: [
       {
         name: 'Game',
         value: streamData?.game_name ?? 'No game',
       },
     ],
-    url: `https://twitch.tv/${sub.name}`,
+    url: `https://twitch.tv/${streamName}`,
     image: {
       url: thumbnail,
     },
@@ -522,8 +515,8 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
             return await updateInteraction(interaction, { content: 'Could not find subscription' }, env)
 
           const message = liveMessageBuilder(stream)
-          const embed = await liveMessageEmbedBuilder(stream, env)
-          const components = liveMessageComponentsBuilder(stream)
+          const embed = await liveMessageEmbedBuilder(stream.name, env)
+          const components = liveMessageComponentsBuilder(stream.name)
           if (global) {
             if (global.value as boolean) {
               await sendMessage(stream.channelId, message, env.DISCORD_TOKEN, embed, components)
