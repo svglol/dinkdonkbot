@@ -14,7 +14,7 @@ import type { Stream } from './database/db'
 import { and, eq, like, tables, useDB } from './database/db'
 
 class JsonResponse extends Response {
-  constructor(body, init = {}) {
+  constructor(body: object, init = {}) {
     const jsonBody = JSON.stringify(body)
 
     const mergedInit = {
@@ -30,7 +30,7 @@ class JsonResponse extends Response {
 
 const router = Router()
 
-async function verifyDiscordRequest(request, env: Env) {
+async function verifyDiscordRequest(request: Request, env: Env) {
   const signature = request.headers.get('x-signature-ed25519')
   const timestamp = request.headers.get('x-signature-timestamp')
   const body = await request.text()
@@ -130,7 +130,7 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
 
   await env.KV.put(`twitch-eventsub-${messageId}`, 'true', { expirationTtl: 600 })
 
-  if (new Date(messageTimestamp) < new Date(Date.now() - (10 * 60 * 1000)))
+  if (new Date(String(messageTimestamp)) < new Date(Date.now() - (10 * 60 * 1000)))
     return new Response('Message timestamp is older than 10 minutes', { status: 403 })
 
   const payload = JSON.parse(body) as SubscriptionEventResponseData<SubscriptionType>
@@ -179,7 +179,7 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
       const streamerData = await getStreamerDetails(broadcasterName, env)
       const messagesToUpdate = await env.KV.get(`discord-messages-${broadcasterId}`, { type: 'json' }) as KVDiscordMessage
       if (messagesToUpdate) {
-        const components = []
+        const components: DiscordComponent[] = []
         const latestVOD = await getLatestVOD(broadcasterId, messagesToUpdate.streamId, env)
         if (latestVOD) {
           components.push(
@@ -198,11 +198,13 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
         }
         const updatePromises = messagesToUpdate.messages.map(async (message) => {
           // update embed with offline message
-          const duration = latestVOD ? latestVOD.duration : formatDuration(Date.now() - new Date(message.embed.timestamp).getTime())
+          const duration = latestVOD ? latestVOD.duration : formatDuration(Date.now() - new Date(message.embed.timestamp ? message.embed.timestamp : '').getTime())
           message.embed.timestamp = new Date().toISOString()
           message.embed.description = `Streamed for **${duration}**`
-          message.embed.footer.text = 'Last online'
-          if (streamerData.offline_image_url)
+          if (message.embed.footer)
+            message.embed.footer.text = 'Last online'
+
+          if (streamerData && streamerData.offline_image_url && message.embed.image)
             message.embed.image.url = streamerData.offline_image_url
           message.embed.fields = []
           const sub = await useDB(env).query.streams.findFirst({
@@ -305,18 +307,18 @@ function messageBuilder(message: string, streamName: string) {
 
 function liveMessageBuilder(sub: Stream) {
   const roleMention = sub.roleId && sub.roleId !== sub.guildId ? `<@&${sub.roleId}> ` : ''
-  return `${roleMention}${messageBuilder(sub.liveMessage, sub.name)}`
+  return `${roleMention}${messageBuilder(sub.liveMessage ? sub.liveMessage : '{{name}} is live!', sub.name)}`
 }
 
 function offlineMessageBuilder(sub: Stream) {
-  return messageBuilder(sub.offlineMessage, sub.name)
+  return messageBuilder(sub.offlineMessage ? sub.offlineMessage : '{{name}} is now offline.', sub.name)
 }
 
 async function liveMessageEmbedBuilder(streamName: string, env: Env) {
   const streamerData = await getStreamerDetails(streamName, env)
   const streamData = await getStreamDetails(streamName, env)
-  let title = `${streamerData.display_name} is live!`
-  let thumbnail = streamerData.offline_image_url
+  let title = `${streamerData ? streamerData.display_name : streamName} is live!`
+  let thumbnail = streamData?.thumbnail_url ?? ''
   let timestamp = new Date().toISOString()
 
   if (streamData) {
@@ -340,7 +342,7 @@ async function liveMessageEmbedBuilder(streamName: string, env: Env) {
       url: thumbnail,
     },
     thumbnail: {
-      url: streamerData.profile_image_url,
+      url: streamerData ? streamerData.profile_image_url : '',
     },
     timestamp,
     footer: {
@@ -381,6 +383,9 @@ async function updateInteraction(interaction: DiscordInteraction, body: object, 
 }
 
 async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
+  if (!interaction.data)
+    return await updateInteraction(interaction, { content: 'Invalid interaction' }, env)
+
   switch (interaction.data.name.toLowerCase()) {
     case commands.INVITE_COMMAND.name.toLowerCase(): {
       const applicationId = env.DISCORD_APPLICATION_ID
@@ -388,13 +393,17 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
       return await updateInteraction(interaction, { content: INVITE_URL }, env)
     }
     case commands.TWITCH_COMMAND.name.toLowerCase(): {
+      if (!interaction.data.options)
+        return await updateInteraction(interaction, { content: 'Invalid arguments' }, env)
       const option = interaction.data.options[0].name
       switch (option) {
         case 'add': {
           const server = interaction.guild_id
           const add = interaction.data.options.find(option => option.name === 'add') as DiscordSubCommand
-          const streamer = add.options.find(option => option.name === 'streamer').value as string
-          const channel = add.options.find(option => option.name === 'discord-channel').value as string
+          if (!add || !add.options)
+            return await updateInteraction(interaction, { content: 'Invalid arguments' }, env)
+          const streamer = add.options.find(option => option.name === 'streamer')?.value as string
+          const channel = add.options.find(option => option.name === 'discord-channel')?.value as string
           const role = add.options.find(option => option.name === 'ping-role')
           const message = add.options.find(option => option.name === 'live-message')
           const offlineMessage = add.options.find(option => option.name === 'offline-message')
@@ -429,9 +438,11 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
           const liveText = message ? message.value as string : undefined
           const offlineText = offlineMessage ? offlineMessage.value as string : undefined
 
+          const streamerDetails = await getStreamerDetails(streamer, env)
+
           // add to database
           await useDB(env).insert(tables.streams).values({
-            name: (await getStreamerDetails(streamer, env)).display_name,
+            name: streamerDetails ? streamerDetails.display_name : streamer,
             broadcasterId: channelId,
             guildId: server,
             channelId: channel,
@@ -444,7 +455,9 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
         }
         case 'remove': {
           const remove = interaction.data.options.find(option => option.name === 'remove') as DiscordSubCommand
-          const streamer = remove.options.find(option => option.name === 'streamer').value as string
+          if (!remove || !remove.options)
+            return await updateInteraction(interaction, { content: 'Invalid arguments' }, env)
+          const streamer = remove.options.find(option => option.name === 'streamer')?.value as string
           const stream = await useDB(env).query.streams.findFirst({
             where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
           })
@@ -463,7 +476,9 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
         case 'edit':{
           const server = interaction.guild_id
           const edit = interaction.data.options.find(option => option.name === 'edit') as DiscordSubCommand
-          const streamer = edit.options.find(option => option.name === 'streamer').value as string
+          if (!edit || !edit.options)
+            return await updateInteraction(interaction, { content: 'Invalid arguments' }, env)
+          const streamer = edit.options.find(option => option.name === 'streamer')?.value as string
           const dbStream = await useDB(env).query.streams.findFirst({
             where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
           })
@@ -505,7 +520,9 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
         }
         case 'test':{
           const test = interaction.data.options.find(option => option.name === 'test') as DiscordSubCommand
-          const streamer = test.options.find(option => option.name === 'streamer').value as string
+          if (!test || !test.options)
+            return await updateInteraction(interaction, { content: 'Invalid arguments' }, env)
+          const streamer = test.options.find(option => option.name === 'streamer')?.value as string
           const global = test.options.find(option => option.name === 'global')
           const stream = await useDB(env).query.streams.findFirst({
             where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
@@ -531,10 +548,14 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
         }
         case 'details': {
           const details = interaction.data.options.find(option => option.name === 'details') as DiscordSubCommand
-          const streamer = details.options.find(option => option.name === 'streamer').value as string
+          if (!details || !details.options)
+            return await updateInteraction(interaction, { content: 'Invalid arguments' }, env)
+          const streamer = details.options.find(option => option.name === 'streamer')?.value as string
           const stream = await useDB(env).query.streams.findFirst({
             where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
           })
+          if (!stream)
+            return await updateInteraction(interaction, { content: 'Could not find subscription' }, env)
           let message = `Streamer: \`${stream.name}\`\n`
           message += `Channel: <#${stream.channelId}>\n`
           message += `Live Message: \`${stream.liveMessage}\`\n`
@@ -632,19 +653,22 @@ async function scheduledCheck(env: Env) {
     // check if twitch event sub is subscribed to all of our streams in the database
     await removeFailedSubscriptions(env)
     const twitchSubscriptions = await getSubscriptions(env)
-    const streamOnlineSubs = twitchSubscriptions.data.filter(sub => sub.type === 'stream.online' && sub.status === 'enabled').map(sub => sub.condition.broadcaster_user_id)
-    const streamOfflineSubs = twitchSubscriptions.data.filter(sub => sub.type === 'stream.offline' && sub.status === 'enabled').map(sub => sub.condition.broadcaster_user_id)
-    const broadcasterIds = [...new Set(streams.map(stream => stream.broadcasterId))]
+    if (twitchSubscriptions) {
+      const streamOnlineSubs = twitchSubscriptions.data.filter(sub => sub.type === 'stream.online' && sub.status === 'enabled').map(sub => sub.condition.broadcaster_user_id)
+      const streamOfflineSubs = twitchSubscriptions.data.filter(sub => sub.type === 'stream.offline' && sub.status === 'enabled').map(sub => sub.condition.broadcaster_user_id)
+      const broadcasterIds = [...new Set(streams.map(stream => stream.broadcasterId))]
 
-    const broadcasterIdsWithoutSubs = broadcasterIds.filter(
-      broadcasterId =>
-        !streamOnlineSubs.includes(broadcasterId)
-        && !streamOfflineSubs.includes(broadcasterId),
-    )
-    const subsciptionPromises = broadcasterIdsWithoutSubs.map(async (broadcasterId) => {
-      return await subscribe(broadcasterId, env)
-    })
-    await Promise.all(subsciptionPromises)
+      const broadcasterIdsWithoutSubs = broadcasterIds.filter(
+        broadcasterId =>
+          !streamOnlineSubs.includes(broadcasterId)
+          && !streamOfflineSubs.includes(broadcasterId),
+      )
+      const subsciptionPromises = broadcasterIdsWithoutSubs.map(async (broadcasterId) => {
+        return await subscribe(broadcasterId, env)
+      })
+
+      await Promise.all(subsciptionPromises)
+    }
     return true
   }
   catch (error) {
