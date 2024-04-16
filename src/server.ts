@@ -560,15 +560,15 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
             fields: [
               {
                 name: '/twitch add <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
-                value: 'Add a Twitch streamer to receive notifications for going online or offline',
+                value: 'Add a Twitch streamer to receive notifications for going online or offline\n<streamer> - The name of the streamer to add \n<discord-channel> - The discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline',
               },
               {
                 name: '/twitch edit <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
-                value: 'Edit a Twitch streamer\'s settings',
+                value: 'Edit a Twitch streamer\'s settings\n<streamer> - The name of the streamer to edit \n<discord-channel> - The discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline',
               },
               {
                 name: '/twitch remove <streamer>',
-                value: 'Remove a Twitch streamer from receiving notifications for going online or offline',
+                value: 'Remove a Twitch streamer from receiving notifications for going online or offline\n<streamer> - The name of the streamer to remove',
               },
               {
                 name: '/twitch list',
@@ -576,11 +576,11 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
               },
               {
                 name: '/twitch test <streamer> <global>',
-                value: 'Test the notification for a streamer \n Global - true/false - show to everyone or not',
+                value: 'Test the notification for a streamer \n<streamer> - The name of the streamer to test \n<global> - Whether to send the message to everyone or not',
               },
               {
                 name: '/twitch details <streamer>',
-                value: 'Show the details for a streamer you are subscribed to',
+                value: 'Show the details for a streamer you are subscribed to\n<streamer> - The name of the streamer to show',
               },
               {
                 name: '/twitch help',
