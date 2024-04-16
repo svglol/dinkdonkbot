@@ -302,17 +302,6 @@ declare global {
     data: VideoData[]
     pagination: PaginationData
   }
-
-  interface Stream {
-    name: string
-    id: number
-    broadcasterId: string
-    guildId: string
-    channelId: string
-    roleId: string
-    liveMessage: string
-    offlineMessage: string
-  }
 }
 
 export {}

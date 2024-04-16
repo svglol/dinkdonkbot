@@ -11,6 +11,7 @@ import {
 } from 'discord-interactions'
 import * as commands from './commands'
 import { getChannelId, getLatestVOD, getStreamDetails, getStreamerDetails, getSubscriptions, removeFailedSubscriptions, removeSubscription, subscribe } from './twitch'
+import type { Stream } from './database/db'
 import { and, eq, like, tables, useDB } from './database/db'
 
 class JsonResponse extends Response {

@@ -22,3 +22,5 @@ export function useDB(env: Env) {
 export function isTuple<T>(array: T[]): array is [T, ...T[]] {
   return array.length > 0
 }
+
+export type Stream = typeof schema.streams.$inferSelect
