@@ -248,3 +248,26 @@ export async function getLatestVOD(userid: string, streamID: string, env: Env) {
     console.error('Error fetching streamer details:', error)
   }
 }
+
+export async function removeFailedSubscriptions(env: Env) {
+  const subscriptions = await getSubscriptions(env)
+  const failedSubscriptions = subscriptions.data.filter(sub => sub.status !== 'enabled')
+  const promises = failedSubscriptions.map(async (sub) => {
+    try {
+      const res = await fetch(`https://api.twitch.tv/helix/eventsub/subscriptions?id=${sub.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Client-ID': env.TWITCH_CLIENT_ID,
+          'Authorization': `Bearer ${await getToken(env)}`,
+        },
+      })
+      if (!res.ok)
+        throw new Error(`Failed to delete subscription: ${JSON.stringify(await res.json())}`)
+      return res
+    }
+    catch (error) {
+      console.error('Error deleting subscription:', error)
+    }
+  })
+  await Promise.allSettled(promises)
+}

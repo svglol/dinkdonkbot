@@ -10,7 +10,7 @@ import {
   verifyKey,
 } from 'discord-interactions'
 import * as commands from './commands'
-import { getChannelId, getLatestVOD, getStreamDetails, getStreamerDetails, removeSubscription, subscribe } from './twitch'
+import { getChannelId, getLatestVOD, getStreamDetails, getStreamerDetails, getSubscriptions, removeFailedSubscriptions, removeSubscription, subscribe } from './twitch'
 import { and, eq, like, tables, useDB } from './database/db'
 
 class JsonResponse extends Response {
@@ -48,6 +48,9 @@ const server = {
   verifyDiscordRequest,
   async fetch(request: IRequest, env: Env, ctx: ExecutionContext) {
     return router.fetch(request, env, ctx)
+  },
+  async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext) {
+    ctx.waitUntil(scheduledCheck(env))
   },
 }
 
@@ -621,5 +624,67 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
         }
       }
     }
+  }
+}
+
+/**
+ * Asynchronously checks to remove subscriptions for servers that the bot is no longer in,
+ * and checks that the bot is subscribed to all events for streamers
+ */
+async function scheduledCheck(env: Env) {
+  try {
+    const streams = await useDB(env).select().from(tables.streams)
+
+    // check if the bot is subscribed to any servers it shouldnt be
+    const serversRes = await fetch(`https://discord.com/api/v9/users/@me/guilds`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bot ${env.DISCORD_TOKEN}`,
+      },
+    })
+    if (!serversRes.ok)
+      throw new Error(`Failed to fetch servers: ${await serversRes.text()}`)
+
+    const servers = await serversRes.json() as { id: string }[]
+
+    if (servers.length > 0) {
+      const serverIds = servers.map(server => server.id)
+      const dbServerIds = [...new Set(streams.map(stream => stream.guildId))]
+      const idsNotInServers = dbServerIds.filter(id => !serverIds.includes(id))
+      const streamsToRemove = streams.filter(stream => idsNotInServers.includes(stream.guildId))
+
+      const deleteStreamsAndSubscriptions = streamsToRemove.map(async (stream) => {
+        await useDB(env).delete(tables.streams).where(eq(tables.streams.id, stream.id))
+        const subscriptions = await useDB(env).query.streams.findMany({
+          where: (streams, { like }) => like(streams.name, stream.name),
+        })
+        if (subscriptions.length === 0)
+          await removeSubscription(stream.broadcasterId, env)
+      })
+      await Promise.all(deleteStreamsAndSubscriptions)
+    }
+
+    // check if twitch event sub is subscribed to all of our streams in the database
+    await removeFailedSubscriptions(env)
+    const twitchSubscriptions = await getSubscriptions(env)
+    const streamOnlineSubs = twitchSubscriptions.data.filter(sub => sub.type === 'stream.online' && sub.status === 'enabled').map(sub => sub.condition.broadcaster_user_id)
+    const streamOfflineSubs = twitchSubscriptions.data.filter(sub => sub.type === 'stream.offline' && sub.status === 'enabled').map(sub => sub.condition.broadcaster_user_id)
+    const broadcasterIds = [...new Set(streams.map(stream => stream.broadcasterId))]
+
+    const broadcasterIdsWithoutSubs = broadcasterIds.filter(
+      broadcasterId =>
+        !streamOnlineSubs.includes(broadcasterId)
+        && !streamOfflineSubs.includes(broadcasterId),
+    )
+    const subsciptionPromises = broadcasterIdsWithoutSubs.map(async (broadcasterId) => {
+      return await subscribe(broadcasterId, env)
+    })
+    await Promise.all(subsciptionPromises)
+    return true
+  }
+  catch (error) {
+    console.error('Error running scheduled check:', error)
+    return false
   }
 }
