@@ -5,15 +5,6 @@ on:
   pull_request:
 name: ci
 
-env:
-  DISCORD_APPLICATION_ID: ${{ secrets.DISCORD_APPLICATION_ID }}
-  DISCORD_PUBLIC_KEY: ${{ secrets.DISCORD_PUBLIC_KEY }}
-  DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-  TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
-  TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
-  TWITCH_EVENT_SECRET: ${{ secrets.TWITCH_EVENT_SECRET }}
-  WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -23,7 +14,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install
       - run: pnpm run lint
 
   test:
@@ -37,6 +28,14 @@ jobs:
           node-version: 20
       - run: pnpm install
       - run: pnpm run test
+        env:
+          DISCORD_APPLICATION_ID: ${{ secrets.DISCORD_APPLICATION_ID }}
+          DISCORD_PUBLIC_KEY: ${{ secrets.DISCORD_PUBLIC_KEY }}
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
+          TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
+          TWITCH_EVENT_SECRET: ${{ secrets.TWITCH_EVENT_SECRET }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
 
   register:
     if: github.ref == 'refs/heads/master'
@@ -50,6 +49,9 @@ jobs:
           node-version: 20
       - run: pnpm install
       - run: pnpm run register
+        env:
+          DISCORD_APPLICATION_ID: ${{ secrets.DISCORD_APPLICATION_ID }}
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
 
   release:
     if: github.ref == 'refs/heads/master'
