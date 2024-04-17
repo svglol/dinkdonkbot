@@ -151,10 +151,11 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
 
       // send message to all subscriptions
       if (subscriptions.length > 0) {
-        const embed = await liveMessageEmbedBuilder(event.broadcaster_user_name, env)
+        const streamData = await getStreamDetails(event.broadcaster_user_name, env)
+        const embed = await liveMessageEmbedBuilder(event.broadcaster_user_name, env, streamData)
         const components = liveMessageComponentsBuilder(event.broadcaster_user_name)
         const messagesPromises = subscriptions.map(async (sub) => {
-          const message = liveMessageBuilder(sub)
+          const message = liveMessageBuilder(sub, streamData?.game_name)
           return sendMessage(sub.channelId, message, env.DISCORD_TOKEN, embed, components)
             .then((messageId) => {
               if (messageId)
@@ -298,25 +299,25 @@ function liveMessageComponentsBuilder(streamName: string) {
   ]
 }
 
-function messageBuilder(message: string, streamName: string) {
+function messageBuilder(message: string, streamName: string, game?: string) {
   return message.replace(/\{\{name\}\}/gi, streamName)
     .replace(/\{\{url\}\}/gi, `https://twitch.tv/${streamName}`)
     .replace(/\{\{everyone\}\}/gi, '@everyone')
     .replace(/\{\{here\}\}/gi, '@here')
+    .replace(/\{\{(game|category)\}\}/gi, game || '')
 }
 
-function liveMessageBuilder(sub: Stream) {
+function liveMessageBuilder(sub: Stream, game?: string) {
   const roleMention = sub.roleId && sub.roleId !== sub.guildId ? `<@&${sub.roleId}> ` : ''
-  return `${roleMention}${messageBuilder(sub.liveMessage ? sub.liveMessage : '{{name}} is live!', sub.name)}`
+  return `${roleMention}${messageBuilder(sub.liveMessage ? sub.liveMessage : '{{name}} is live!', sub.name, game)}`
 }
 
 function offlineMessageBuilder(sub: Stream) {
   return messageBuilder(sub.offlineMessage ? sub.offlineMessage : '{{name}} is now offline.', sub.name)
 }
 
-async function liveMessageEmbedBuilder(streamName: string, env: Env) {
+async function liveMessageEmbedBuilder(streamName: string, env: Env, streamData?: TwitchStream | null) {
   const streamerData = await getStreamerDetails(streamName, env)
-  const streamData = await getStreamDetails(streamName, env)
   let title = `${streamerData ? streamerData.display_name : streamName} is live!`
   let thumbnail = streamData?.thumbnail_url ?? ''
   let timestamp = new Date().toISOString()
@@ -530,7 +531,7 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
           if (!stream)
             return await updateInteraction(interaction, { content: 'Could not find subscription' }, env)
 
-          const message = liveMessageBuilder(stream)
+          const message = liveMessageBuilder(stream, 'Game')
           const embed = await liveMessageEmbedBuilder(stream.name, env)
           const components = liveMessageComponentsBuilder(stream.name)
           if (global) {
@@ -601,7 +602,7 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
               },
               {
                 name: 'Message variables',
-                value: '```{{name}} = the name of the streamer\n{{url}} = the url for the stream\n{{everyone}} = @everyone\n{{here}} = @here```',
+                value: '```{{name}} = the name of the streamer\n{{url}} = the url for the stream\n{{everyone}} = @everyone\n{{here}} = @here\n{{game}} or {{category}} = the game or category of the stream - only works on live message```',
               },
             ],
           }
