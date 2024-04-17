@@ -12,6 +12,8 @@ import * as commands from './commands'
 import { getChannelId, getLatestVOD, getStreamDetails, getStreamerDetails, getSubscriptions, removeFailedSubscriptions, removeSubscription, subscribe } from './twitch'
 import type { Stream } from './database/db'
 import { and, eq, like, tables, useDB } from './database/db'
+import { formatDuration } from './util/formatDuration'
+import { sendMessage, updateInteraction, updateMessage } from './discord'
 
 class JsonResponse extends Response {
   constructor(body: object, init = {}) {
@@ -152,14 +154,13 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
       // send message to all subscriptions
       if (subscriptions.length > 0) {
         const streamData = await getStreamDetails(event.broadcaster_user_name, env)
-        const embed = await liveMessageEmbedBuilder(event.broadcaster_user_name, env, streamData)
-        const components = liveMessageComponentsBuilder(event.broadcaster_user_name)
+        const streamerData = await getStreamerDetails(event.broadcaster_user_id, env)
         const messagesPromises = subscriptions.map(async (sub) => {
-          const message = liveMessageBuilder(sub, streamData?.game_name)
-          return sendMessage(sub.channelId, message, env.DISCORD_TOKEN, embed, components)
+          const body = liveBodyBuilder({ sub, streamerData, streamData })
+          return sendMessage(sub.channelId, env.DISCORD_TOKEN, body)
             .then((messageId) => {
               if (messageId)
-                return { messageId, channelId: sub.channelId, embed, dbStreamId: sub.id }
+                return { messageId, channelId: sub.channelId, embed: body.embeds[body.embeds.length - 1], dbStreamId: sub.id }
             })
         })
         const messages = await Promise.all(messagesPromises)
@@ -211,9 +212,9 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
           const sub = await useDB(env).query.streams.findFirst({
             where: (streams, { eq }) => eq(streams.id, message.dbStreamId),
           })
-          const offlineMessage = sub ? offlineMessageBuilder(sub) : '{{name}} is now offline'
+          const offlineMessage = messageBuilder(sub?.offlineMessage ? sub.offlineMessage : '{{name}} is now offline.', broadcasterName)
 
-          return updateMessage(message.channelId, message.messageId, offlineMessage, env.DISCORD_TOKEN, message.embed, components)
+          return updateMessage(message.channelId, message.messageId, env.DISCORD_TOKEN, { content: offlineMessage, embeds: [message.embed], components })
         })
         await Promise.all(updatePromises)
 
@@ -227,99 +228,23 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
 
 router.all('*', () => new Response('Not Found.', { status: 404 }))
 
-async function sendMessage(channelId: string, messageContent: string, discordToken: string, embed?: DiscordEmbed, components?: DiscordComponent[]) {
-  const url = `https://discord.com/api/channels/${channelId}/messages`
-  const body = {
-    content: messageContent,
-    embeds: embed ? [embed] : [],
-    components: components ? [...components] : [],
-  }
-
-  try {
-    const message = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bot ${discordToken}`,
+function liveBodyBuilder({ sub, streamerData, streamData }: { sub: Stream, streamerData?: TwitchUser | null, streamData?: TwitchStream | null }) {
+  const components: DiscordComponent[] = []
+  const component = {
+    type: 1,
+    components: [
+      {
+        type: 2,
+        label: 'Watch Stream',
+        url: `https://twitch.tv/${sub.name}`,
+        style: 5,
       },
-      body: JSON.stringify(body),
-    })
-    if (!message.ok)
-      throw new Error(`Failed to send message: ${await message.text()}`)
-
-    const data = await message.json() as { id: string }
-    return data.id
+    ],
   }
-  catch (error) {
-    console.error('Error sending message:', error)
-  }
-}
-
-async function updateMessage(channelId: string, messageId: string, messageContent: string, discordToken: string, embed?: DiscordEmbed, components?: DiscordComponent[]) {
-  const url = `https://discord.com/api/channels/${channelId}/messages/${messageId}`
-  const body = {
-    content: messageContent,
-    embeds: embed ? [embed] : [],
-    components: components ? [...components] : [],
-  }
-
-  try {
-    const message = await fetch(url, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bot ${discordToken}`,
-      },
-      body: JSON.stringify(body),
-    })
-    if (!message.ok)
-      throw new Error(`Failed to update message: ${await message.text()}`)
-
-    const data = await message.json() as { id: string }
-    return data.id
-  }
-  catch (error) {
-    console.error('Error sending message:', error)
-  }
-}
-
-function liveMessageComponentsBuilder(streamName: string) {
-  return [
-    {
-      type: 1,
-      components: [
-        {
-          type: 2,
-          label: 'Watch Stream',
-          url: `https://twitch.tv/${streamName}`,
-          style: 5,
-        },
-      ],
-    },
-  ]
-}
-
-function messageBuilder(message: string, streamName: string, game?: string) {
-  return message.replace(/\{\{name\}\}/gi, streamName)
-    .replace(/\{\{url\}\}/gi, `https://twitch.tv/${streamName}`)
-    .replace(/\{\{everyone\}\}/gi, '@everyone')
-    .replace(/\{\{here\}\}/gi, '@here')
-    .replace(/\{\{(game|category)\}\}/gi, game || '')
-}
-
-function liveMessageBuilder(sub: Stream, game?: string) {
-  const roleMention = sub.roleId && sub.roleId !== sub.guildId ? `<@&${sub.roleId}> ` : ''
-  return `${roleMention}${messageBuilder(sub.liveMessage ? sub.liveMessage : '{{name}} is live!', sub.name, game)}`
-}
-
-function offlineMessageBuilder(sub: Stream) {
-  return messageBuilder(sub.offlineMessage ? sub.offlineMessage : '{{name}} is now offline.', sub.name)
-}
-
-async function liveMessageEmbedBuilder(streamName: string, env: Env, streamData?: TwitchStream | null) {
-  const streamerData = await getStreamerDetails(streamName, env)
-  let title = `${streamerData ? streamerData.display_name : streamName} is live!`
-  let thumbnail = streamData?.thumbnail_url ?? ''
+  components.push(component)
+  const embeds: DiscordEmbed[] = []
+  let title = `${streamerData ? streamerData.display_name : sub.name} is live!`
+  let thumbnail = streamData?.thumbnail_url ?? streamerData?.offline_image_url ?? ''
   let timestamp = new Date().toISOString()
 
   if (streamData) {
@@ -327,18 +252,17 @@ async function liveMessageEmbedBuilder(streamName: string, env: Env, streamData?
     thumbnail = `${streamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamData.id}`
     timestamp = new Date(streamData.started_at).toISOString()
   }
-
-  return {
+  const embed = {
     title,
     color: 0x00EA5E9,
-    description: `**${streamName} is live!**`,
+    description: `**${sub.name} is live!**`,
     fields: [
       {
         name: 'Game',
         value: streamData?.game_name ?? 'No game',
       },
     ],
-    url: `https://twitch.tv/${streamName}`,
+    url: `https://twitch.tv/${sub.name}`,
     image: {
       url: thumbnail,
     },
@@ -350,59 +274,46 @@ async function liveMessageEmbedBuilder(streamName: string, env: Env, streamData?
       text: 'Online',
     },
   }
+  embeds.push(embed)
+
+  const roleMention = sub.roleId && sub.roleId !== sub.guildId ? `<@&${sub.roleId}> ` : ''
+  const message = `${roleMention}${messageBuilder(sub.liveMessage ? sub.liveMessage : '{{name}} is live!', sub.name, streamData?.game_name)}`
+
+  return {
+    content: message,
+    embeds,
+    components,
+  }
 }
 
-function formatDuration(durationInMilliseconds: number) {
-  const seconds = Math.floor(durationInMilliseconds / 1000)
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const remainingSeconds = seconds % 60
-
-  const formattedHours = hours > 0 ? `${hours}h` : ''
-  const formattedMinutes = minutes > 0 ? `${minutes}m` : ''
-  const formattedSeconds = remainingSeconds > 0 ? `${remainingSeconds}s` : ''
-
-  return `${formattedHours}${formattedMinutes}${formattedSeconds}`
-}
-
-async function updateInteraction(interaction: DiscordInteraction, body: object, env: Env) {
-  try {
-    const defer = await fetch(`https://discord.com/api/v10/webhooks/${env.DISCORD_APPLICATION_ID}/${interaction.token}/messages/@original`, {
-      method: 'PATCH',
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-    if (!defer.ok)
-      throw new Error(`Failed to update interaction: ${await defer.text()}`)
-  }
-  catch (error) {
-    console.error('Error updating interaction:', error)
-  }
-  return true
+function messageBuilder(message: string, streamName: string, game?: string) {
+  return message.replace(/\{\{name\}\}/gi, streamName)
+    .replace(/\{\{url\}\}/gi, `https://twitch.tv/${streamName}`)
+    .replace(/\{\{everyone\}\}/gi, '@everyone')
+    .replace(/\{\{here\}\}/gi, '@here')
+    .replace(/\{\{(game|category)\}\}/gi, game || '')
 }
 
 async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
   if (!interaction.data)
-    return await updateInteraction(interaction, { content: 'Invalid interaction' }, env)
+    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid interaction' })
 
   switch (interaction.data.name.toLowerCase()) {
     case commands.INVITE_COMMAND.name.toLowerCase(): {
       const applicationId = env.DISCORD_APPLICATION_ID
       const INVITE_URL = `https://discord.com/oauth2/authorize?client_id=${applicationId}&permissions=131072&scope=applications.commands+bot`
-      return await updateInteraction(interaction, { content: INVITE_URL }, env)
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: INVITE_URL })
     }
     case commands.TWITCH_COMMAND.name.toLowerCase(): {
       if (!interaction.data.options)
-        return await updateInteraction(interaction, { content: 'Invalid arguments' }, env)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
       const option = interaction.data.options[0].name
       switch (option) {
         case 'add': {
           const server = interaction.guild_id
           const add = interaction.data.options.find(option => option.name === 'add') as DiscordSubCommand
           if (!add || !add.options)
-            return await updateInteraction(interaction, { content: 'Invalid arguments' }, env)
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
           const streamer = add.options.find(option => option.name === 'streamer')?.value as string
           const channel = add.options.find(option => option.name === 'discord-channel')?.value as string
           const role = add.options.find(option => option.name === 'ping-role')
@@ -410,24 +321,24 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
           const offlineMessage = add.options.find(option => option.name === 'offline-message')
           // make sure we have all arguments
           if (!server || !streamer || !channel)
-            return await updateInteraction(interaction, { content: 'Invalid arguments' }, env)
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
 
           // check if already subscribed to this channel
           const subscriptions = await useDB(env).query.streams.findMany({
             where: (streams, { eq, and, like }) => and(eq(streams.guildId, server), like(streams.name, streamer)),
           })
           if (subscriptions.length > 0)
-            return await updateInteraction(interaction, { content: 'Already subscribed to this streamer' }, env)
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Already subscribed to this streamer' })
 
           // check if twitch channel exists
           const channelId = await getChannelId(streamer, env)
           if (!channelId)
-            return await updateInteraction(interaction, { content: 'Could not find twitch channel' }, env)
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find twitch channel' })
 
           // subscribe to event sub for this channel
           const subscribed = await subscribe(channelId, env)
           if (!subscribed)
-            return await updateInteraction(interaction, { content: 'Could not subscribe to this twitch channel' }, env)
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not subscribe to this twitch channel' })
 
           let roleId: string | undefined
           if (role) {
@@ -452,18 +363,18 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
             offlineMessage: offlineText,
           })
 
-          return await updateInteraction(interaction, { content: `Successfully subscribed to notifications for **${streamer}** in <#${channel}>` }, env)
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully subscribed to notifications for **${streamer}** in <#${channel}>` })
         }
         case 'remove': {
           const remove = interaction.data.options.find(option => option.name === 'remove') as DiscordSubCommand
           if (!remove || !remove.options)
-            return await updateInteraction(interaction, { content: 'Invalid arguments' }, env)
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
           const streamer = remove.options.find(option => option.name === 'streamer')?.value as string
           const stream = await useDB(env).query.streams.findFirst({
             where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
           })
           if (!stream)
-            return await updateInteraction(interaction, { content: 'Could not find subscription' }, env)
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find subscription' })
 
           await useDB(env).delete(tables.streams).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
           const subscriptions = await useDB(env).query.streams.findMany({
@@ -472,19 +383,19 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
           if (subscriptions.length === 0 && stream)
             await removeSubscription(stream.broadcasterId, env)
 
-          return await updateInteraction(interaction, { content: `Successfully unsubscribed to notifications for **${streamer}**` }, env)
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully unsubscribed to notifications for **${streamer}**` })
         }
         case 'edit':{
           const server = interaction.guild_id
           const edit = interaction.data.options.find(option => option.name === 'edit') as DiscordSubCommand
           if (!edit || !edit.options)
-            return await updateInteraction(interaction, { content: 'Invalid arguments' }, env)
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
           const streamer = edit.options.find(option => option.name === 'streamer')?.value as string
           const dbStream = await useDB(env).query.streams.findFirst({
             where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
           })
           if (!dbStream)
-            return await updateInteraction(interaction, { content: 'Could not find subscription' }, env)
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find subscription' })
 
           const channel = edit.options.find(option => option.name === 'discord-channel')
           if (channel)
@@ -507,7 +418,7 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
           if (offlineMessage)
             await useDB(env).update(tables.streams).set({ offlineMessage: offlineMessage.value as string }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
 
-          return await updateInteraction(interaction, { content: `Successfully edited notifications for **${streamer}**` }, env)
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully edited notifications for **${streamer}**` })
         }
         case 'list': {
           const streams = await useDB(env).query.streams.findMany({
@@ -517,46 +428,45 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
           if (streams.length > 0)
             streamList = streams.map(stream => `**${stream.name}** - <#${stream.channelId}>`).join('\n')
 
-          return await updateInteraction(interaction, { content: streamList }, env)
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: streamList })
         }
         case 'test':{
           const test = interaction.data.options.find(option => option.name === 'test') as DiscordSubCommand
           if (!test || !test.options)
-            return await updateInteraction(interaction, { content: 'Invalid arguments' }, env)
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
           const streamer = test.options.find(option => option.name === 'streamer')?.value as string
           const global = test.options.find(option => option.name === 'global')
           const stream = await useDB(env).query.streams.findFirst({
             where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
           })
           if (!stream)
-            return await updateInteraction(interaction, { content: 'Could not find subscription' }, env)
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find subscription' })
 
-          const message = liveMessageBuilder(stream, 'Game')
-          const embed = await liveMessageEmbedBuilder(stream.name, env)
-          const components = liveMessageComponentsBuilder(stream.name)
+          const streamerData = await getStreamerDetails(stream.name, env)
+          const body = liveBodyBuilder({ sub: stream, streamerData })
           if (global) {
             if (global.value as boolean) {
-              await sendMessage(stream.channelId, message, env.DISCORD_TOKEN, embed, components)
-              return await updateInteraction(interaction, { content: `Successfully sent test message for **${streamer}**` }, env)
+              await sendMessage(stream.channelId, env.DISCORD_TOKEN, body)
+              return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully sent test message for **${streamer}**` })
             }
             else {
-              return await updateInteraction(interaction, { content: message, embeds: [embed] }, env)
+              return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, body)
             }
           }
           else {
-            return await updateInteraction(interaction, { content: message, embeds: [embed] }, env)
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, body)
           }
         }
         case 'details': {
           const details = interaction.data.options.find(option => option.name === 'details') as DiscordSubCommand
           if (!details || !details.options)
-            return await updateInteraction(interaction, { content: 'Invalid arguments' }, env)
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
           const streamer = details.options.find(option => option.name === 'streamer')?.value as string
           const stream = await useDB(env).query.streams.findFirst({
             where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
           })
           if (!stream)
-            return await updateInteraction(interaction, { content: 'Could not find subscription' }, env)
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find subscription' })
           let message = `Streamer: \`${stream.name}\`\n`
           message += `Channel: <#${stream.channelId}>\n`
           message += `Live Message: \`${stream.liveMessage}\`\n`
@@ -564,7 +474,7 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
           if (stream.roleId)
             message += `\n Role: <@&${stream.roleId}>`
 
-          return await updateInteraction(interaction, { content: message }, env)
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: message })
         }
         case 'help': {
           const embed = {
@@ -606,7 +516,7 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
               },
             ],
           }
-          return await updateInteraction(interaction, { embeds: [embed] }, env)
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
         }
       }
     }
