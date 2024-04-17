@@ -22,8 +22,8 @@ jobs:
       - uses: pnpm/action-setup@v3.0.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
-      - run: pnpm install
+          node-version: 20
+      - run: pnpm install --frozen-lockfile
       - run: pnpm run lint
 
   test:
@@ -34,7 +34,7 @@ jobs:
       - uses: pnpm/action-setup@v3.0.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
       - run: pnpm install
       - run: pnpm run test
 
@@ -47,7 +47,7 @@ jobs:
       - uses: pnpm/action-setup@v3.0.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
       - run: pnpm install
       - run: pnpm run register
 
@@ -60,7 +60,7 @@ jobs:
       - uses: pnpm/action-setup@v3.0.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
       - run: pnpm install
       - run: pnpm run publish
         env:

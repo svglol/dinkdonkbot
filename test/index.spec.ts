@@ -1,13 +1,14 @@
-import { SELF, createExecutionContext, env, waitOnExecutionContext } from 'cloudflare:test'
+import { createExecutionContext, env, waitOnExecutionContext } from 'cloudflare:test'
 import { describe, expect, it } from 'vitest'
+import worker from '../src/server'
 
-const IncomingRequest = Request< unknown | IncomingRequestCfProperties >
+const IncomingRequest = Request<unknown, IncomingRequestCfProperties>
 
 describe('worker fetch router', () => {
   it('responds with discord application id', async () => {
     const request = new IncomingRequest('http://example.com')
     const ctx = createExecutionContext()
-    const response = await SELF.fetch(request)
+    const response = await worker.fetch(request, env, ctx)
     await waitOnExecutionContext(ctx)
     expect(await response.text()).toBe(`👋 ${env.DISCORD_APPLICATION_ID}`)
   })
@@ -15,7 +16,7 @@ describe('worker fetch router', () => {
   it('discord interaction endpoint responds with Bad request signature.', async () => {
     const request = new IncomingRequest('http://example.com', { method: 'POST' })
     const ctx = createExecutionContext()
-    const response = await SELF.fetch(request)
+    const response = await worker.fetch(request, env, ctx)
     await waitOnExecutionContext(ctx)
     expect(response.status).toBe(401)
     expect(await response.text()).toBe('Bad request signature.')
@@ -24,7 +25,7 @@ describe('worker fetch router', () => {
   // it('twitch eventsub endpoint responds with Signature verification failed', async () => {
   //   const request = new IncomingRequest('http://example.com/twitch-eventsub', { method: 'POST' })
   //   const ctx = createExecutionContext()
-  //   const response = await SELF.fetch(request)
+  //   const response = await worker.fetch(request, env, ctx)
   //   await waitOnExecutionContext(ctx)
   //   expect(response.status).toBe(403)
   //   expect(await response.text()).toBe('Signature verification failed')
@@ -33,7 +34,7 @@ describe('worker fetch router', () => {
   it('responds with not found and proper status for /404', async () => {
     const request = new IncomingRequest('http://example.com/404')
     const ctx = createExecutionContext()
-    const response = await SELF.fetch(request)
+    const response = await worker.fetch(request, env, ctx)
     await waitOnExecutionContext(ctx)
     expect(response.status).toBe(404)
     expect(await response.text()).toBe('Not Found.')
