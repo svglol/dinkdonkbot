@@ -277,7 +277,7 @@ function liveBodyBuilder({ sub, streamerData, streamData }: { sub: Stream, strea
   embeds.push(embed)
 
   const roleMention = sub.roleId && sub.roleId !== sub.guildId ? `<@&${sub.roleId}> ` : ''
-  const message = `${roleMention}${messageBuilder(sub.liveMessage ? sub.liveMessage : '{{name}} is live!', sub.name, streamData?.game_name)}`
+  const message = `${roleMention}${messageBuilder(sub.liveMessage ? sub.liveMessage : '{{name}} is live!', sub.name, streamData?.game_name, streamData?.started_at)}`
 
   return {
     content: message,
@@ -286,12 +286,13 @@ function liveBodyBuilder({ sub, streamerData, streamData }: { sub: Stream, strea
   }
 }
 
-function messageBuilder(message: string, streamName: string, game?: string) {
+function messageBuilder(message: string, streamName: string, game?: string, startedAt?: string) {
   return message.replace(/\{\{name\}\}/gi, streamName)
     .replace(/\{\{url\}\}/gi, `https://twitch.tv/${streamName}`)
     .replace(/\{\{everyone\}\}/gi, '@everyone')
     .replace(/\{\{here\}\}/gi, '@here')
     .replace(/\{\{(game|category)\}\}/gi, game || '')
+    .replace(/\{\{timestamp\}\}/gi, `<t:${startedAt ? Math.floor(new Date(startedAt).getTime() / 1000) : Math.floor(new Date().getTime() / 1000)}:R>`)
 }
 
 async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
@@ -512,7 +513,7 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
               },
               {
                 name: 'Message variables',
-                value: '```{{name}} = the name of the streamer\n{{url}} = the url for the stream\n{{everyone}} = @everyone\n{{here}} = @here\n{{game}} or {{category}} = the game or category of the stream - only works on live message```',
+                value: '```{{name}} = the name of the streamer\n{{url}} = the url for the stream\n{{everyone}} = @everyone\n{{here}} = @here\n{{game}} or {{category}} = the game or category of the stream - only works on live message\n{{timestamp}} = the time the stream started/ended\n```',
               },
             ],
           }
