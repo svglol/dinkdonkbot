@@ -10,7 +10,11 @@
     ":widenPeerDependencies",
     ":semanticCommitTypeAll(chore)",
     "group:monorepos",
-    "group:recommended"
+    "group:recommended",
+    ":automergeBranch",
+    ":automergeMinor",
+    ":automergeRequireAllStatusChecks",
+    "npm:unpublishSafe"
   ],
   "packageRules": [
     { "matchPackagePatterns": ["*"], "rangeStrategy": "pin" },

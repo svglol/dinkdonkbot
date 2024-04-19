@@ -27,6 +27,7 @@ describe('worker fetch router', () => {
   })
 
   it('dispatches scheduled event', async () => {
+    // @ts-expect-error Types are incorrect
     const result = await SELF.scheduled({
       scheduledTime: new Date(1000),
       cron: '0 0 * * *',
