@@ -22,8 +22,8 @@ importers:
         specifier: 2.21.1
         version: 2.21.1(@vue/compiler-sfc@3.4.29)(eslint@9.5.0)(typescript@5.4.5)(vitest@1.3.0(@types/node@20.14.2))
       '@cloudflare/vitest-pool-workers':
-        specifier: 0.4.5
-        version: 0.4.5(@cloudflare/workers-types@4.20240614.0)(@vitest/runner@1.3.0)(@vitest/snapshot@1.3.0)(vitest@1.3.0(@types/node@20.14.2))
+        specifier: 0.4.6
+        version: 0.4.6(@cloudflare/workers-types@4.20240614.0)(@vitest/runner@1.3.0)(@vitest/snapshot@1.3.0)(vitest@1.3.0(@types/node@20.14.2))
       '@cloudflare/workers-types':
         specifier: 4.20240614.0
         version: 4.20240614.0
@@ -143,8 +143,12 @@ packages:
     resolution: {integrity: sha512-EeEjMobfuJrwoctj7FA1y1KEbM0+Q1xSjobIEyie9k4haVEBB7vkDvsasw1pM3rO39mL2akxIAzLMUAtrMHZhA==}
     engines: {node: '>=16.13'}
 
-  '@cloudflare/vitest-pool-workers@0.4.5':
-    resolution: {integrity: sha512-YpYPw6iwGr3sWITZaYnh3bH92Khq+dhBOCyqTf1dwzRxNDYCUtaInLD+uEfZnv9A9sizs5oH1a7ptdZOd0oS/g==}
+  '@cloudflare/kv-asset-handler@0.3.3':
+    resolution: {integrity: sha512-wpE+WiWW2kUNwNE0xyl4CtTAs+STjGtouHGiZPGRaisGB7eXXdbvfZdOrQJQVKgTxZiNAgVgmc7fj0sUmd8zyA==}
+    engines: {node: '>=16.13'}
+
+  '@cloudflare/vitest-pool-workers@0.4.6':
+    resolution: {integrity: sha512-5g3Cv1Lp8RR95Teg0iSvc9nFB4h369TI9zTf7jNxvoGlnPYzeWzY9ua6zU2Nt3rJfHkRWc/WBg4pAoJoEmTzBA==}
     peerDependencies:
       '@vitest/runner': 1.3.x - 1.5.x
       '@vitest/snapshot': 1.3.x - 1.5.x
@@ -2161,6 +2165,11 @@ packages:
     engines: {node: '>=16.13'}
     hasBin: true
 
+  miniflare@3.20240610.1:
+    resolution: {integrity: sha512-ZkfSpBmX3nJW00yYhvF2kGvjb6f77TOimRR6+2GQvsArbwo6e0iYqLGM9aB/cnJzgFjLMvOv1qj4756iynSxJQ==}
+    engines: {node: '>=16.13'}
+    hasBin: true
+
   minimatch@3.1.2:
     resolution: {integrity: sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==}
 
@@ -2805,6 +2814,16 @@ packages:
       '@cloudflare/workers-types':
         optional: true
 
+  wrangler@3.61.0:
+    resolution: {integrity: sha512-feVAp0986x9xL3Dc1zin0ZVXKaqzp7eZur7iPLnpEwjG1Xy4dkVEZ5a1LET94Iyejt1P+EX5lgGcz63H7EfzUw==}
+    engines: {node: '>=16.17.0'}
+    hasBin: true
+    peerDependencies:
+      '@cloudflare/workers-types': ^4.20240605.0
+    peerDependenciesMeta:
+      '@cloudflare/workers-types':
+        optional: true
+
   wrap-ansi@7.0.0:
     resolution: {integrity: sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==}
     engines: {node: '>=10'}
@@ -2963,7 +2982,11 @@ snapshots:
     dependencies:
       mime: 3.0.0
 
-  '@cloudflare/vitest-pool-workers@0.4.5(@cloudflare/workers-types@4.20240614.0)(@vitest/runner@1.3.0)(@vitest/snapshot@1.3.0)(vitest@1.3.0(@types/node@20.14.2))':
+  '@cloudflare/kv-asset-handler@0.3.3':
+    dependencies:
+      mime: 3.0.0
+
+  '@cloudflare/vitest-pool-workers@0.4.6(@cloudflare/workers-types@4.20240614.0)(@vitest/runner@1.3.0)(@vitest/snapshot@1.3.0)(vitest@1.3.0(@types/node@20.14.2))':
     dependencies:
       '@vitest/runner': 1.3.0
       '@vitest/snapshot': 1.3.0
@@ -2971,10 +2994,10 @@ snapshots:
       cjs-module-lexer: 1.3.1
       devalue: 4.3.3
       esbuild: 0.17.19
-      miniflare: 3.20240610.0
+      miniflare: 3.20240610.1
       semver: 7.6.2
       vitest: 1.3.0(@types/node@20.14.2)
-      wrangler: 3.60.3(@cloudflare/workers-types@4.20240614.0)
+      wrangler: 3.61.0(@cloudflare/workers-types@4.20240614.0)
       zod: 3.23.8
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
@@ -4863,6 +4886,25 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  miniflare@3.20240610.1:
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      acorn: 8.12.0
+      acorn-walk: 8.3.3
+      capnp-ts: 0.7.0
+      exit-hook: 2.2.1
+      glob-to-regexp: 0.4.1
+      stoppable: 1.1.0
+      undici: 5.28.4
+      workerd: 1.20240610.1
+      ws: 8.17.1
+      youch: 3.3.3
+      zod: 3.23.8
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
   minimatch@3.1.2:
     dependencies:
       brace-expansion: 1.1.11
@@ -5482,6 +5524,31 @@ snapshots:
       chokidar: 3.6.0
       esbuild: 0.17.19
       miniflare: 3.20240610.0
+      nanoid: 3.3.7
+      path-to-regexp: 6.2.2
+      resolve: 1.22.8
+      resolve.exports: 2.0.2
+      selfsigned: 2.4.1
+      source-map: 0.6.1
+      unenv: unenv-nightly@1.10.0-1717606461.a117952
+      xxhash-wasm: 1.0.2
+    optionalDependencies:
+      '@cloudflare/workers-types': 4.20240614.0
+      fsevents: 2.3.3
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
+  wrangler@3.61.0(@cloudflare/workers-types@4.20240614.0):
+    dependencies:
+      '@cloudflare/kv-asset-handler': 0.3.3
+      '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
+      '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
+      blake3-wasm: 2.1.5
+      chokidar: 3.6.0
+      esbuild: 0.17.19
+      miniflare: 3.20240610.1
       nanoid: 3.3.7
       path-to-regexp: 6.2.2
       resolve: 1.22.8
