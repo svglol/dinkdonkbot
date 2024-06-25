@@ -153,8 +153,10 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
 
       // send message to all subscriptions
       if (subscriptions.length > 0) {
-        const streamData = await getStreamDetails(event.broadcaster_user_name, env)
-        const streamerData = await getStreamerDetails(event.broadcaster_user_id, env)
+        const [streamerData, streamData] = await Promise.all([
+          getStreamerDetails(event.broadcaster_user_name, env),
+          getStreamDetails(event.broadcaster_user_name, env),
+        ])
         const messagesPromises = subscriptions.map(async (sub) => {
           const body = liveBodyBuilder({ sub, streamerData, streamData })
           return sendMessage(sub.channelId, env.DISCORD_TOKEN, body)
@@ -243,8 +245,8 @@ function liveBodyBuilder({ sub, streamerData, streamData }: { sub: Stream, strea
   }
   components.push(component)
   const embeds: DiscordEmbed[] = []
-  let title = `${streamerData ? streamerData.display_name : sub.name} is live!`
-  let thumbnail = streamData?.thumbnail_url ?? streamerData?.offline_image_url ?? ''
+  let title = `${streamerData?.display_name ?? sub.name} is live!`
+  let thumbnail = streamerData?.offline_image_url ?? ''
   let timestamp = new Date().toISOString()
 
   if (streamData) {
@@ -443,8 +445,11 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
           if (!stream)
             return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find subscription' })
 
-          const streamerData = await getStreamerDetails(stream.name, env)
-          const body = liveBodyBuilder({ sub: stream, streamerData })
+          const [streamerData, streamData] = await Promise.all([
+            getStreamerDetails(stream.name, env),
+            getStreamDetails(stream.name, env),
+          ])
+          const body = liveBodyBuilder({ sub: stream, streamerData, streamData })
           if (global) {
             if (global.value as boolean) {
               await sendMessage(stream.channelId, env.DISCORD_TOKEN, body)
