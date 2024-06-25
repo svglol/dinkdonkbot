@@ -190,17 +190,38 @@ export async function getStreamDetails(user: string, env: Env) {
         'Authorization': `Bearer ${await getToken(env)}`,
       },
     })
-    if (!streamRes.ok)
-      throw new Error(`Failed to fetch stream: ${JSON.stringify(await streamRes.json())}`)
+
+    const responseDetails = {
+      ok: streamRes.ok,
+      status: streamRes.status,
+      statusText: streamRes.statusText,
+      headers: Object.fromEntries(streamRes.headers.entries()),
+      url: streamRes.url,
+    }
+
+    if (!streamRes.ok) {
+      const errorBody = await streamRes.text()
+      throw new Error(JSON.stringify({
+        message: 'Failed to fetch stream',
+        response: responseDetails,
+        body: errorBody,
+      }))
+    }
 
     const streamData = await streamRes.json() as TwitchStreamResponse
-    if (streamData.data.length === 0)
-      return null
+    if (streamData.data.length === 0) {
+      throw new Error(JSON.stringify({
+        message: 'Stream not found',
+        response: responseDetails,
+        body: streamData,
+      }))
+    }
     const stream = streamData.data[0]
     return stream
   }
   catch (error) {
     console.error('Error fetching stream details:', error)
+    return null
   }
 }
 
@@ -212,17 +233,38 @@ export async function getStreamerDetails(user: string, env: Env) {
         'Authorization': `Bearer ${await getToken(env)}`,
       },
     })
-    if (!userRes.ok)
-      throw new Error(`Failed to fetch user: ${JSON.stringify(await userRes.json())}`)
+
+    const responseDetails = {
+      ok: userRes.ok,
+      status: userRes.status,
+      statusText: userRes.statusText,
+      headers: Object.fromEntries(userRes.headers.entries()),
+      url: userRes.url,
+    }
+
+    if (!userRes.ok) {
+      const errorBody = await userRes.text()
+      throw new Error(JSON.stringify({
+        message: 'Failed to fetch user',
+        response: responseDetails,
+        body: errorBody,
+      }))
+    }
 
     const userData = await userRes.json() as TwitchUserData
-    if (userData.data.length === 0)
-      return null
+    if (userData.data.length === 0) {
+      throw new Error(JSON.stringify({
+        message: 'User not found',
+        response: responseDetails,
+        body: userData,
+      }))
+    }
     const streamer = userData.data[0]
     return streamer
   }
   catch (error) {
     console.error('Error fetching streamer details:', error)
+    return null
   }
 }
 
