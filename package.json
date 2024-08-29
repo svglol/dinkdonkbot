@@ -34,7 +34,7 @@
     "@cloudflare/workers-types": "4.20240821.1",
     "dotenv": "16.4.5",
     "drizzle-kit": "0.20.18",
-    "eslint": "9.9.0",
+    "eslint": "9.9.1",
     "ngrok": "5.0.0-beta.2",
     "tsx": "4.17.0",
     "typescript": "5.5.4",
