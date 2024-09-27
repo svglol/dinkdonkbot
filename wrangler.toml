@@ -17,6 +17,9 @@ migrations_dir = "src/database/migrations"
 [placement]
 mode = "smart"
 
+[observability]
+enabled = true
+
 # [secrets]
 # DISCORD_TOKEN
 # DISCORD_PUBLIC_KEY
@@ -25,3 +28,4 @@ mode = "smart"
 # TWITCH_CLIENT_SECRET
 # TWITCH_EVENT_SECRET
 # WEBHOOK_URL
+
