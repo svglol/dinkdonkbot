@@ -1,19 +1,19 @@
-/**
- * The core server that runs on a Cloudflare worker.
- */
-import { Router } from 'itty-router'
+import type { Stream } from './database/db'
 import {
   InteractionResponseFlags,
   InteractionResponseType,
   InteractionType,
   verifyKey,
 } from 'discord-interactions'
+/**
+ * The core server that runs on a Cloudflare worker.
+ */
+import { Router } from 'itty-router'
 import * as commands from './commands'
-import { getChannelId, getLatestVOD, getStreamDetails, getStreamerDetails, getSubscriptions, removeFailedSubscriptions, removeSubscription, subscribe } from './twitch'
-import type { Stream } from './database/db'
 import { and, eq, like, tables, useDB } from './database/db'
-import { formatDuration } from './util/formatDuration'
 import { sendMessage, updateInteraction, updateMessage } from './discord'
+import { getChannelId, getLatestVOD, getStreamDetails, getStreamerDetails, getSubscriptions, removeFailedSubscriptions, removeSubscription, subscribe } from './twitch'
+import { formatDuration } from './util/formatDuration'
 
 class JsonResponse extends Response {
   constructor(body: object, init = {}) {
