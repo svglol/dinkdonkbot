@@ -14,6 +14,7 @@
     ":automergeBranch",
     ":automergeMinor",
     ":automergeRequireAllStatusChecks",
+    ":automergePr",
     "npm:unpublishSafe"
   ],
   "packageRules": [
