@@ -3,5 +3,6 @@ import type { Config } from 'drizzle-kit'
 export default {
   schema: './src/database/schema.ts',
   out: './src/database/migrations',
-  driver: 'd1',
+  dialect: 'sqlite',
+  driver: 'd1-http',
 } satisfies Config

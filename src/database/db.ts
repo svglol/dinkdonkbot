@@ -3,7 +3,7 @@ import { drizzle } from 'drizzle-orm/d1'
 import * as schema from './schema'
 
 export * as tables from './schema'
-export { sql, eq, and, or, like } from 'drizzle-orm'
+export { and, eq, like, or, sql } from 'drizzle-orm'
 let _db:
   | DrizzleD1Database<typeof schema>
   | null = null
