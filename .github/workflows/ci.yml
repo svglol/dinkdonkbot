@@ -1,0 +1,65 @@
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+name: ci
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pnpm install
+      - run: pnpm run lint
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pnpm install
+      - run: pnpm run typecheck
+
+  test:
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pnpm install
+      - run: pnpm run test
+        env:
+          DISCORD_APPLICATION_ID: ${{ secrets.DISCORD_APPLICATION_ID }}
+          DISCORD_PUBLIC_KEY: ${{ secrets.DISCORD_PUBLIC_KEY }}
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
+          TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
+          TWITCH_EVENT_SECRET: ${{ secrets.TWITCH_EVENT_SECRET }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+
+  register:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3.0.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pnpm install
+      - run: pnpm run register
+        env:
+          DISCORD_APPLICATION_ID: ${{ secrets.DISCORD_APPLICATION_ID }}
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
