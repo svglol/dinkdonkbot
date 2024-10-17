@@ -33,13 +33,10 @@ class JsonResponse extends Response {
 const router = Router()
 
 async function verifyDiscordRequest(request: Request, env: Env) {
-  const signature = request.headers.get('x-signature-ed25519')
-  const timestamp = request.headers.get('x-signature-timestamp')
+  const signature = request.headers.get('X-Signature-Ed25519') ?? ''
+  const timestamp = request.headers.get('X-Signature-Timestamp') ?? ''
   const body = await request.text()
-  const isValidRequest
-    = signature
-    && timestamp
-    && verifyKey(body, signature, timestamp, env.DISCORD_PUBLIC_KEY)
+  const isValidRequest = await verifyKey(body, signature, timestamp, env.DISCORD_PUBLIC_KEY)
   if (!isValidRequest)
     return { isValid: false }
 
