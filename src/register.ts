@@ -1,3 +1,4 @@
+/* eslint-disable antfu/no-top-level-await */
 /* eslint-disable no-console */
 import process from 'node:process'
 import dotenv from 'dotenv'
