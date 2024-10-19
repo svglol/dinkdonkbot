@@ -19,8 +19,8 @@ importers:
         version: 5.0.18
     devDependencies:
       '@antfu/eslint-config':
-        specifier: 3.7.3
-        version: 3.7.3(@typescript-eslint/utils@8.10.0(eslint@9.11.0)(typescript@5.6.3))(@vue/compiler-sfc@3.5.12)(eslint@9.11.0)(typescript@5.6.3)(vitest@2.1.3(@types/node@22.7.6))
+        specifier: 3.8.0
+        version: 3.8.0(@typescript-eslint/utils@8.10.0(eslint@9.11.0)(typescript@5.6.3))(@vue/compiler-sfc@3.5.12)(eslint@9.11.0)(typescript@5.6.3)(vitest@2.1.3(@types/node@22.7.6))
       '@cloudflare/vitest-pool-workers':
         specifier: 0.5.19
         version: 0.5.19(@cloudflare/workers-types@4.20241011.0)(@vitest/runner@2.1.3)(@vitest/snapshot@2.1.3)(vitest@2.1.3(@types/node@22.7.6))
@@ -54,8 +54,8 @@ importers:
 
 packages:
 
-  '@antfu/eslint-config@3.7.3':
-    resolution: {integrity: sha512-vzhKtzQT+f/xBV8T5U8SFy3D7uAqL2CEcjsJVqtA7F8tdKvGuC/96uWeEKMHk5lRfijgj+xRvb+c4qQn60YlIA==}
+  '@antfu/eslint-config@3.8.0':
+    resolution: {integrity: sha512-O5QSufPHpKTm0wk1OQ5c2mOZVzCqYV3hIDrt5zt+cOWqiG8YXLPkSOD4fFwjomATtOuUbcLUwkcgY5dErM7aIw==}
     hasBin: true
     peerDependencies:
       '@eslint-react/eslint-plugin': ^1.5.8
@@ -65,7 +65,7 @@ packages:
       eslint: ^9.10.0
       eslint-plugin-astro: ^1.2.0
       eslint-plugin-format: '>=0.1.0'
-      eslint-plugin-react-hooks: ^4.6.0
+      eslint-plugin-react-hooks: ^5.0.0
       eslint-plugin-react-refresh: ^0.4.4
       eslint-plugin-solid: ^0.14.3
       eslint-plugin-svelte: '>=2.35.1'
@@ -1812,8 +1812,8 @@ packages:
     peerDependencies:
       eslint: '>=6.0.0'
 
-  eslint-plugin-unicorn@55.0.0:
-    resolution: {integrity: sha512-n3AKiVpY2/uDcGrS3+QsYDkjPfaOrNrsfQxU9nt5nitd9KuvVXrfAvgCO9DYPSfap+Gqjw9EOrXIsBp5tlHZjA==}
+  eslint-plugin-unicorn@56.0.0:
+    resolution: {integrity: sha512-aXpddVz/PQMmd69uxO98PA4iidiVNvA0xOtbpUoz1WhBd4RxOQQYqN618v68drY0hmy5uU2jy1bheKEVWBjlPw==}
     engines: {node: '>=18.18'}
     peerDependencies:
       eslint: '>=8.56.0'
@@ -3056,7 +3056,7 @@ packages:
 
 snapshots:
 
-  '@antfu/eslint-config@3.7.3(@typescript-eslint/utils@8.10.0(eslint@9.11.0)(typescript@5.6.3))(@vue/compiler-sfc@3.5.12)(eslint@9.11.0)(typescript@5.6.3)(vitest@2.1.3(@types/node@22.7.6))':
+  '@antfu/eslint-config@3.8.0(@typescript-eslint/utils@8.10.0(eslint@9.11.0)(typescript@5.6.3))(@vue/compiler-sfc@3.5.12)(eslint@9.11.0)(typescript@5.6.3)(vitest@2.1.3(@types/node@22.7.6))':
     dependencies:
       '@antfu/install-pkg': 0.4.1
       '@clack/prompts': 0.7.0
@@ -3080,7 +3080,7 @@ snapshots:
       eslint-plugin-perfectionist: 3.9.1(eslint@9.11.0)(typescript@5.6.3)(vue-eslint-parser@9.4.3(eslint@9.11.0))
       eslint-plugin-regexp: 2.6.0(eslint@9.11.0)
       eslint-plugin-toml: 0.11.1(eslint@9.11.0)
-      eslint-plugin-unicorn: 55.0.0(eslint@9.11.0)
+      eslint-plugin-unicorn: 56.0.0(eslint@9.11.0)
       eslint-plugin-unused-imports: 4.1.4(@typescript-eslint/eslint-plugin@8.10.0(@typescript-eslint/parser@8.10.0(eslint@9.11.0)(typescript@5.6.3))(eslint@9.11.0)(typescript@5.6.3))(eslint@9.11.0)
       eslint-plugin-vue: 9.29.0(eslint@9.11.0)
       eslint-plugin-yml: 1.14.0(eslint@9.11.0)
@@ -4554,7 +4554,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-unicorn@55.0.0(eslint@9.11.0):
+  eslint-plugin-unicorn@56.0.0(eslint@9.11.0):
     dependencies:
       '@babel/helper-validator-identifier': 7.25.7
       '@eslint-community/eslint-utils': 4.4.0(eslint@9.11.0)
