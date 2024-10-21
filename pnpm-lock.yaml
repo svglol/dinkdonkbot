@@ -12,8 +12,8 @@ importers:
         specifier: 4.1.0
         version: 4.1.0
       drizzle-orm:
-        specifier: 0.35.1
-        version: 0.35.1(@cloudflare/workers-types@4.20241011.0)
+        specifier: 0.35.2
+        version: 0.35.2(@cloudflare/workers-types@4.20241011.0)
       itty-router:
         specifier: 5.0.18
         version: 5.0.18
@@ -1539,8 +1539,8 @@ packages:
     resolution: {integrity: sha512-fLTwcnLqtBxGd+51H/dEm9TC0FW6+cIX/RVPyNcitBO77X9+nkogEfMAJebpd/8Yl4KucmePHRYRWWvUlW0rqg==}
     hasBin: true
 
-  drizzle-orm@0.35.1:
-    resolution: {integrity: sha512-HQxDdYuXlZFuvDPztlUIzrX8TqWa/Ej6uN6L0hkbuGL4slexOUMc3u4nXVU15RQ5QYbk+uLQnR6v1+OIrdCTXQ==}
+  drizzle-orm@0.35.2:
+    resolution: {integrity: sha512-bLQtRchl8QvRo2MyG6kcZC90UDzR7Ubir4YwOHV3cZPdJbF+4jU/Yt0QOczsoXe25wLRt6CtCWLXtSDQKft3yg==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
       '@cloudflare/workers-types': '>=3'
@@ -4221,7 +4221,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.35.1(@cloudflare/workers-types@4.20241011.0):
+  drizzle-orm@0.35.2(@cloudflare/workers-types@4.20241011.0):
     optionalDependencies:
       '@cloudflare/workers-types': 4.20241011.0
 
