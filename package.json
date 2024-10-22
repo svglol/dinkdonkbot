@@ -33,7 +33,7 @@
     "@cloudflare/vitest-pool-workers": "0.5.20",
     "@cloudflare/workers-types": "4.20241018.0",
     "dotenv": "16.4.5",
-    "drizzle-kit": "0.20.18",
+    "drizzle-kit": "0.26.2",
     "eslint": "9.13.0",
     "ngrok": "5.0.0-beta.2",
     "tsx": "4.19.1",
