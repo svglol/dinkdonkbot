@@ -19,7 +19,7 @@
     "test": "vitest run",
     "register": "tsx src/register.ts",
     "publish": "wrangler deploy",
-    "db:generate": "drizzle-kit generate:sqlite",
+    "db:generate": "drizzle-kit generate",
     "db:migrations": "wrangler d1 migrations apply DB --remote",
     "db:migrations-local": "wrangler d1 migrations apply DB"
   },

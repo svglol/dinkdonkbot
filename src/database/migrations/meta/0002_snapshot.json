@@ -1,8 +1,6 @@
 {
-  "version": "5",
+  "version": "6",
   "dialect": "sqlite",
-  "id": "2c225bb9-27d9-4cb8-a469-ffd7e54efb0c",
-  "prevId": "aed043fb-c365-4c49-80c6-33d8f124a069",
   "tables": {
     "streams": {
       "name": "streams",
@@ -61,34 +59,44 @@
       "indexes": {
         "idIdx": {
           "name": "idIdx",
-          "columns": ["id"],
+          "columns": [
+            "id"
+          ],
           "isUnique": true
         },
         "nameIdx": {
           "name": "nameIdx",
-          "columns": ["name"],
+          "columns": [
+            "name"
+          ],
           "isUnique": false
         },
         "broadcasterIdIdx": {
           "name": "broadcasterIdIdx",
-          "columns": ["broadcasterId"],
+          "columns": [
+            "broadcasterId"
+          ],
           "isUnique": false
         },
         "guildIdIdx": {
           "name": "guildIdIdx",
-          "columns": ["guild"],
+          "columns": [
+            "guild"
+          ],
           "isUnique": false
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     }
   },
   "enums": {},
   "_meta": {
-    "schemas": {},
     "tables": {},
     "columns": {}
-  }
+  },
+  "id": "2c225bb9-27d9-4cb8-a469-ffd7e54efb0c",
+  "prevId": "aed043fb-c365-4c49-80c6-33d8f124a069"
 }
