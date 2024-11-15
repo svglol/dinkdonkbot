@@ -13,7 +13,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 0.36.1
-        version: 0.36.1(@cloudflare/workers-types@4.20241106.0)
+        version: 0.36.1(@cloudflare/workers-types@4.20241112.0)
       itty-router:
         specifier: 5.0.18
         version: 5.0.18
@@ -23,10 +23,10 @@ importers:
         version: 3.8.0(@typescript-eslint/utils@8.13.0(eslint@9.14.0)(typescript@5.6.3))(@vue/compiler-sfc@3.5.12)(eslint@9.14.0)(typescript@5.6.3)(vitest@2.1.4(@types/node@22.9.0))
       '@cloudflare/vitest-pool-workers':
         specifier: 0.5.27
-        version: 0.5.27(@cloudflare/workers-types@4.20241106.0)(@vitest/runner@2.1.4)(@vitest/snapshot@2.1.4)(vitest@2.1.4(@types/node@22.9.0))
+        version: 0.5.27(@cloudflare/workers-types@4.20241112.0)(@vitest/runner@2.1.4)(@vitest/snapshot@2.1.4)(vitest@2.1.4(@types/node@22.9.0))
       '@cloudflare/workers-types':
-        specifier: 4.20241106.0
-        version: 4.20241106.0
+        specifier: 4.20241112.0
+        version: 4.20241112.0
       dotenv:
         specifier: 16.4.5
         version: 16.4.5
@@ -50,7 +50,7 @@ importers:
         version: 2.1.4(@types/node@22.9.0)
       wrangler:
         specifier: 3.86.1
-        version: 3.86.1(@cloudflare/workers-types@4.20241106.0)
+        version: 3.86.1(@cloudflare/workers-types@4.20241112.0)
 
 packages:
 
@@ -180,8 +180,8 @@ packages:
     resolution: {integrity: sha512-46cP5FCrl3TrvHeoHLb5SRuiDMKH5kc9Yvo36SAfzt8dqJI/qJRoY1GP3ioHn/gP7v2QIoUOTAzIl7Ml7MnfrA==}
     engines: {node: '>=16.7.0'}
 
-  '@cloudflare/workers-types@4.20241106.0':
-    resolution: {integrity: sha512-pI4ivacmp+vgNO/siHDsZ6BdITR0LC4Mh/1+yzVLcl9U75pt5DUDCOWOiqIRFXRq6H65DPnJbEPFo3x9UfgofQ==}
+  '@cloudflare/workers-types@4.20241112.0':
+    resolution: {integrity: sha512-Q4p9bAWZrX14bSCKY9to19xl0KMU7nsO5sJ2cTVspHoypsjPUMeQCsjHjmsO2C4Myo8/LPeDvmqFmkyNAPPYZw==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -3029,7 +3029,7 @@ snapshots:
     dependencies:
       mime: 3.0.0
 
-  '@cloudflare/vitest-pool-workers@0.5.27(@cloudflare/workers-types@4.20241106.0)(@vitest/runner@2.1.4)(@vitest/snapshot@2.1.4)(vitest@2.1.4(@types/node@22.9.0))':
+  '@cloudflare/vitest-pool-workers@0.5.27(@cloudflare/workers-types@4.20241112.0)(@vitest/runner@2.1.4)(@vitest/snapshot@2.1.4)(vitest@2.1.4(@types/node@22.9.0))':
     dependencies:
       '@vitest/runner': 2.1.4
       '@vitest/snapshot': 2.1.4
@@ -3040,7 +3040,7 @@ snapshots:
       miniflare: 3.20241106.0
       semver: 7.6.3
       vitest: 2.1.4(@types/node@22.9.0)
-      wrangler: 3.86.1(@cloudflare/workers-types@4.20241106.0)
+      wrangler: 3.86.1(@cloudflare/workers-types@4.20241112.0)
       zod: 3.23.8
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
@@ -3068,7 +3068,7 @@ snapshots:
       mime: 3.0.0
       zod: 3.23.8
 
-  '@cloudflare/workers-types@4.20241106.0': {}
+  '@cloudflare/workers-types@4.20241112.0': {}
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
@@ -4054,9 +4054,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.36.1(@cloudflare/workers-types@4.20241106.0):
+  drizzle-orm@0.36.1(@cloudflare/workers-types@4.20241112.0):
     optionalDependencies:
-      '@cloudflare/workers-types': 4.20241106.0
+      '@cloudflare/workers-types': 4.20241112.0
 
   electron-to-chromium@1.5.55: {}
 
@@ -5648,7 +5648,7 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20241106.1
       '@cloudflare/workerd-windows-64': 1.20241106.1
 
-  wrangler@3.86.1(@cloudflare/workers-types@4.20241106.0):
+  wrangler@3.86.1(@cloudflare/workers-types@4.20241112.0):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.4
       '@cloudflare/workers-shared': 0.7.1
@@ -5670,7 +5670,7 @@ snapshots:
       workerd: 1.20241106.1
       xxhash-wasm: 1.0.2
     optionalDependencies:
-      '@cloudflare/workers-types': 4.20241106.0
+      '@cloudflare/workers-types': 4.20241112.0
       fsevents: 2.3.3
     transitivePeerDependencies:
       - bufferutil
