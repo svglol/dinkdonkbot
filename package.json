@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "3.9.2",
-    "@cloudflare/vitest-pool-workers": "0.5.29",
+    "@cloudflare/vitest-pool-workers": "0.5.30",
     "@cloudflare/workers-types": "4.20241112.0",
     "dotenv": "16.4.5",
     "drizzle-kit": "0.28.1",
