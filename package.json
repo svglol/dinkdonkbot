@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "discord-interactions": "4.1.0",
-    "drizzle-orm": "0.37.0",
+    "drizzle-orm": "0.38.0",
     "itty-router": "5.0.18"
   },
   "devDependencies": {
