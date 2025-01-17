@@ -22,8 +22,8 @@ importers:
         specifier: 3.14.0
         version: 3.14.0(@typescript-eslint/utils@8.19.1(eslint@9.18.0)(typescript@5.7.3))(@vue/compiler-sfc@3.5.13)(eslint@9.18.0)(typescript@5.7.3)(vitest@2.1.8(@types/node@22.10.5))
       '@cloudflare/vitest-pool-workers':
-        specifier: 0.6.0
-        version: 0.6.0(@cloudflare/workers-types@4.20250109.0)(@vitest/runner@2.1.8)(@vitest/snapshot@2.1.8)(vitest@2.1.8(@types/node@22.10.5))
+        specifier: 0.6.1
+        version: 0.6.1(@cloudflare/workers-types@4.20250109.0)(@vitest/runner@2.1.8)(@vitest/snapshot@2.1.8)(vitest@2.1.8(@types/node@22.10.5))
       '@cloudflare/workers-types':
         specifier: 4.20250109.0
         version: 4.20250109.0
@@ -300,8 +300,8 @@ packages:
     resolution: {integrity: sha512-YLPHc8yASwjNkmcDMQMY35yiWjoKAKnhUbPRszBRS0YgH+IXtsMp61j+yTcnCE3oO2DgP0U3iejLC8FTtKDC8Q==}
     engines: {node: '>=16.13'}
 
-  '@cloudflare/vitest-pool-workers@0.6.0':
-    resolution: {integrity: sha512-n6oMnFUTB9jJLNHWuDcwSVB4PkdFlnDl3xlXqiPs1dlzZ/+XhMDvxlUJhq4I+/5JBkfBYxRB+OO0ZhR40bov/A==}
+  '@cloudflare/vitest-pool-workers@0.6.1':
+    resolution: {integrity: sha512-QXB3upM2/WebISm2VPcjmMElkz/EakTXwmk43D2YSxWqUsVVAfvw/FyhDhRTdwopOcPwtRFeLaqP3WuABXEhZg==}
     peerDependencies:
       '@vitest/runner': 2.0.x - 2.1.x
       '@vitest/snapshot': 2.0.x - 2.1.x
@@ -2655,6 +2655,11 @@ packages:
     engines: {node: '>=16.13'}
     hasBin: true
 
+  miniflare@3.20241230.2:
+    resolution: {integrity: sha512-gFC3IaUKrLGdtA6y6PLpC/QE5YAjB5ITCfBZHkosRyFZ9ApaCHKcHRvrEFMc/R19QxxtHD+G3tExEHp7MmtsYQ==}
+    engines: {node: '>=16.13'}
+    hasBin: true
+
   minimatch@3.1.2:
     resolution: {integrity: sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==}
 
@@ -3222,6 +3227,18 @@ packages:
   wrangler@3.101.0:
     resolution: {integrity: sha512-zKRqL/jjyF54DH8YCCaF4B2x0v9kSdxLpNkxGDltZ17vCBbq9PCchooN25jbmxOTC2LWdB2LVDw7S66zdl7XuQ==}
     engines: {node: '>=16.17.0'}
+    deprecated: Downgrade to 3.99.0
+    hasBin: true
+    peerDependencies:
+      '@cloudflare/workers-types': ^4.20241230.0
+    peerDependenciesMeta:
+      '@cloudflare/workers-types':
+        optional: true
+
+  wrangler@3.102.0:
+    resolution: {integrity: sha512-Za4DstbS3+/hu+///K/4dFFeV6XbPBAGp7NCnVajchxRTwEPTdbO5eezH0HLJPMHK6G/0yIzyhlEMnyg4YzHAA==}
+    engines: {node: '>=16.17.0'}
+    deprecated: Downgrade to 3.99.0
     hasBin: true
     peerDependencies:
       '@cloudflare/workers-types': ^4.20241230.0
@@ -3888,7 +3905,7 @@ snapshots:
     dependencies:
       mime: 3.0.0
 
-  '@cloudflare/vitest-pool-workers@0.6.0(@cloudflare/workers-types@4.20250109.0)(@vitest/runner@2.1.8)(@vitest/snapshot@2.1.8)(vitest@2.1.8(@types/node@22.10.5))':
+  '@cloudflare/vitest-pool-workers@0.6.1(@cloudflare/workers-types@4.20250109.0)(@vitest/runner@2.1.8)(@vitest/snapshot@2.1.8)(vitest@2.1.8(@types/node@22.10.5))':
     dependencies:
       '@vitest/runner': 2.1.8
       '@vitest/snapshot': 2.1.8
@@ -3896,14 +3913,13 @@ snapshots:
       cjs-module-lexer: 1.4.1
       devalue: 4.3.3
       esbuild: 0.17.19
-      miniflare: 3.20241230.1
+      miniflare: 3.20241230.2
       semver: 7.6.3
       vitest: 2.1.8(@types/node@22.10.5)
-      wrangler: 3.101.0(@cloudflare/workers-types@4.20250109.0)
+      wrangler: 3.102.0(@cloudflare/workers-types@4.20250109.0)
       zod: 3.24.1
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
-      - aws-crt
       - bufferutil
       - supports-color
       - utf-8-validate
@@ -6278,6 +6294,25 @@ snapshots:
       - supports-color
       - utf-8-validate
 
+  miniflare@3.20241230.2:
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      acorn: 8.14.0
+      acorn-walk: 8.3.4
+      capnp-ts: 0.7.0
+      exit-hook: 2.2.1
+      glob-to-regexp: 0.4.1
+      stoppable: 1.1.0
+      undici: 5.28.4
+      workerd: 1.20241230.0
+      ws: 8.18.0
+      youch: 3.3.4
+      zod: 3.24.1
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
   minimatch@3.1.2:
     dependencies:
       brace-expansion: 1.1.11
@@ -6859,6 +6894,25 @@ snapshots:
       fsevents: 2.3.3
     transitivePeerDependencies:
       - aws-crt
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
+  wrangler@3.102.0(@cloudflare/workers-types@4.20250109.0):
+    dependencies:
+      '@cloudflare/kv-asset-handler': 0.3.4
+      '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
+      '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
+      blake3-wasm: 2.1.5
+      esbuild: 0.17.19
+      miniflare: 3.20241230.2
+      path-to-regexp: 6.3.0
+      unenv: unenv-nightly@2.0.0-20241218-183400-5d6aec3
+      workerd: 1.20241230.0
+    optionalDependencies:
+      '@cloudflare/workers-types': 4.20250109.0
+      fsevents: 2.3.3
+    transitivePeerDependencies:
       - bufferutil
       - supports-color
       - utf-8-validate
