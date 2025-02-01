@@ -22,8 +22,8 @@ importers:
         specifier: 3.16.0
         version: 3.16.0(@typescript-eslint/utils@8.21.0(eslint@9.19.0)(typescript@5.7.3))(@vue/compiler-sfc@3.5.13)(eslint@9.19.0)(typescript@5.7.3)(vitest@2.1.8(@types/node@22.10.10))
       '@cloudflare/vitest-pool-workers':
-        specifier: 0.6.7
-        version: 0.6.7(@cloudflare/workers-types@4.20250124.3)(@vitest/runner@2.1.8)(@vitest/snapshot@2.1.8)(vitest@2.1.8(@types/node@22.10.10))
+        specifier: 0.6.8
+        version: 0.6.8(@cloudflare/workers-types@4.20250124.3)(@vitest/runner@2.1.8)(@vitest/snapshot@2.1.8)(vitest@2.1.8(@types/node@22.10.10))
       '@cloudflare/workers-types':
         specifier: 4.20250124.3
         version: 4.20250124.3
@@ -137,8 +137,8 @@ packages:
     resolution: {integrity: sha512-YLPHc8yASwjNkmcDMQMY35yiWjoKAKnhUbPRszBRS0YgH+IXtsMp61j+yTcnCE3oO2DgP0U3iejLC8FTtKDC8Q==}
     engines: {node: '>=16.13'}
 
-  '@cloudflare/vitest-pool-workers@0.6.7':
-    resolution: {integrity: sha512-4tQdPmFTHn/K+sBtrDXqBEJ9dhzIC7sV56bc8MYBV3d0oQkBqiofY+iF4M9al3Oic259iIGl1h1/rt98zkus8w==}
+  '@cloudflare/vitest-pool-workers@0.6.8':
+    resolution: {integrity: sha512-9lSBHIrqUOe6RkVoK3lf8Lz5bYlWOPLEI/N+HogHujhQGI4kNE3pOg/+wSQCfJCyIqGKuNyGj+OsStvadpJefw==}
     peerDependencies:
       '@vitest/runner': 2.0.x - 2.1.x
       '@vitest/snapshot': 2.0.x - 2.1.x
@@ -2688,6 +2688,9 @@ packages:
   unenv@2.0.0-rc.0:
     resolution: {integrity: sha512-H0kl2w8jFL/FAk0xvjVing4bS3jd//mbg1QChDnn58l9Sc5RtduaKmLAL8n+eBw5jJo8ZjYV7CrEGage5LAOZQ==}
 
+  unenv@2.0.0-rc.1:
+    resolution: {integrity: sha512-PU5fb40H8X149s117aB4ytbORcCvlASdtF97tfls4BPIyj4PeVxvpSuy1jAptqYHqB0vb2w2sHvzM0XWcp2OKg==}
+
   unist-util-is@6.0.0:
     resolution: {integrity: sha512-2qCTHimwdxLfz+YzdGfkqNlH0tLi9xjTnHddPmJwtIG9MGsdbutfTc4P+haPD7l7Cjxf/WZj+we5qfVPvvxfYw==}
 
@@ -2807,6 +2810,16 @@ packages:
 
   wrangler@3.105.1:
     resolution: {integrity: sha512-Hl+wwWrMuDAcQOo+oKccf/MlAF+BHN66hbjGLo7cYhsrj1fm+w2jcFhiVTrRDpdJHPJMDfMGGbH8Gq7sexUGEQ==}
+    engines: {node: '>=16.17.0'}
+    hasBin: true
+    peerDependencies:
+      '@cloudflare/workers-types': ^4.20250121.0
+    peerDependenciesMeta:
+      '@cloudflare/workers-types':
+        optional: true
+
+  wrangler@3.106.0:
+    resolution: {integrity: sha512-jKPBtASIdiihU9AJBJRvWktqdc2prTy41LUjMk6Sq6BCZePrDnS9VWhQWovoYojreSd+dKhU+ggL53fNKvifRg==}
     engines: {node: '>=16.17.0'}
     hasBin: true
     peerDependencies:
@@ -2964,7 +2977,7 @@ snapshots:
     dependencies:
       mime: 3.0.0
 
-  '@cloudflare/vitest-pool-workers@0.6.7(@cloudflare/workers-types@4.20250124.3)(@vitest/runner@2.1.8)(@vitest/snapshot@2.1.8)(vitest@2.1.8(@types/node@22.10.10))':
+  '@cloudflare/vitest-pool-workers@0.6.8(@cloudflare/workers-types@4.20250124.3)(@vitest/runner@2.1.8)(@vitest/snapshot@2.1.8)(vitest@2.1.8(@types/node@22.10.10))':
     dependencies:
       '@vitest/runner': 2.1.8
       '@vitest/snapshot': 2.1.8
@@ -2975,7 +2988,7 @@ snapshots:
       miniflare: 3.20250124.0
       semver: 7.6.3
       vitest: 2.1.8(@types/node@22.10.10)
-      wrangler: 3.105.1(@cloudflare/workers-types@4.20250124.3)
+      wrangler: 3.106.0(@cloudflare/workers-types@4.20250124.3)
       zod: 3.24.1
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
@@ -5416,6 +5429,14 @@ snapshots:
       pathe: 1.1.2
       ufo: 1.5.4
 
+  unenv@2.0.0-rc.1:
+    dependencies:
+      defu: 6.1.4
+      mlly: 1.7.4
+      ohash: 1.1.4
+      pathe: 1.1.2
+      ufo: 1.5.4
+
   unist-util-is@6.0.0:
     dependencies:
       '@types/unist': 3.0.3
@@ -5558,6 +5579,25 @@ snapshots:
       miniflare: 3.20250124.0
       path-to-regexp: 6.3.0
       unenv: 2.0.0-rc.0
+      workerd: 1.20250124.0
+    optionalDependencies:
+      '@cloudflare/workers-types': 4.20250124.3
+      fsevents: 2.3.3
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
+  wrangler@3.106.0(@cloudflare/workers-types@4.20250124.3):
+    dependencies:
+      '@cloudflare/kv-asset-handler': 0.3.4
+      '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
+      '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
+      blake3-wasm: 2.1.5
+      esbuild: 0.17.19
+      miniflare: 3.20250124.0
+      path-to-regexp: 6.3.0
+      unenv: 2.0.0-rc.1
       workerd: 1.20250124.0
     optionalDependencies:
       '@cloudflare/workers-types': 4.20250124.3
