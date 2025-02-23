@@ -22,8 +22,8 @@ importers:
         specifier: 3.16.0
         version: 3.16.0(@typescript-eslint/utils@8.23.0(eslint@9.20.1)(typescript@5.7.3))(@vue/compiler-sfc@3.5.13)(eslint@9.20.1)(typescript@5.7.3)(vitest@2.1.9(@types/node@22.13.1))
       '@cloudflare/vitest-pool-workers':
-        specifier: 0.7.0
-        version: 0.7.0(@cloudflare/workers-types@4.20250214.0)(@vitest/runner@2.1.9)(@vitest/snapshot@2.1.9)(vitest@2.1.9(@types/node@22.13.1))
+        specifier: 0.7.1
+        version: 0.7.1(@cloudflare/workers-types@4.20250214.0)(@vitest/runner@2.1.9)(@vitest/snapshot@2.1.9)(vitest@2.1.9(@types/node@22.13.1))
       '@cloudflare/workers-types':
         specifier: 4.20250214.0
         version: 4.20250214.0
@@ -137,8 +137,8 @@ packages:
     resolution: {integrity: sha512-YLPHc8yASwjNkmcDMQMY35yiWjoKAKnhUbPRszBRS0YgH+IXtsMp61j+yTcnCE3oO2DgP0U3iejLC8FTtKDC8Q==}
     engines: {node: '>=16.13'}
 
-  '@cloudflare/vitest-pool-workers@0.7.0':
-    resolution: {integrity: sha512-FVsqeyj5/GeIRmg79PJakg+Yz8fjsmjzDd/BmELNVQiL0ynMzvX8+dg6aL/l8BF9+cupjs8UkQyppbmyyHGHKw==}
+  '@cloudflare/vitest-pool-workers@0.7.1':
+    resolution: {integrity: sha512-t//9OwWDigMv6kakORApGx3QyJtZbjYndkc419LbF8VTr4FYDx466LYYXebfQSyryjGqKDWcoK/YZC9rLHuasA==}
     peerDependencies:
       '@vitest/runner': 2.0.x - 3.0.x
       '@vitest/snapshot': 2.0.x - 3.0.x
@@ -3093,7 +3093,7 @@ snapshots:
     dependencies:
       mime: 3.0.0
 
-  '@cloudflare/vitest-pool-workers@0.7.0(@cloudflare/workers-types@4.20250214.0)(@vitest/runner@2.1.9)(@vitest/snapshot@2.1.9)(vitest@2.1.9(@types/node@22.13.1))':
+  '@cloudflare/vitest-pool-workers@0.7.1(@cloudflare/workers-types@4.20250214.0)(@vitest/runner@2.1.9)(@vitest/snapshot@2.1.9)(vitest@2.1.9(@types/node@22.13.1))':
     dependencies:
       '@vitest/runner': 2.1.9
       '@vitest/snapshot': 2.1.9
