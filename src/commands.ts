@@ -119,3 +119,18 @@ export const TWITCH_COMMAND = {
     dm_permission: false,
   }],
 }
+
+export const EMOTE_COMMAND = {
+  name: 'emote-steal',
+  description: 'Steal an emote from another Discord Server or 7tv',
+  default_member_permissions: '0',
+  dm_permission: false,
+  options: [
+    {
+      type: 3,
+      name: 'url_or_emoji',
+      description: 'The URL or emoji to steal',
+      required: true,
+    },
+  ],
+}

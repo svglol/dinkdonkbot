@@ -59,3 +59,33 @@ export async function updateInteraction(interaction: DiscordInteraction, dicordA
     console.error('Error updating interaction:', error)
   }
 }
+
+// eslint-disable-next-line node/prefer-global/buffer
+export async function uploadEmoji(guildId: string, discordToken: string, emojiName: string, imageBuffer: Buffer) {
+  const url = `https://discord.com/api/guilds/${guildId}/emojis`
+
+  const base64Image = `data:image/png;base64,${imageBuffer.toString('base64')}`
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bot ${discordToken}`,
+      },
+      body: JSON.stringify({
+        name: emojiName,
+        image: base64Image,
+      }),
+    })
+
+    if (!response.ok)
+      throw new Error(`Failed to upload emoji: ${await response.text()}`)
+
+    const data = await response.json() as { id: string }
+    return data
+  }
+  catch (error) {
+    console.error('Error uploading emoji:', error)
+  }
+}
