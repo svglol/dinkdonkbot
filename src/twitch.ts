@@ -315,3 +315,23 @@ export async function removeFailedSubscriptions(env: Env) {
     await Promise.allSettled(promises)
   }
 }
+
+export async function getClipsLastHour(broadcasterId: string, env: Env) {
+  try {
+    const oneHourAgo = new Date()
+    oneHourAgo.setHours(oneHourAgo.getHours() - 1)
+    const clipsRes = await fetch(`https://api.twitch.tv/helix/clips?broadcaster_id=${broadcasterId}&first=100&started_at=${oneHourAgo.toISOString()}`, {
+      headers: {
+        'Client-ID': env.TWITCH_CLIENT_ID,
+        'Authorization': `Bearer ${await getToken(env)}`,
+      },
+    })
+    if (!clipsRes.ok)
+      throw new Error(`Failed to fetch clips: ${JSON.stringify(await clipsRes.json())}`)
+    const clips = await clipsRes.json() as TwitchClipsResponse
+    return clips
+  }
+  catch (error) {
+    console.error('Error fetching clips:', error)
+  }
+}

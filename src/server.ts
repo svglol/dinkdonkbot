@@ -13,7 +13,7 @@ import * as commands from './commands'
 import { and, eq, like, tables, useDB } from './database/db'
 import { sendMessage, updateInteraction, updateMessage, uploadEmoji } from './discord'
 import { fetch7tvEmoteImageBuffer, fetchEmoteImageBuffer, fetchSingular7tvEmote } from './emote'
-import { getChannelId, getLatestVOD, getStreamDetails, getStreamerDetails, getSubscriptions, removeFailedSubscriptions, removeSubscription, subscribe } from './twitch'
+import { getChannelId, getClipsLastHour, getLatestVOD, getStreamDetails, getStreamerDetails, getSubscriptions, removeFailedSubscriptions, removeSubscription, subscribe } from './twitch'
 import { formatDuration } from './util/formatDuration'
 
 class JsonResponse extends Response {
@@ -49,7 +49,14 @@ const server = {
     return router.fetch(request, env, ctx)
   },
   async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext) {
-    ctx.waitUntil(scheduledCheck(env))
+    switch (event.cron) {
+      case '0 0 * * *':
+        ctx.waitUntil(scheduledCheck(env))
+        break
+      case '0 * * * *':
+        ctx.waitUntil(scheduledTwitchClips(env))
+        break
+    }
   },
 } satisfies ExportedHandler<Env>
 
@@ -302,6 +309,9 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
   switch (interaction.data.name.toLowerCase()) {
     case commands.EMOTE_COMMAND.name.toLowerCase(): {
       return await handleEmoteCommand(interaction, env)
+    }
+    case commands.TWITCH_CLIPS_COMMAND.name.toLowerCase(): {
+      return await handleTwitchClipsCommand(interaction, env)
     }
     case commands.INVITE_COMMAND.name.toLowerCase(): {
       const applicationId = env.DISCORD_APPLICATION_ID
@@ -661,4 +671,160 @@ async function handleEmoteCommand(interaction: DiscordInteraction, env: Env) {
     }
   }
   return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+}
+
+async function handleTwitchClipsCommand(interaction: DiscordInteraction, env: Env) {
+  if (!interaction.data)
+    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid interaction' })
+
+  if (!interaction.data.options)
+    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+
+  const option = interaction.data.options[0].name
+  switch (option) {
+    case 'add': {
+      const server = interaction.guild_id
+      const add = interaction.data.options.find(option => option.name === 'add') as DiscordSubCommand
+      if (!add || !add.options)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+
+      const streamer = add.options.find(option => option.name === 'streamer')?.value as string
+      const channel = add.options.find(option => option.name === 'discord-channel')?.value as string
+
+      if (!streamer || !channel)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+
+      // check if already subscribed to this channel
+      const subscriptions = await useDB(env).query.clips.findMany({
+        where: (clips, { eq, and, like }) => and(eq(clips.guildId, server), like(clips.streamer, streamer)),
+      })
+      if (subscriptions.length > 0)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Already subscribed to this streamer' })
+
+      // check if twitch channel exists
+      const channelId = await getChannelId(streamer, env)
+      if (!channelId)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find twitch channel' })
+
+      const streamerDetails = await getStreamerDetails(streamer, env)
+
+      // add to database
+      await useDB(env).insert(tables.clips).values({
+        streamer: streamerDetails ? streamerDetails.display_name : streamer,
+        broadcasterId: channelId,
+        guildId: server,
+        channelId: channel,
+      })
+
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully subscribed to \`${streamerDetails ? streamerDetails.display_name : streamer}\` for clip notifications in <#${channel}>` })
+    }
+    case 'remove': {
+      const remove = interaction.data.options.find(option => option.name === 'remove') as DiscordSubCommand
+      if (!remove || !remove.options)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+      const streamer = remove.options.find(option => option.name === 'streamer')?.value as string
+      const stream = await useDB(env).query.clips.findFirst({
+        where: (clips, { and, eq, like }) => and(like(clips.streamer, streamer), eq(clips.guildId, interaction.guild_id)),
+      })
+      if (!stream)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find subscription for this streamer' })
+
+      await useDB(env).delete(tables.clips).where(and(like(tables.clips.streamer, streamer), eq(tables.clips.guildId, interaction.guild_id)))
+
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully unsubscribed to clip updates for **${streamer}**` })
+    }
+    case 'edit': {
+      const server = interaction.guild_id
+      const edit = interaction.data.options.find(option => option.name === 'edit') as DiscordSubCommand
+      if (!edit || !edit.options)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+      const streamer = edit.options.find(option => option.name === 'streamer')?.value as string
+      const dbClip = await useDB(env).query.clips.findFirst({
+        where: (clips, { and, eq, like }) => and(like(clips.streamer, streamer), eq(clips.guildId, interaction.guild_id)),
+      })
+      if (!dbClip)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find subscription for this streamer' })
+
+      const channel = edit.options.find(option => option.name === 'discord-channel')
+      if (channel)
+        await useDB(env).update(tables.clips).set({ channelId: String(channel.value) }).where(and(like(tables.clips.streamer, streamer), eq(tables.clips.guildId, server)))
+
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully edited notifications for **${streamer}**` })
+    }
+    case 'list': {
+      const clips = await useDB(env).query.clips.findMany({
+        where: (clips, { eq }) => eq(clips.guildId, interaction.guild_id),
+      })
+      let clipsList = 'Not subscribed to recive clip notifications for any streams'
+      if (clips.length > 0)
+        clipsList = clips.map(stream => `**${stream.streamer}** - <#${stream.channelId}>`).join('\n')
+
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: clipsList })
+    }
+    case 'help': {
+      const embed = {
+        title: 'Available Commands for Clip Notifications',
+        description: '',
+        color: 0x00EA5E9,
+        fields: [
+          {
+            name: '/clips add <streamer> <discord-channel>',
+            value: 'Add a Twitch streamer to receive clip notifications when they go live or offline.\n<streamer> - The name of the streamer to add\n<discord-channel> - The Discord channel to post to when the streamer goes live',
+          },
+          {
+            name: '/clips remove <streamer>',
+            value: 'Remove a Twitch streamer from receiving clip notifications.\n<streamer> - The name of the streamer to remove',
+          },
+          {
+            name: '/clips edit <streamer> <discord-channel>',
+            value: 'Edit the notification channel for a Twitch streamer.\n<streamer> - The name of the streamer to edit\n<discord-channel> - The new Discord channel to post notifications for the streamer',
+          },
+          {
+            name: '/clips list',
+            value: 'List all the Twitch streamers you are subscribed to for clip notifications.',
+          },
+          {
+            name: '/clips help',
+            value: 'Get this help message for clip notifications commands.',
+          },
+        ],
+      }
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
+    }
+  }
+}
+
+async function scheduledTwitchClips(env: Env) {
+  const clips = await useDB(env).query.clips.findMany()
+
+  const clipPromises = clips.map(async (clip) => {
+    const twitchClips = await getClipsLastHour(clip.broadcasterId, env)
+
+    if (twitchClips) {
+      let clipContent = `🚨**New clip${twitchClips.data.length > 1 ? 's' : ''} found for ${clip.streamer}**\n${twitchClips.data.map(clip => `${clip.url}`).join('\n')}`
+
+      // make sure length is less than discord limit
+      const maxMessageLength = 4000
+      if (clipContent.length > maxMessageLength) {
+        const chunks = []
+        while (clipContent.length > maxMessageLength) {
+          const chunk = clipContent.substring(0, maxMessageLength)
+          chunks.push(chunk)
+          clipContent = clipContent.substring(chunk.length)
+        }
+        chunks.push(clipContent)
+
+        for (const chunk of chunks) {
+          const body = { content: chunk }
+          await sendMessage(clip.channelId, env.DISCORD_TOKEN, body)
+        }
+      }
+      else {
+        const body = { content: clipContent }
+        await sendMessage(clip.channelId, env.DISCORD_TOKEN, body)
+      }
+    }
+  })
+
+  await Promise.all(clipPromises)
 }

@@ -134,3 +134,66 @@ export const EMOTE_COMMAND = {
     },
   ],
 }
+
+export const TWITCH_CLIPS_COMMAND = {
+  name: 'clips',
+  description: 'Manage Twitch clip subscriptions for streamers to be posted hourly',
+  default_member_permissions: '0',
+  dm_permission: false,
+  options: [{
+    type: 1,
+    name: 'add',
+    description: 'Subscribe to Twitch clips from a streamer',
+    dm_permission: false,
+    options: [{
+      type: 3,
+      name: 'streamer',
+      description: 'The name of the Twitch streamer to subscribe to',
+      required: true,
+    }, {
+      type: 7,
+      name: 'discord-channel',
+      description: 'The Discord channel where clips will be posted',
+      required: true,
+      channel_types: [0],
+    }],
+  }, {
+    type: 1,
+    name: 'remove',
+    description: 'Unsubscribe from Twitch clips from a streamer',
+    dm_permission: false,
+    options: [{
+      type: 3,
+      name: 'streamer',
+      description: 'The name of the Twitch streamer to unsubscribe from',
+      required: true,
+    }],
+  }, {
+    type: 1,
+    name: 'edit',
+    description: 'Update the settings for a Twitch clip subscription',
+    dm_permission: false,
+    options: [{
+      type: 3,
+      name: 'streamer',
+      description: 'The name of the Twitch streamer to update',
+      required: true,
+    }, {
+      type: 7,
+      name: 'discord-channel',
+      description: 'The Discord channel where clips will be posted',
+      channel_types: [0],
+      required: true,
+    }],
+  }, {
+    type: 1,
+    name: 'list',
+    description: 'View your subscribed Twitch clip channels',
+    dm_permission: false,
+  }, {
+    type: 1,
+    name: 'help',
+    description: 'Show help for the Twitch clips command',
+    dm_permission: false,
+  }],
+}

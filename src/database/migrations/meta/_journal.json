@@ -29,6 +29,13 @@
       "when": 1713069203987,
       "tag": "0003_thankful_gunslinger",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1741476322400,
+      "tag": "0004_bored_grim_reaper",
+      "breakpoints": true
     }
   ]
 }

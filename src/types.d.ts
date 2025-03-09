@@ -177,6 +177,19 @@ declare global {
     is_mature: boolean
   }
 
+  interface TwitchClipsResponse {
+    data: TwitchClip[]
+  }
+
+  interface TwitchClip {
+    id: string
+    broadcaster_name: string
+    creator_name: string
+    title: string
+    url: string
+    created_at: string
+  }
+
   interface DiscordEmbed {
     title: string
     color?: number

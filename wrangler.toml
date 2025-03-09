@@ -5,7 +5,10 @@ kv_namespaces = [ { binding = "KV", id = "2368012e59c642ada32014c95609dd1b" } ]
 compatibility_flags = [ "nodejs_compat" ]
 
 [triggers]
-crons = [ "0 0 * * *" ]
+crons = [
+  "0 0 * * *",
+  "0 * * * *"
+]
 
 [[d1_databases]]
 binding = "DB"

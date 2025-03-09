@@ -9,9 +9,22 @@ export const streams = sqliteTable('streams', {
   roleId: text('roleId'),
   liveMessage: text('message').default('@everyone {{name}} is now live @ {{url}}'),
   offlineMessage: text('offlineMessage').default('{{name}} is now offline'),
-}, streams => ({
-  idIdx: uniqueIndex('idIdx').on(streams.id),
-  nameIdx: index('nameIdx').on(streams.name),
-  broadcasterIdIdx: index('broadcasterIdIdx').on(streams.broadcasterId),
-  guildIdIdx: index('guildIdIdx').on(streams.guildId),
-}))
+}, streams => [
+  uniqueIndex('idIdx').on(streams.id),
+  index('nameIdx').on(streams.name),
+  index('broadcasterIdIdx').on(streams.broadcasterId),
+  index('guildIdIdx').on(streams.guildId),
+])
+
+export const clips = sqliteTable('clips', {
+  id: integer('id').primaryKey(),
+  streamer: text('streamer').notNull(),
+  broadcasterId: text('broadcasterId').notNull(),
+  guildId: text('guild').notNull(),
+  channelId: text('channel').notNull(),
+}, clips => [
+  uniqueIndex('clipsidIdx').on(clips.id),
+  index('clipsStreamerIdx').on(clips.streamer),
+  index('clipsBroadcasterIdx').on(streams.broadcasterId),
+  index('clipsGuildIdx').on(clips.guildId),
+])
