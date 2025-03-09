@@ -20,7 +20,7 @@
     "@nuxt/eslint": "1.2.0",
     "@nuxt/fonts": "0.11.0",
     "@nuxt/ui": "2.21.1",
-    "@unhead/vue": "^2.0.0-rc.1",
+    "@unhead/vue": "2.0.0-rc.9",
     "@vueuse/core": "11.3.0",
     "@vueuse/nuxt": "11.3.0",
     "eslint": "9.0.0",
@@ -31,7 +31,7 @@
     "stylelint": "16.14.1",
     "stylelint-config-recommended-vue": "1.6.0",
     "stylelint-config-standard": "37.0.0",
-    "unstorage": "^1.0.0",
+    "unstorage": "1.15.0",
     "vue": "3.5.13",
     "vue-router": "4.5.0",
     "vue-tsc": "2.2.8"
