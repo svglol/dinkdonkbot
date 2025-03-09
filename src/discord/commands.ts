@@ -8,6 +8,11 @@ export const INVITE_COMMAND = {
   description: 'Get an invite link to add the bot to your server',
 }
 
+export const DINKDONK_COMMAND = {
+  name: 'dinkdonk',
+  description: 'Get dinkdonked',
+}
+
 export const TWITCH_COMMAND = {
   name: 'twitch',
   description: 'Twitch streamer notifications',

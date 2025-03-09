@@ -1,5 +1,4 @@
 import {
-  InteractionResponseFlags,
   InteractionResponseType,
   InteractionType,
   verifyKey,
@@ -44,14 +43,10 @@ router.post('/', async (request, env: Env, ctx: ExecutionContext) => {
     })
   }
 
-  if (interaction.type === InteractionType.APPLICATION_COMMAND) {
-    ctx.waitUntil(discordInteractionHandler(interaction, env))
-    return new JsonResponse({
-      type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
-      data: {
-        flags: InteractionResponseFlags.EPHEMERAL,
-      },
-    })
+  const response = await discordInteractionHandler(interaction, env, ctx)
+
+  if (response) {
+    return response
   }
 
   console.error('Unknown Type')

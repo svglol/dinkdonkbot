@@ -1,37 +1,96 @@
+import { InteractionResponseFlags, InteractionResponseType, InteractionType } from 'discord-interactions'
 import { and, eq, like } from 'drizzle-orm'
 import { tables, useDB } from '../database/db'
 import { getChannelId, getStreamDetails, getStreamerDetails, removeSubscription, subscribe } from '../twitch/twitch'
 import { fetch7tvEmoteImageBuffer, fetchEmoteImageBuffer, fetchSingular7tvEmote } from '../util/emote'
+import { JsonResponse } from '../util/jsonResponse'
 import * as commands from './commands'
 import { checkChannelPermission, liveBodyBuilder, sendMessage, updateInteraction, uploadEmoji } from './discord'
 
 /**
- * This function is called whenever a user interacts with the bot,
- * whether that be through a slash command or an interaction with the bot.
- * It is responsible for handling all of the different interactions and
- * responding to the user accordingly.
- * @param interaction The interaction object as provided by Discord.
- * @param env The environment object as provided by the caller.
- * @returns A promise that resolves to nothing.
+ * Handles an interaction from Discord.
+ *
+ * If the interaction is an application command, it checks the command name and
+ * dispatches to the appropriate handler.  If the interaction is not an
+ * application command, or if the command does not have a handler, it returns an
+ * ephemeral error message.
+ *
+ * @param interaction The interaction object from Discord.
+ * @param env The environment variables from Cloudflare.
+ * @param ctx The context object from Cloudflare.
+ *
+ * @returns A response to Discord, or a promise that resolves to one.
  */
-export async function discordInteractionHandler(interaction: DiscordInteraction, env: Env) {
-  if (!interaction.data)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid interaction' })
+export async function discordInteractionHandler(interaction: DiscordInteraction, env: Env, ctx: ExecutionContext) {
+  if (interaction.type === InteractionType.APPLICATION_COMMAND) {
+    if (!interaction.data) {
+      ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid interaction' }))
+      return interactionEphemeralLoading()
+    }
 
-  switch (interaction.data.name.toLowerCase()) {
-    case commands.EMOTE_COMMAND.name.toLowerCase(): {
-      return handleEmoteCommand(interaction, env)
-    }
-    case commands.TWITCH_CLIPS_COMMAND.name.toLowerCase(): {
-      return handleTwitchClipsCommand(interaction, env)
-    }
-    case commands.INVITE_COMMAND.name.toLowerCase(): {
-      return handleInviteCommand(env, interaction)
-    }
-    case commands.TWITCH_COMMAND.name.toLowerCase(): {
-      return handleTwitchCommand(interaction, env)
+    switch (interaction.data.name.toLowerCase()) {
+      case commands.EMOTE_COMMAND.name.toLowerCase(): {
+        ctx.waitUntil(handleEmoteCommand(interaction, env))
+        return interactionEphemeralLoading()
+      }
+      case commands.TWITCH_CLIPS_COMMAND.name.toLowerCase(): {
+        ctx.waitUntil(handleTwitchClipsCommand(interaction, env))
+        return interactionEphemeralLoading()
+      }
+      case commands.INVITE_COMMAND.name.toLowerCase(): {
+        ctx.waitUntil(handleInviteCommand(env, interaction))
+        return interactionEphemeralLoading()
+      }
+      case commands.TWITCH_COMMAND.name.toLowerCase(): {
+        ctx.waitUntil(handleTwitchCommand(interaction, env))
+        return interactionEphemeralLoading()
+      }
+      case commands.DINKDONK_COMMAND.name.toLowerCase(): {
+        ctx.waitUntil(handleDinkdonkCommand(env, interaction))
+        return interactionLoading()
+      }
+      default: {
+        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid command' }))
+        return interactionEphemeralLoading()
+      }
     }
   }
+}
+
+/**
+ * Returns a deferred interaction response that is ephemeral.
+ *
+ * A deferred ephemeral interaction response is one that only the user who
+ * invoked the interaction can see.  This is useful for commands that are
+ * potentially expensive or that return a large amount of data, as it allows
+ * the user to see the response without spamming the channel.
+ *
+ * @returns A deferred interaction response that is ephemeral.
+ */
+function interactionEphemeralLoading() {
+  return new JsonResponse({
+    type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+    data: {
+      flags: InteractionResponseFlags.EPHEMERAL,
+    },
+  })
+}
+
+/**
+ * Returns a deferred interaction response that is not ephemeral.
+ *
+ * A deferred interaction response is one that will be sent to the channel
+ * that the user invoked the interaction in, but will not be sent immediately.
+ * This is useful for commands that are potentially expensive or that return
+ * a large amount of data, as it allows the user to see the response without
+ * spamming the channel.
+ *
+ * @returns A deferred interaction response that is not ephemeral.
+ */
+function interactionLoading() {
+  return new JsonResponse({
+    type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+  })
 }
 
 /**
@@ -278,7 +337,8 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
 async function handleInviteCommand(env: Env, interaction: DiscordInteraction) {
   const applicationId = env.DISCORD_APPLICATION_ID
   const INVITE_URL = `https://discord.com/oauth2/authorize?client_id=${applicationId}&permissions=8797166895104&scope=applications.commands+bot`
-  return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: INVITE_URL })
+  const inviteMessage = `[Click here to invite the bot to your server!](${INVITE_URL})`
+  return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: inviteMessage })
 }
 
 /**
@@ -487,4 +547,13 @@ async function handleTwitchClipsCommand(interaction: DiscordInteraction, env: En
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
     }
   }
+}
+/**
+ * Handle the /dinkdonk command.
+ * @param env The environment object
+ * @param interaction The interaction object from Discord
+ * @returns A promise that resolves to nothing
+ */
+function handleDinkdonkCommand(env: Env, interaction: DiscordInteraction) {
+  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: '<a:DinkDonk:1228242910777053254>' })
 }

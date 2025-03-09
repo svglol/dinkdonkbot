@@ -98,6 +98,7 @@ Additional Commands
 
 #subtitle
 `/invite` - Generate an invite link to add DinkDonk Bot to another Discord server
+`/dinkdonk` - Get DinkDonked
 ::
 
 ::
