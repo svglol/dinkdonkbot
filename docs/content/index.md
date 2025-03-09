@@ -54,7 +54,7 @@ Get DinkDonk Bot
 Bot Commands
 
 #content
-::card{:icon="fa6-solid:bell" :disableSpotlight="true"}
+::card{:disableSpotlight="true"}
 
 #title
 Twitch Stream Alerts
@@ -69,7 +69,7 @@ Twitch Stream Alerts
 `/twitch help` - Display command instructions
 ::
 
-::card{:icon="fa6-solid:film" :disableSpotlight="true"}
+::card{:disableSpotlight="true"}
 
 #title
 Twitch Clip Highlights
@@ -82,7 +82,7 @@ Twitch Clip Highlights
 `/clips help` - Get help with clip commands
 ::
 
-::card{:icon="fa6-solid:face-smile" :disableSpotlight="true"}
+::card{:disableSpotlight="true"}
 
 #title
 Emote Management
@@ -91,11 +91,13 @@ Emote Management
 `/emote-steal <url_or_emoji>` - Add emotes from other servers or 7TV to your own server
 ::
 
-::card{:icon="fa6-solid:plus" :disableSpotlight="true"}
+::card{:disableSpotlight="true"}
 
 #title
 Additional Commands
 
 #subtitle
 `/invite` - Generate an invite link to add DinkDonk Bot to another Discord server
+::
+
 ::
