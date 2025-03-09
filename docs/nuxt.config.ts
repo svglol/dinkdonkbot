@@ -11,9 +11,11 @@ export default defineNuxtConfig({
   },
   modules: [
     '@nuxt/eslint',
-    '@nuxt/content',
     '@nuxt/ui',
     '@nuxt/fonts',
+    '@vueuse/nuxt',
+    '@nuxt/content',
+    'nuxt-og-image',
   ],
   tailwindcss: {
     cssPath: '~/assets/global.css',
@@ -27,5 +29,15 @@ export default defineNuxtConfig({
   },
   experimental: {
     typedPages: true,
+  },
+  site: {
+    url: 'https://svglol.github.io/dinkdonkbot',
+    name: 'DinkDonk Bot',
+  },
+
+  ogImage: {
+    componentOptions: {
+      global: true,
+    },
   },
 })
