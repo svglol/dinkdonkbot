@@ -62,8 +62,7 @@ router.post('/', async (request, env: Env, ctx: ExecutionContext) => {
  * Main route for all requests sent from Twitch Eventsub.
  */
 router.post('/twitch-eventsub', async (request, env: Env) => {
-  const body = await request.text()
-  const { isValid } = await verifyTwitchRequest(request, env)
+  const { isValid, body } = await verifyTwitchRequest(request, env)
   if (!isValid)
     return new Response('Signature verification failed', { status: 403 })
 
@@ -101,10 +100,10 @@ router.all('*', () => new Response('Not Found.', { status: 404 }))
  * @returns An object with a single property, `isValid`, which is `true` if the request is valid, and `false` otherwise.
  */
 async function verifyTwitchRequest(request: Request, env: Env) {
+  const body = await request.text()
   const signature = request.headers.get('Twitch-Eventsub-Message-Signature') ?? ''
   const messageId = request.headers.get('Twitch-Eventsub-Message-Id') ?? ''
   const messageTimestamp = request.headers.get('Twitch-Eventsub-Message-Timestamp') ?? ''
-  const body = await request.text()
   const message = `${messageId}${messageTimestamp}${body}`
 
   const encoder = new TextEncoder()
@@ -124,10 +123,10 @@ async function verifyTwitchRequest(request: Request, env: Env) {
 
   if (`sha256=${hexSignature}` !== signature) {
     console.error('Twitch request verification failed')
-    return { isValid: false }
+    return { isValid: false, body }
   }
 
-  return { isValid: true }
+  return { isValid: true, body }
 }
 
 /**
