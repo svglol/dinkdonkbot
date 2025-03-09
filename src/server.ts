@@ -547,6 +547,7 @@ async function proccessInteraction(interaction: DiscordInteraction, env: Env) {
 async function scheduledCheck(env: Env) {
   try {
     const streams = await useDB(env).select().from(tables.streams)
+    const clips = await useDB(env).select().from(tables.clips)
 
     // check if the bot is subscribed to any servers it shouldnt be
     const serversRes = await fetch(`https://discord.com/api/v9/users/@me/guilds`, {
@@ -563,9 +564,13 @@ async function scheduledCheck(env: Env) {
 
     if (servers.length > 0) {
       const serverIds = servers.map(server => server.id)
-      const dbServerIds = [...new Set(streams.map(stream => stream.guildId))]
-      const idsNotInServers = dbServerIds.filter(id => !serverIds.includes(id))
-      const streamsToRemove = streams.filter(stream => idsNotInServers.includes(stream.guildId))
+      const streamsToRemove = streams.filter(stream => !serverIds.includes(stream.guildId))
+      const clipsToDelete = clips.filter(clip => !serverIds.includes(clip.guildId))
+
+      const deleteClips = clipsToDelete.map(async (clip) => {
+        await useDB(env).delete(tables.clips).where(eq(tables.clips.id, clip.id))
+      })
+      await Promise.all(deleteClips)
 
       const deleteStreamsAndSubscriptions = streamsToRemove.map(async (stream) => {
         await useDB(env).delete(tables.streams).where(eq(tables.streams.id, stream.id))
