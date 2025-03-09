@@ -24,9 +24,7 @@ export async function sendMessage(channelId: string, discordToken: string, body:
     })
 
     // If rate limited, wait and retry
-    if (response.status === 429) {
-      const rateLimitData = await response.json() as { retry_after: number }
-      await new Promise(resolve => setTimeout(resolve, rateLimitData.retry_after * 1000 + 100))
+    if (await handleRateLimit(response)) {
       return sendMessage(channelId, discordToken, body)
     }
 
@@ -67,6 +65,11 @@ export async function updateMessage(channelId: string, messageId: string, discor
       },
       body: JSON.stringify(body),
     })
+
+    if (await handleRateLimit(message)) {
+      return updateMessage(channelId, messageId, discordToken, body)
+    }
+
     if (!message.ok)
       throw new Error(`Failed to update message: ${await message.text()}`)
 
@@ -96,6 +99,10 @@ export async function updateInteraction(interaction: DiscordInteraction, dicordA
         'Content-Type': 'application/json',
       },
     })
+    if (await handleRateLimit(defer)) {
+      return updateInteraction(interaction, dicordApplicationId, body)
+    }
+
     if (!defer.ok)
       throw new Error(`Failed to update interaction: ${await defer.text()}`)
   }
@@ -133,6 +140,10 @@ export async function uploadEmoji(guildId: string, discordToken: string, emojiNa
         image: base64Image,
       }),
     })
+
+    if (await handleRateLimit(response)) {
+      return uploadEmoji(guildId, discordToken, emojiName, imageBuffer)
+    }
 
     if (!response.ok)
       throw new Error(`Failed to upload emoji: ${await response.text()}`)
@@ -236,4 +247,23 @@ export function messageBuilder(message: string, streamName: string, game?: strin
     .replace(/\{\{here\}\}/gi, '@here')
     .replace(/\{\{(game|category)\}\}/gi, game || '')
     .replace(/\{\{timestamp\}\}/gi, `<t:${startedAt ? Math.floor(new Date(startedAt).getTime() / 1000) : Math.floor(new Date().getTime() / 1000)}:R>`)
+}
+
+/**
+ * Handles a rate limit response by waiting the specified amount of time before retrying.
+ *
+ * If the response is a 429 status code, this function will wait the specified amount of time
+ * before returning true. If the response is not a 429 status code, this function will return
+ * false.
+ *
+ * @param response The response to check for rate limiting.
+ * @returns True if the response was a 429 and the function waited, false otherwise.
+ */
+async function handleRateLimit(response: Response) {
+  if (response.status === 429) {
+    const rateLimitData = await response.json() as { retry_after: number }
+    await new Promise(resolve => setTimeout(resolve, rateLimitData.retry_after * 1000 + 100))
+    return true
+  }
+  return false
 }
