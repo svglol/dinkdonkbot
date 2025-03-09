@@ -1,7 +1,8 @@
 export async function sendMessage(channelId: string, discordToken: string, body: DiscordBody) {
   const url = `https://discord.com/api/channels/${channelId}/messages`
+
   try {
-    const message = await fetch(url, {
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -9,14 +10,24 @@ export async function sendMessage(channelId: string, discordToken: string, body:
       },
       body: JSON.stringify(body),
     })
-    if (!message.ok)
-      throw new Error(`Failed to send message: ${await message.text()}`)
 
-    const data = await message.json() as { id: string }
+    // If rate limited, wait and retry
+    if (response.status === 429) {
+      const rateLimitData = await response.json() as { retry_after: number }
+      await new Promise(resolve => setTimeout(resolve, rateLimitData.retry_after * 1000 + 100))
+      return sendMessage(channelId, discordToken, body)
+    }
+
+    if (!response.ok) {
+      throw new Error(`Failed to send message: ${await response.text()}`)
+    }
+
+    const data = await response.json() as { id: string }
     return data.id
   }
   catch (error) {
     console.error('Error sending message:', error)
+    throw error
   }
 }
 
