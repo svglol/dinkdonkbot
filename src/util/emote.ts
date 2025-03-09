@@ -11,7 +11,7 @@ export async function fetchEmoteImageBuffer(url: string): Promise<Buffer> {
   const response = await fetch(url)
 
   if (!response.ok)
-    throw new Error(`Failed to fetch emote image: ${response.status}`)
+    throw new Error(`Failed to fetch emote from discord: ${response.status}`)
 
   const arrayBuffer = await response.arrayBuffer()
 
@@ -53,33 +53,27 @@ export async function fetchSingular7tvEmote(emoteId: string) {
         'query Emote($id: ObjectID!) {\n  emote(id: $id) {\n    id\n    created_at\n    name\n    lifecycle\n    state\n    trending\n    tags\n    owner {\n      id\n      username\n      display_name\n      avatar_url\n      style {\n        color\n        paint_id\n        __typename\n      }\n      __typename\n    }\n    flags\n    host {\n      ...HostFragment\n      __typename\n    }\n    versions {\n      id\n      name\n      description\n      created_at\n      lifecycle\n      state\n      host {\n        ...HostFragment\n        __typename\n      }\n      __typename\n    }\n    animated\n    __typename\n  }\n}\n\nfragment HostFragment on ImageHost {\n  url\n  files {\n    name\n    format\n    width\n    height\n    size\n    __typename\n  }\n  __typename\n}',
   }
 
-  try {
-    const response = await fetch('https://7tv.io/v3/gql', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(data),
-    })
+  const response = await fetch('https://7tv.io/v3/gql', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data),
+  })
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch emote: ${response.status}`)
-    }
-
-    const responseData = await response.json() as { data: { emote: { name: string, id: string, animated: boolean } } }
-    if (!responseData.data) {
-      return null
-    }
-    const { name, id, animated } = responseData.data.emote
-
-    return {
-      name,
-      id,
-      animated,
-      url: `https://cdn.7tv.app/emote/${id}/`,
-    }
+  if (!response.ok) {
+    throw new Error(`Failed to fetch emote: ${response.status}`)
   }
-  catch (error) {
-    console.error(error)
-    return null
+
+  const responseData = await response.json() as { data: { emote: { name: string, id: string, animated: boolean } } }
+  if (!responseData.data) {
+    throw new Error('Failed to fetch emote from 7tv')
+  }
+  const { name, id, animated } = responseData.data.emote
+
+  return {
+    name,
+    id,
+    animated,
+    url: `https://cdn.7tv.app/emote/${id}/`,
   }
 }
 
@@ -90,9 +84,9 @@ export async function fetchSingular7tvEmote(emoteId: string) {
  * @param emote.id - The ID of the emote.
  * @param emote.animated - A boolean indicating whether the emote is animated.
  * @param emote.url - The URL of the emote image.
- * @returns The image buffer, or an object with an error string if the emote could not be fetched.
+ * @returns The image buffer
  */
-export async function fetch7tvEmoteImageBuffer(emote: { name: string, id: string, animated: boolean, url: string }): Promise<Buffer | { error: string }> {
+export async function fetch7tvEmoteImageBuffer(emote: { name: string, id: string, animated: boolean, url: string }): Promise<Buffer> {
   const sizes = ['4x', '3x', '2x', '1x']
   const extension = emote.animated ? 'gif' : 'png'
 
@@ -121,5 +115,5 @@ export async function fetch7tvEmoteImageBuffer(emote: { name: string, id: string
     }
   }
 
-  return { error: `Failed to find a suitable emote image for ${emote.name}` }
+  throw new Error(`Emote is too large to upload to Discord`)
 }

@@ -134,28 +134,33 @@ export async function uploadEmoji(guildId: string, discordToken: string, emojiNa
 
   const base64Image = `data:image/png;base64,${imageBuffer.toString('base64')}`
 
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bot ${discordToken}`,
-      },
-      body: JSON.stringify({
-        name: emojiName,
-        image: base64Image,
-      }),
-    })
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bot ${discordToken}`,
+    },
+    body: JSON.stringify({
+      name: emojiName,
+      image: base64Image,
+    }),
+  })
 
-    if (!response.ok)
-      throw new Error(`Failed to upload emoji: ${await response.text()}`)
+  if (!response.ok) {
+    if (response.status === 403) {
+      throw new Error(`The bot does not have permission to upload emojis to this server.`)
+    }
+    else if (response.status === 429) {
+      const retryAfter = response.headers.get('Retry-After') || '1'
+      const resetTimestamp = Number.parseInt(retryAfter, 10)
+      const resetDate = new Date(Date.now() + resetTimestamp * 1000)
+      throw new Error(`Rate limit exceeded. Please try again after ${resetDate.toUTCString()} (${resetTimestamp} seconds).`)
+    }
+    throw new Error(`Failed to upload emoji - ${await response.text()}`)
+  }
 
-    const data = await response.json() as { id: string }
-    return data
-  }
-  catch (error) {
-    console.error('Error uploading emoji:', error)
-  }
+  const data = await response.json() as { id: string }
+  return data
 }
 
 /**

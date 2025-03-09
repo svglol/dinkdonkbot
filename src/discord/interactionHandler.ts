@@ -315,17 +315,13 @@ async function handleEmoteCommand(interaction: DiscordInteraction, env: Env) {
         const extension = isAnimated ? 'gif' : 'png'
         const emoteUrl = `https://cdn.discordapp.com/emojis/${id}.${extension}`
 
-        const imageBuffer = await fetchEmoteImageBuffer(emoteUrl)
-        if (!imageBuffer) {
-          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Failed to fetch emote image' })
-        }
-
-        const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, name, imageBuffer)
-        if (discordEmote && discordEmote.id) {
+        try {
+          const imageBuffer = await fetchEmoteImageBuffer(emoteUrl)
+          const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, name, imageBuffer)
           return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Emote added: <${isAnimated ? 'a' : ''}:${name}:${discordEmote.id}>` })
         }
-        else {
-          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Failed to upload emote' })
+        catch (error) {
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${error}` })
         }
       }
 
@@ -335,27 +331,15 @@ async function handleEmoteCommand(interaction: DiscordInteraction, env: Env) {
         const emoteId = match ? match[1] : null
 
         if (emoteId) {
-          const emote = await fetchSingular7tvEmote(emoteId)
-          if (emote) {
+          try {
+            const emote = await fetchSingular7tvEmote(emoteId)
             const imageBuffer = await fetch7tvEmoteImageBuffer(emote)
-            if ('error' in imageBuffer) {
-              return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${imageBuffer.error}` })
-            }
-
             const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, emote.name, imageBuffer)
-            if (discordEmote && discordEmote.id) {
-              return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Emote added: <${emote.animated ? 'a' : ''}:${emote.name}:${discordEmote.id}>` })
-            }
-            else {
-              return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Failed to upload emote' })
-            }
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Emote added: <${emote.animated ? 'a' : ''}:${emote.name}:${discordEmote.id}>` })
           }
-          else {
-            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Failed to fetch emote from 7tv' })
+          catch (error) {
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${error}` })
           }
-        }
-        else {
-          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
         }
       }
     }
