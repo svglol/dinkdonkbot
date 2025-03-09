@@ -20,7 +20,7 @@ useHead({
     lang: 'en',
   },
   link: [
-    { rel: 'icon', type: 'image/png', href: '/favicon.ico' },
+    { rel: 'icon', type: 'image/x-icon', href: '/dinkdonkbot/favicon.ico' },
   ],
 })
 </script>
