@@ -3,7 +3,7 @@ import { tables, useDB } from '../database/db'
 import { getChannelId, getStreamDetails, getStreamerDetails, removeSubscription, subscribe } from '../twitch/twitch'
 import { fetch7tvEmoteImageBuffer, fetchEmoteImageBuffer, fetchSingular7tvEmote } from '../util/emote'
 import * as commands from './commands'
-import { liveBodyBuilder, sendMessage, updateInteraction, uploadEmoji } from './discord'
+import { checkChannelPermission, liveBodyBuilder, sendMessage, updateInteraction, uploadEmoji } from './discord'
 
 /**
  * This function is called whenever a user interacts with the bot,
@@ -74,6 +74,11 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
       const channelId = await getChannelId(streamer, env)
       if (!channelId)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find twitch channel' })
+
+      // check if we have permission to post in this discord channel
+      const hasPermission = await checkChannelPermission(channel, env.DISCORD_TOKEN, env)
+      if (!hasPermission)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'This bot does not have permission to post in this channel' })
 
       // subscribe to event sub for this channel
       const subscribed = await subscribe(channelId, env)
@@ -394,6 +399,11 @@ async function handleTwitchClipsCommand(interaction: DiscordInteraction, env: En
 
       if (!streamer || !channel)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+
+      // check if we have permission to post in this discord channel
+      const hasPermission = await checkChannelPermission(channel, env.DISCORD_TOKEN, env)
+      if (!hasPermission)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'This bot does not have permission to post in this channel' })
 
       // check if already subscribed to this channel
       const subscriptions = await useDB(env).query.clips.findMany({

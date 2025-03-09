@@ -269,3 +269,34 @@ async function handleRateLimit(response: Response) {
   }
   return false
 }
+
+/**
+ * Checks if the bot has permission to post in the specified channel.
+ *
+ * @param channelId - The ID of the channel to check.
+ * @param discordToken - The bot token for authorization.
+ * @param env - The environment object.
+ * @returns True if the bot has permission to post in the channel, false otherwise.
+ */
+export async function checkChannelPermission(channelId: string, discordToken: string, env: Env) {
+  const url = `https://discord.com/api/channels/${channelId}`
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bot ${discordToken}`,
+      },
+    })
+
+    if (await handleRateLimit(response)) {
+      return checkChannelPermission(channelId, discordToken, env)
+    }
+
+    return response.ok
+  }
+  catch (error) {
+    console.error('Error checking channel permission:', error)
+    return false
+  }
+}
