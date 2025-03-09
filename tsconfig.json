@@ -9,5 +9,9 @@
     "noEmit": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "docs"
+  ]
 }
