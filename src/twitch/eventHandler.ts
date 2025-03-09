@@ -47,7 +47,7 @@ async function streamOnline(payload: SubscriptionEventResponseData<SubscriptionT
     ])
     const messagesPromises = subscriptions.map(async (sub) => {
       const body = liveBodyBuilder({ sub, streamerData, streamData })
-      return sendMessage(sub.channelId, env.DISCORD_TOKEN, body)
+      return sendMessage(sub.channelId, env.DISCORD_TOKEN, body, env)
         .then((messageId) => {
           if (messageId)
             return { messageId, channelId: sub.channelId, embed: body.embeds[body.embeds.length - 1], dbStreamId: sub.id }

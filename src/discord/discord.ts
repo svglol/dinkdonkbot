@@ -1,4 +1,5 @@
 import type { Stream } from '../database/db'
+import { eq, tables, useDB } from '../database/db'
 
 /**
  * Sends a message to the specified channel.
@@ -10,7 +11,7 @@ import type { Stream } from '../database/db'
  *
  * @throws If there is an error sending the message.
  */
-export async function sendMessage(channelId: string, discordToken: string, body: DiscordBody) {
+export async function sendMessage(channelId: string, discordToken: string, body: DiscordBody, env: Env) {
   const url = `https://discord.com/api/channels/${channelId}/messages`
 
   try {
@@ -23,9 +24,14 @@ export async function sendMessage(channelId: string, discordToken: string, body:
       body: JSON.stringify(body),
     })
 
-    // If rate limited, wait and retry
     if (await handleRateLimit(response)) {
-      return sendMessage(channelId, discordToken, body)
+      return sendMessage(channelId, discordToken, body, env)
+    }
+    // channel not found or no permissions
+    else if (response.status === 404 || response.status === 403) {
+      await useDB(env).delete(tables.streams).where(eq(tables.streams.channelId, channelId))
+      await useDB(env).delete(tables.clips).where(eq(tables.clips.channelId, channelId))
+      return null
     }
 
     if (!response.ok) {

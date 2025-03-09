@@ -35,7 +35,7 @@ async function scheduledTwitchClips(env: Env) {
         for (const twitchClip of twitchClips.data) {
           const clipContent = `🚨New clip from **[${clip.streamer}](<https://www.twitch.tv/${clip.streamer}>)** 🚨\n${twitchClip.url}?`
           const body = { content: clipContent }
-          await sendMessage(clip.channelId, env.DISCORD_TOKEN, body)
+          await sendMessage(clip.channelId, env.DISCORD_TOKEN, body, env)
         }
       }
     })

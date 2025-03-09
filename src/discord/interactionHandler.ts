@@ -189,7 +189,7 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
       const body = liveBodyBuilder({ sub: stream, streamerData, streamData })
       if (global) {
         if (global.value as boolean) {
-          await sendMessage(stream.channelId, env.DISCORD_TOKEN, body)
+          await sendMessage(stream.channelId, env.DISCORD_TOKEN, body, env)
           return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully sent test message for **${streamer}**` })
         }
         else {
