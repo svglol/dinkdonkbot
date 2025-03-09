@@ -801,25 +801,8 @@ async function scheduledTwitchClips(env: Env) {
     const twitchClips = await getClipsLastHour(clip.broadcasterId, env)
 
     if (twitchClips) {
-      let clipContent = `🚨**New clip${twitchClips.data.length > 1 ? 's' : ''} found for ${clip.streamer}**\n${twitchClips.data.map(clip => `${clip.url}`).join('\n')}`
-
-      // make sure length is less than discord limit
-      const maxMessageLength = 4000
-      if (clipContent.length > maxMessageLength) {
-        const chunks = []
-        while (clipContent.length > maxMessageLength) {
-          const chunk = clipContent.substring(0, maxMessageLength)
-          chunks.push(chunk)
-          clipContent = clipContent.substring(chunk.length)
-        }
-        chunks.push(clipContent)
-
-        for (const chunk of chunks) {
-          const body = { content: chunk }
-          await sendMessage(clip.channelId, env.DISCORD_TOKEN, body)
-        }
-      }
-      else {
+      for (const twitchClip of twitchClips.data) {
+        const clipContent = `🚨New clip from **[${clip.streamer}](<https://www.twitch.tv/${clip.streamer}>)** 🚨\n${twitchClip.url}`
         const body = { content: clipContent }
         await sendMessage(clip.channelId, env.DISCORD_TOKEN, body)
       }
