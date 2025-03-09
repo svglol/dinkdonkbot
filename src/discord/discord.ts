@@ -141,10 +141,6 @@ export async function uploadEmoji(guildId: string, discordToken: string, emojiNa
       }),
     })
 
-    if (await handleRateLimit(response)) {
-      return uploadEmoji(guildId, discordToken, emojiName, imageBuffer)
-    }
-
     if (!response.ok)
       throw new Error(`Failed to upload emoji: ${await response.text()}`)
 
