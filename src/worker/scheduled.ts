@@ -33,8 +33,14 @@ async function scheduledTwitchClips(env: Env) {
 
       if (twitchClips) {
         for (const twitchClip of twitchClips.data) {
-          const clipContent = `🚨New clip from **[${clip.streamer}](<https://www.twitch.tv/${clip.streamer}>)** 🚨\n${twitchClip.url}?`
-          const body = { content: clipContent }
+          const createdDate = new Date(twitchClip.created_at)
+          const unixTimestamp = Math.floor(createdDate.getTime() / 1000)
+          const clipInfo = [
+            `🎬 [**${twitchClip.broadcaster_name} - ${twitchClip.title}**](${twitchClip.url})`,
+            `*Created By:* \`${twitchClip.creator_name}\``,
+            `*Created At:* <t:${unixTimestamp}:F>`,
+          ].join('\n')
+          const body = { content: clipInfo }
           await sendMessage(clip.channelId, env.DISCORD_TOKEN, body, env)
         }
       }

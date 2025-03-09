@@ -183,11 +183,22 @@ declare global {
 
   interface TwitchClip {
     id: string
-    broadcaster_name: string
-    creator_name: string
-    title: string
     url: string
+    embed_url: string
+    broadcaster_id: string
+    broadcaster_name: string
+    creator_id: string
+    creator_name: string
+    video_id: string
+    game_id: string
+    language: string
+    title: string
+    view_count: number
     created_at: string
+    thumbnail_url: string
+    duration: number
+    vod_offset: number | null
+    is_featured: boolean
   }
 
   interface DiscordEmbed {
