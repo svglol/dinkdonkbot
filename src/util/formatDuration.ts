@@ -1,3 +1,13 @@
+/**
+ * Converts a duration from milliseconds to a human-readable format.
+ *
+ * @param durationInMilliseconds - The duration in milliseconds to be formatted.
+ * @returns A string representing the duration in hours, minutes, and seconds.
+ *          The format will be 'XhYmZs', where X, Y, and Z are the number of
+ *          hours, minutes, and seconds respectively. Parts with zero values
+ *          are omitted.
+ */
+
 export function formatDuration(durationInMilliseconds: number) {
   const seconds = Math.floor(durationInMilliseconds / 1000)
   const hours = Math.floor(seconds / 3600)

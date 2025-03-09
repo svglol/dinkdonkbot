@@ -1,3 +1,11 @@
+/**
+ * Gets a Twitch access token from the KV store or fetches it if it is not
+ * available.  The token is stored in the KV store with a TTL equal to the
+ * `expires_in` value in the response from the Twitch API.
+ * @param env The environment variables to use
+ * @returns The access token as a string
+ * @throws If the token cannot be fetched or stored
+ */
 async function getToken(env: Env) {
   const token = await env.KV.get('twitch-token', { type: 'json' }) as TwitchToken | null
   if (token)
@@ -22,6 +30,13 @@ async function getToken(env: Env) {
   }
 }
 
+/**
+ * Fetches the channel id for a given broadcaster login name.
+ * @param broadcasterLoginName The login name of the broadcaster
+ * @param env The environment variables to use
+ * @returns The channel id as a string, or null if the user is not found
+ * @throws If the request fails
+ */
 export async function getChannelId(broadcasterLoginName: string, env: Env) {
   try {
     const userRes = await fetch(`https://api.twitch.tv/helix/users?login=${broadcasterLoginName}`, {
@@ -45,6 +60,19 @@ export async function getChannelId(broadcasterLoginName: string, env: Env) {
     console.error('Error fetching channel id:', error)
   }
 }
+
+/**
+ * Subscribes to Twitch EventSub notifications for stream online and offline events
+ * for a specific broadcaster. If the subscriptions already exist, the function
+ * returns immediately. Otherwise, it creates the necessary subscriptions.
+ *
+ * @param broadcasterUserId - The Twitch user ID of the broadcaster to subscribe to.
+ * @param env - The environment variables containing configuration such as client ID,
+ *              webhook URL, and secrets.
+ * @returns A promise that resolves to true if the subscriptions were created or already
+ *          exist, and false if an error occurs during the subscription process.
+ * @throws If the fetch requests to Twitch API fail.
+ */
 
 export async function subscribe(broadcasterUserId: string, env: Env) {
   try {
@@ -125,6 +153,16 @@ export async function subscribe(broadcasterUserId: string, env: Env) {
   }
 }
 
+/**
+ * Unsubscribes the Twitch EventSub subscriptions for a given broadcaster's
+ * online and offline events.
+ *
+ * @param broadcasterUserId The ID of the Twitch broadcaster to unsubscribe
+ * from.
+ * @param env The environment variables for accessing configuration and services.
+ * @returns A promise that resolves to true if the subscriptions were successfully
+ * deleted, or false if there was an error.
+ */
 export async function removeSubscription(broadcasterUserId: string, env: Env) {
   try {
     const subscriptionsRes = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
@@ -164,6 +202,16 @@ export async function removeSubscription(broadcasterUserId: string, env: Env) {
   }
 }
 
+/**
+ * Fetches all current Twitch EventSub subscriptions.
+ *
+ * @param env - The environment variables containing configuration such as client ID
+ *              and secrets.
+ * @returns A promise that resolves to a SubscriptionResponse object containing
+ *          the list of subscriptions.
+ * @throws If the request to fetch subscriptions fails.
+ */
+
 export async function getSubscriptions(env: Env) {
   try {
     const subscriptionsRes = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
@@ -182,6 +230,16 @@ export async function getSubscriptions(env: Env) {
   }
 }
 
+/**
+ * Fetches the stream details for a given user.
+ *
+ * @param user - The username of the streamer to fetch.
+ * @param env - The environment variables containing configuration such as client ID
+ *              and secrets.
+ * @returns A promise that resolves to a TwitchStream object containing the stream
+ *          details, or null if the stream was not found.
+ * @throws If the request to fetch the stream fails.
+ */
 export async function getStreamDetails(user: string, env: Env) {
   try {
     const streamRes = await fetch(`https://api.twitch.tv/helix/streams?user_login=${user}`, {
@@ -225,6 +283,16 @@ export async function getStreamDetails(user: string, env: Env) {
   }
 }
 
+/**
+ * Fetches the streamer details for a given user.
+ *
+ * @param user - The username of the streamer to fetch.
+ * @param env - The environment variables containing configuration such as client ID
+ *              and secrets.
+ * @returns A promise that resolves to a TwitchUser object containing the streamer
+ *          details, or null if the streamer was not found.
+ * @throws If the request to fetch the streamer fails.
+ */
 export async function getStreamerDetails(user: string, env: Env) {
   try {
     const userRes = await fetch(`https://api.twitch.tv/helix/users?login=${user}`, {
@@ -268,6 +336,18 @@ export async function getStreamerDetails(user: string, env: Env) {
   }
 }
 
+/**
+ * Fetches the latest Video on Demand (VOD) for a given user and stream ID.
+ *
+ * @param userid - The ID of the user whose VOD is to be fetched.
+ * @param streamID - The ID of the stream to match with the VOD.
+ * @param env - The environment variables containing configuration such as client ID
+ *              and secrets.
+ * @returns A promise that resolves to a VideoData object containing the VOD details,
+ *          or null if no matching VOD is found.
+ * @throws If the request to fetch the VOD fails.
+ */
+
 export async function getLatestVOD(userid: string, streamID: string, env: Env) {
   try {
     const vodRes = await fetch(`https://api.twitch.tv/helix/videos?user_id=${userid}&type=archive&period=week`, {
@@ -291,6 +371,15 @@ export async function getLatestVOD(userid: string, streamID: string, env: Env) {
   }
 }
 
+/**
+ * Removes all failed subscriptions from the EventSub service. This is
+ * typically called on a schedule, so that failed subscriptions do not
+ * remain in the EventSub service indefinitely.
+ *
+ * @param env - The environment variables for accessing configuration and services.
+ * @returns A promise that resolves when all failed subscriptions have been
+ *          removed.
+ */
 export async function removeFailedSubscriptions(env: Env) {
   const subscriptions = await getSubscriptions(env)
   if (subscriptions) {
@@ -316,6 +405,15 @@ export async function removeFailedSubscriptions(env: Env) {
   }
 }
 
+/**
+ * Fetches the clips for a given broadcaster ID from the last hour.
+ *
+ * @param broadcasterId The ID of the Twitch broadcaster to fetch clips for.
+ * @param env The environment variables for accessing configuration and services.
+ * @returns A promise that resolves to the TwitchClipsResponse object containing
+ *          the clips, or null if the request fails.
+ * @throws If the request to fetch the clips fails.
+ */
 export async function getClipsLastHour(broadcasterId: string, env: Env) {
   try {
     const oneHourAgo = new Date()
