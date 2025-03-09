@@ -88,7 +88,7 @@ Twitch Clip Highlights
 Emote Management
 
 #subtitle
-`/emote-steal <url_or_emoji>` - Add emotes from other servers or 7TV to your own server
+`/emote add <url_or_emoji>` - Add emotes from other servers or 7TV to your own server
 ::
 
 ::card{:disableSpotlight="true"}
