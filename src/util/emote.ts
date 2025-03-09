@@ -1,5 +1,12 @@
 import { Buffer } from 'node:buffer'
 
+/**
+ * Fetches the image at the specified URL and returns it as a Buffer.
+ *
+ * @param url - The URL of the image to fetch.
+ * @returns A Buffer containing the image data.
+ * @throws If the image could not be fetched.
+ */
 export async function fetchEmoteImageBuffer(url: string): Promise<Buffer> {
   const response = await fetch(url)
 
@@ -10,6 +17,19 @@ export async function fetchEmoteImageBuffer(url: string): Promise<Buffer> {
 
   return Buffer.from(arrayBuffer)
 }
+
+/**
+ * Fetches a singular emote from 7tv using the provided emote ID.
+ *
+ * Sends a GraphQL request to the 7tv API to retrieve details about the emote,
+ * including its name, ID, and animation status. Constructs the URL for the
+ * emote's image based on the retrieved data.
+ *
+ * @param emoteId - The unique identifier for the emote to fetch.
+ * @returns An object containing the emote's name, ID, animation status, and image URL,
+ * or null if the emote could not be fetched.
+ * @throws Will throw an error if the emote ID is empty or if the fetch request fails.
+ */
 
 export async function fetchSingular7tvEmote(emoteId: string) {
   if (!emoteId) {
@@ -63,6 +83,15 @@ export async function fetchSingular7tvEmote(emoteId: string) {
   }
 }
 
+/**
+ * Downloads an emote from the 7tv CDN and returns the image buffer, or an object with an error string.
+ * @param emote - The emote object from fetchSingular7tvEmote, containing the name, id, animated status, and url.
+ * @param emote.name - The name of the emote.
+ * @param emote.id - The ID of the emote.
+ * @param emote.animated - A boolean indicating whether the emote is animated.
+ * @param emote.url - The URL of the emote image.
+ * @returns The image buffer, or an object with an error string if the emote could not be fetched.
+ */
 export async function fetch7tvEmoteImageBuffer(emote: { name: string, id: string, animated: boolean, url: string }): Promise<Buffer | { error: string }> {
   const sizes = ['4x', '3x', '2x', '1x']
   const extension = emote.animated ? 'gif' : 'png'
