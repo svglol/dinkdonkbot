@@ -20,7 +20,7 @@ buttons:
   - label: "View on Github"
     link: "https://github.com/svglol/dinkdonkbot"
     icon: "uil:github"
-    color: "white"
+    color: "black"
 ---
 
 #title

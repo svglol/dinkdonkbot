@@ -10,7 +10,7 @@
     <div class="grid w-full max-w-screen-xl grid-cols-1 gap-8 lg:grid-cols-3">
       <slot name="cards" />
     </div>
-    <div class="flex flex-row items-center justify-center gap-4">
+    <div class="flex flex-wrap items-center justify-center gap-4">
       <UButton v-for="{ label, link, icon, color } in buttons" :key="label" size="xl" :to="link" target="_blank" :icon="icon" :label="label" :color="color" />
     </div>
   </div>

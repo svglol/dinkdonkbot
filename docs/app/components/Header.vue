@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-row justify-end gap-4 p-4">
+  <div class="z-20 flex flex-row justify-end gap-4 p-4">
     <UButton
       icon="uil:github"
       color="black"
