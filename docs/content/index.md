@@ -11,6 +11,7 @@ ogImage:
 ::hero
 ---
 img: "./DinkDonk.webp"
+alt: "DinkDonk Animated Logo"
 buttons:
   - label: "Get DinkDonk Bot"
     link: "https://discord.com/oauth2/authorize?client_id=1227866873220173824&permissions=8797166895104&scope=applications.commands+bot"

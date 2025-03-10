@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col items-center justify-center gap-16 px-2 py-16">
-    <img :src="img" class="relative mx-auto size-48">
+    <img :src="img" class="relative mx-auto size-48" :alt="alt">
     <span class="text-center text-4xl font-semibold text-gray-900 dark:text-gray-200">
       <slot name="title" />
     </span>
@@ -21,6 +21,7 @@ import type { ButtonColor } from '#ui/types'
 
 defineProps<{
   img: string
+  alt: string
   buttons: {
     label: string
     link: string
