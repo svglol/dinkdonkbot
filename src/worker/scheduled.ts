@@ -28,11 +28,16 @@ async function scheduledTwitchClips(env: Env) {
   try {
     const clips = await useDB(env).query.clips.findMany()
 
-    const clipPromises = clips.map(async (clip) => {
-      const twitchClips = await getClipsLastHour(clip.broadcasterId, env)
+    const uniqueBroadcasterIds = Array.from(new Set(clips.map(clip => clip.broadcasterId)))
+    const twitchClipsPromises = uniqueBroadcasterIds.map(async (broadcasterId) => {
+      return { broadcasterId, clips: await getClipsLastHour(broadcasterId, env) }
+    })
+    const clipsData = await Promise.all(twitchClipsPromises)
+    const twitchClips = new Map(clipsData.map(({ broadcasterId, clips }) => [broadcasterId, clips]))
 
-      if (twitchClips) {
-        for (const twitchClip of twitchClips.data) {
+    for (const clip of clips) {
+      if (twitchClips.has(clip.broadcasterId)) {
+        for (const twitchClip of twitchClips.get(clip.broadcasterId)!.data) {
           const createdDate = new Date(twitchClip.created_at)
           const unixTimestamp = Math.floor(createdDate.getTime() / 1000)
           const clipInfo = [
@@ -44,9 +49,7 @@ async function scheduledTwitchClips(env: Env) {
           await sendMessage(clip.channelId, env.DISCORD_TOKEN, body, env)
         }
       }
-    })
-
-    await Promise.all(clipPromises)
+    }
     return true
   }
   catch (error) {
