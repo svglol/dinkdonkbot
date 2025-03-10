@@ -10,16 +10,22 @@
     <div class="grid w-full max-w-screen-xl grid-cols-1 gap-8 lg:grid-cols-3">
       <slot name="cards" />
     </div>
-
-    <UButton size="xl" class="px-8 py-4" :to="link" target="_blank">
-      <slot name="callToAction" />
-    </UButton>
+    <div class="flex flex-row items-center justify-center gap-4">
+      <UButton v-for="{ label, link, icon, color } in buttons" :key="label" size="xl" :to="link" target="_blank" :icon="icon" :label="label" :color="color" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { ButtonColor } from '#ui/types'
+
 defineProps<{
   img: string
-  link: string
+  buttons: {
+    label: string
+    link: string
+    icon: string
+    color?: ButtonColor
+  }[]
 }>()
 </script>

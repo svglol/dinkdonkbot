@@ -8,7 +8,19 @@ ogImage:
     description: 'DinkDonk Bot is a Discord Bot that helps you stay updated with Twitch streams, clips, and Discord emotes effortlessly.'
 ---
 
-::hero{:img="./DinkDonk.webp" :link="https://discord.com/oauth2/authorize?client_id=1227866873220173824&permissions=8797166895104&scope=applications.commands+bot"}
+::hero
+---
+img: "./DinkDonk.webp"
+buttons:
+  - label: "Get DinkDonk Bot"
+    link: "https://discord.com/oauth2/authorize?client_id=1227866873220173824&permissions=8797166895104&scope=applications.commands+bot"
+    icon: "material-symbols:rocket-launch"
+    color: "primary"
+  - label: "View on Github"
+    link: "https://github.com/svglol/dinkdonkbot"
+    icon: "uil:github"
+    color: "white"
+---
 
 #title
 DinkDonk Bot
@@ -43,9 +55,6 @@ Emote Uploader
 #subtitle
 Easily add emotes from 7TV or other Discord servers to your own server in just a few clicks.
 ::
-
-#callToAction
-Get DinkDonk Bot
 
 ::
 
