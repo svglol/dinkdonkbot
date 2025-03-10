@@ -9,6 +9,9 @@
       class="bg-primary-400 absolute left-[calc(-45%)] top-0 size-[300%] opacity-50"
     />
   </div>
+
+  <div class="pattern-scroll absolute inset-0 bg-cover bg-repeat opacity-[5%] mix-blend-color-dodge dark:opacity-[3%]" :style="{ height: `${height}px !important` }" />
+  <div class="pattern-scroll-2 absolute inset-0 bg-cover bg-repeat opacity-[5%] mix-blend-color-dodge dark:opacity-[3%]" :style="{ height: `${height}px !important` }" />
 </template>
 
 <script setup lang="ts">
@@ -112,5 +115,37 @@ onBeforeUnmount(() => {
 <style scoped>
 .bg > div {
   transition: clip-path 3s;
+}
+
+/* Pattern scroll effect */
+.pattern-scroll {
+  background: repeating-linear-gradient(135deg, #000000, #000000 10px, #ffffff 10px, #ffffff 11px);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: 200% 200%;
+  animation: scrollPattern 5000s linear infinite;
+}
+
+.pattern-scroll-2 {
+  background: repeating-linear-gradient(45deg, #000000, #000000 10px, #ffffff 10px, #ffffff 11px);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: 200% 200%;
+  animation: scrollPattern 5000s linear infinite;
+}
+
+@keyframes scrollPattern {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 100% 100%;
+  }
 }
 </style>
