@@ -23,7 +23,7 @@
     "@unhead/vue": "2.0.0-rc.9",
     "@vueuse/core": "11.3.0",
     "@vueuse/nuxt": "11.3.0",
-    "eslint": "9.21.0",
+    "eslint": "9.22.0",
     "eslint-plugin-tailwindcss": "3.18.0",
     "nuxt": "3.16.0",
     "nuxt-og-image": "5.0.1",
