@@ -40,8 +40,9 @@ async function scheduledTwitchClips(env: Env) {
         for (const twitchClip of twitchClips.get(clip.broadcasterId)!.data) {
           const createdDate = new Date(twitchClip.created_at)
           const unixTimestamp = Math.floor(createdDate.getTime() / 1000)
+          const removeEmojis = (str: string) => str.replace(/[^\w\s.,!?'\-":;()&%$#@]/g, '')
           const clipInfo = [
-            `🎬 [**${twitchClip.broadcaster_name} - ${twitchClip.title}**](${twitchClip.url})`,
+            `🎬 [**${twitchClip.broadcaster_name} - ${removeEmojis(twitchClip.title)}**](${twitchClip.url})`,
             `*Created By:* \`${twitchClip.creator_name}\``,
             `*Created At:* <t:${unixTimestamp}:F>`,
           ].join('\n')
