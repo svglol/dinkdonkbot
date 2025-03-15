@@ -19,7 +19,7 @@
     "@nuxt/content": "3.3.0",
     "@nuxt/eslint": "1.2.0",
     "@nuxt/fonts": "0.11.0",
-    "@nuxt/ui": "2.21.1",
+    "@nuxt/ui": "3.0.0",
     "@unhead/vue": "2.0.0-rc.10",
     "@vueuse/core": "11.3.0",
     "@vueuse/nuxt": "11.3.0",
