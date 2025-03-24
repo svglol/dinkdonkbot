@@ -1,24 +1,44 @@
 <template>
-  <div class="z-20 flex flex-row justify-end gap-4 p-4">
-    <UButton
-      icon="uil:github"
-      color="black"
-      variant="link"
-      aria-label="Github"
-      to="https://github.com/svglol/dinkdonkbot"
-      target="_blank"
-    />
-    <UButton
-      :icon="isDark ? 'i-heroicons-moon' : 'i-heroicons-sun'"
-      color="black"
-      variant="link"
-      aria-label="Theme"
-      @click="toggle"
-    />
+  <div class="z-20">
+    <div :class="{ 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-8': !isHomePage, 'p-4': isHomePage }">
+      <div class="flex flex-row items-center justify-between p-4">
+        <div v-if="!isHomePage">
+          <NuxtLink to="/" class="flex items-center text-xl font-bold text-gray-800 hover:text-gray-600 dark:text-white dark:hover:text-gray-200">
+            <span class="mr-3">
+              <img src="/DinkDonk.webp" alt="DinkDonk Bot Logo" class="size-8">
+            </span>
+            DinkDonk Bot
+          </NuxtLink>
+        </div>
+
+        <!-- Right side buttons -->
+        <div class="flex flex-row gap-4" :class="{ 'ml-auto': isHomePage }">
+          <UButton
+            icon="uil:github"
+            color="black"
+            variant="link"
+            aria-label="Github"
+            to="https://github.com/svglol/dinkdonkbot"
+            target="_blank"
+          />
+          <UButton
+            :icon="isDark ? 'i-heroicons-moon' : 'i-heroicons-sun'"
+            color="black"
+            variant="link"
+            aria-label="Theme"
+            @click="toggle"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+// Check if we're on the home page
+const route = useRoute()
+const isHomePage = computed(() => route.path === '/')
+
 const mode = useColorMode()
 const isDark = computed({
   get() {
