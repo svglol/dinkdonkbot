@@ -29,7 +29,7 @@
     "itty-router": "5.0.18"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "4.10.2",
+    "@antfu/eslint-config": "4.11.0",
     "@cloudflare/vitest-pool-workers": "0.8.4",
     "@cloudflare/workers-types": "4.20250321.0",
     "dotenv": "16.4.7",
