@@ -372,7 +372,8 @@ async function handleEmoteCommand(interaction: DiscordInteraction, env: Env) {
         const isAnimated = emote.startsWith('<a:')
         const content = isAnimated ? emote.slice(3, -1) : emote.slice(2, -1)
         const [name, id] = content.split(':')
-        const cleanName = name.replace(/[^\w\s]/gi, '')
+        let cleanName = name.replace(/[^\w\s]/gi, '')
+        cleanName = cleanName.padEnd(2, '_').slice(0, 32)
         const extension = isAnimated ? 'gif' : 'png'
         const emoteUrl = `https://cdn.discordapp.com/emojis/${id}.${extension}`
 
@@ -394,7 +395,8 @@ async function handleEmoteCommand(interaction: DiscordInteraction, env: Env) {
         if (emoteId) {
           try {
             const emote = await fetchSingular7tvEmote(emoteId)
-            const cleanName = emote.name.replace(/[^\w\s]/gi, '')
+            let cleanName = emote.name.replace(/[^\w\s]/gi, '')
+            cleanName = cleanName.padEnd(2, '_').slice(0, 32)
             const imageBuffer = await fetch7tvEmoteImageBuffer(emote)
             const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, cleanName, imageBuffer)
             return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Emote added: <${emote.animated ? 'a' : ''}:${cleanName}:${discordEmote.id}>` })
