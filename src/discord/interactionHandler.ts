@@ -372,7 +372,7 @@ async function handleEmoteCommand(interaction: DiscordInteraction, env: Env) {
         const isAnimated = emote.startsWith('<a:')
         const content = isAnimated ? emote.slice(3, -1) : emote.slice(2, -1)
         const [name, id] = content.split(':')
-        let cleanName = name.replace(/[^\w\s]/gi, '')
+        let cleanName = name.replace(/[^\w\s]/g, '')
         cleanName = cleanName.padEnd(2, '_').slice(0, 32)
         const extension = isAnimated ? 'gif' : 'png'
         const emoteUrl = `https://cdn.discordapp.com/emojis/${id}.${extension}`
@@ -395,7 +395,7 @@ async function handleEmoteCommand(interaction: DiscordInteraction, env: Env) {
         if (emoteId) {
           try {
             const emote = await fetchSingular7tvEmote(emoteId)
-            let cleanName = emote.name.replace(/[^\w\s]/gi, '')
+            let cleanName = emote.name.replace(/[^\w\s]/g, '')
             cleanName = cleanName.padEnd(2, '_').slice(0, 32)
             const imageBuffer = await fetch7tvEmoteImageBuffer(emote)
             const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, cleanName, imageBuffer)
@@ -559,5 +559,5 @@ async function handleTwitchClipsCommand(interaction: DiscordInteraction, env: En
  * @returns A promise that resolves to nothing
  */
 function handleDinkdonkCommand(env: Env, interaction: DiscordInteraction) {
-  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: '<a:DinkDonk:1228242910777053254>' })
+  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: '<a:DinkDonk:1357111617787002962>' })
 }
