@@ -372,13 +372,14 @@ async function handleEmoteCommand(interaction: DiscordInteraction, env: Env) {
         const isAnimated = emote.startsWith('<a:')
         const content = isAnimated ? emote.slice(3, -1) : emote.slice(2, -1)
         const [name, id] = content.split(':')
+        const cleanName = name.replace(/[^\w\s]/gi, '')
         const extension = isAnimated ? 'gif' : 'png'
         const emoteUrl = `https://cdn.discordapp.com/emojis/${id}.${extension}`
 
         try {
           const imageBuffer = await fetchEmoteImageBuffer(emoteUrl)
-          const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, name, imageBuffer)
-          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Emote added: <${isAnimated ? 'a' : ''}:${name}:${discordEmote.id}>` })
+          const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, cleanName, imageBuffer)
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Emote added: <${isAnimated ? 'a' : ''}:${cleanName}:${discordEmote.id}>` })
         }
         catch (error) {
           return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${error}` })
@@ -393,9 +394,10 @@ async function handleEmoteCommand(interaction: DiscordInteraction, env: Env) {
         if (emoteId) {
           try {
             const emote = await fetchSingular7tvEmote(emoteId)
+            const cleanName = emote.name.replace(/[^\w\s]/gi, '')
             const imageBuffer = await fetch7tvEmoteImageBuffer(emote)
-            const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, emote.name, imageBuffer)
-            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Emote added: <${emote.animated ? 'a' : ''}:${emote.name}:${discordEmote.id}>` })
+            const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, cleanName, imageBuffer)
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Emote added: <${emote.animated ? 'a' : ''}:${cleanName}:${discordEmote.id}>` })
           }
           catch (error) {
             return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${error}` })
