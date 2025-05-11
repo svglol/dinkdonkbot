@@ -24,7 +24,7 @@
     "db:migrations-local": "wrangler d1 migrations apply DB"
   },
   "dependencies": {
-    "discord-interactions": "4.1.1",
+    "discord-interactions": "4.3.0",
     "drizzle-orm": "0.43.1",
     "itty-router": "5.0.18"
   },
