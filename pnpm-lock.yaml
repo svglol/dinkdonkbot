@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       discord-interactions:
-        specifier: 4.1.1
-        version: 4.1.1
+        specifier: 4.3.0
+        version: 4.3.0
       drizzle-orm:
         specifier: 0.43.1
         version: 0.43.1(@cloudflare/workers-types@4.20250508.0)
@@ -1657,8 +1657,8 @@ packages:
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
 
-  discord-interactions@4.1.1:
-    resolution: {integrity: sha512-dCrdJFSHQrEHXB8tk+LpIhAL7/+/UXCFDzooYmB6jj7b/zuhdbETpcZXLYQpSfcSRpF5wjmnu1XwuHlvdF1KpQ==}
+  discord-interactions@4.3.0:
+    resolution: {integrity: sha512-qCJEnuQeIDIo26MPEqYlIiYokqwFAMoRsmEE0PgAuiTYNXIMB9Z40LmqlgYe0yBO+743+AOnfTQdUK1WLg8+pw==}
     engines: {node: '>=18.4.0'}
 
   dotenv@16.5.0:
@@ -4500,7 +4500,7 @@ snapshots:
     dependencies:
       dequal: 2.0.3
 
-  discord-interactions@4.1.1: {}
+  discord-interactions@4.3.0: {}
 
   dotenv@16.5.0: {}
 
