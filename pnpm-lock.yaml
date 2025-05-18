@@ -22,8 +22,8 @@ importers:
         specifier: 4.13.0
         version: 4.13.0(@vue/compiler-sfc@3.5.14)(eslint@9.26.0)(typescript@5.8.3)(vitest@2.1.9(@types/node@22.15.18))
       '@cloudflare/vitest-pool-workers':
-        specifier: 0.8.29
-        version: 0.8.29(@cloudflare/workers-types@4.20250515.0)(@vitest/runner@2.1.9)(@vitest/snapshot@2.1.9)(vitest@2.1.9(@types/node@22.15.18))
+        specifier: 0.8.30
+        version: 0.8.30(@cloudflare/workers-types@4.20250515.0)(@vitest/runner@2.1.9)(@vitest/snapshot@2.1.9)(vitest@2.1.9(@types/node@22.15.18))
       '@cloudflare/workers-types':
         specifier: 4.20250515.0
         version: 4.20250515.0
@@ -155,8 +155,8 @@ packages:
       workerd:
         optional: true
 
-  '@cloudflare/vitest-pool-workers@0.8.29':
-    resolution: {integrity: sha512-HRCTzd5dwto+6WshQ0UsEYE926cuRHZkHi+C0eb25mxGYzasNUmlJbNTCZ7vuWP0psLnHDXbzZy/biXMF1WTyQ==}
+  '@cloudflare/vitest-pool-workers@0.8.30':
+    resolution: {integrity: sha512-JiNyJlHirMt+8WYA0knh1zkFlDaEBzdr5+txUPZQ3InqnLh526tDjPCIvehQBpIETd4bTBcXlEtq9zMEr4RuAg==}
     peerDependencies:
       '@vitest/runner': 2.0.x - 3.1.x
       '@vitest/snapshot': 2.0.x - 3.1.x
@@ -2547,8 +2547,8 @@ packages:
     engines: {node: '>=16.13'}
     hasBin: true
 
-  miniflare@4.20250508.1:
-    resolution: {integrity: sha512-GvY2JZx0yH4sp5dTSx4yS/rHwHMztqnNWCjFnfXrsu+3x5UEYtjc0RMBdq4WfrIUdEaVl2dYdWk2fI4IE0teyA==}
+  miniflare@4.20250508.2:
+    resolution: {integrity: sha512-+2XoHLSbY49LNQgZoAJRX+SyUwC767Cz46pgx4T/j1YGKSrMzAxCOk59b12QoFNnN50Gtd9HkT3ukZn2nzrIVw==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -3186,10 +3186,9 @@ packages:
       '@cloudflare/workers-types':
         optional: true
 
-  wrangler@4.15.1:
-    resolution: {integrity: sha512-dzCdGWJUqjZAeR6kmAF28iD19VyDfD9nP1JiAw9NNlG1pEVzaY4Pr6egYyQcGj98N7WTv/tXoCk1R/L3eU3iwg==}
+  wrangler@4.15.2:
+    resolution: {integrity: sha512-Rv7zP61DOVzIS3af+/1UzJkRVpqu6VDRi6uIVMiwD1LkXG5Ov08tv94jgnE9bSjVf0paQg3dl0E89h+wQ0x/Bw==}
     engines: {node: '>=18.0.0'}
-    deprecated: '⚠️ Deprecated: 4.15.1 has a regression with R2 bucket validation with wrangler pages dev. Please downgrade to 4.14.4 or upgrade to 4.15.2 when it is published.'
     hasBin: true
     peerDependencies:
       '@cloudflare/workers-types': ^4.20250508.0
@@ -3346,17 +3345,17 @@ snapshots:
     optionalDependencies:
       workerd: 1.20250508.0
 
-  '@cloudflare/vitest-pool-workers@0.8.29(@cloudflare/workers-types@4.20250515.0)(@vitest/runner@2.1.9)(@vitest/snapshot@2.1.9)(vitest@2.1.9(@types/node@22.15.18))':
+  '@cloudflare/vitest-pool-workers@0.8.30(@cloudflare/workers-types@4.20250515.0)(@vitest/runner@2.1.9)(@vitest/snapshot@2.1.9)(vitest@2.1.9(@types/node@22.15.18))':
     dependencies:
       '@vitest/runner': 2.1.9
       '@vitest/snapshot': 2.1.9
       birpc: 0.2.14
       cjs-module-lexer: 1.4.3
       devalue: 4.3.3
-      miniflare: 4.20250508.1
+      miniflare: 4.20250508.2
       semver: 7.7.2
       vitest: 2.1.9(@types/node@22.15.18)
-      wrangler: 4.15.1(@cloudflare/workers-types@4.20250515.0)
+      wrangler: 4.15.2(@cloudflare/workers-types@4.20250515.0)
       zod: 3.24.4
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
@@ -5676,7 +5675,7 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  miniflare@4.20250508.1:
+  miniflare@4.20250508.2:
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       acorn: 8.14.0
@@ -6393,13 +6392,13 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  wrangler@4.15.1(@cloudflare/workers-types@4.20250515.0):
+  wrangler@4.15.2(@cloudflare/workers-types@4.20250515.0):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.4.0
       '@cloudflare/unenv-preset': 2.3.1(unenv@2.0.0-rc.15)(workerd@1.20250508.0)
       blake3-wasm: 2.1.5
       esbuild: 0.25.4
-      miniflare: 4.20250508.1
+      miniflare: 4.20250508.2
       path-to-regexp: 6.3.0
       unenv: 2.0.0-rc.15
       workerd: 1.20250508.0
