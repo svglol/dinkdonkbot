@@ -19,8 +19,8 @@ importers:
         version: 5.0.18
     devDependencies:
       '@antfu/eslint-config':
-        specifier: 4.13.0
-        version: 4.13.0(@vue/compiler-sfc@3.5.14)(eslint@9.26.0)(typescript@5.8.3)(vitest@2.1.9(@types/node@22.15.18))
+        specifier: 4.13.1
+        version: 4.13.1(@vue/compiler-sfc@3.5.14)(eslint@9.26.0)(typescript@5.8.3)(vitest@2.1.9(@types/node@22.15.18))
       '@cloudflare/vitest-pool-workers':
         specifier: 0.8.30
         version: 0.8.30(@cloudflare/workers-types@4.20250515.0)(@vitest/runner@2.1.9)(@vitest/snapshot@2.1.9)(vitest@2.1.9(@types/node@22.15.18))
@@ -54,8 +54,8 @@ importers:
 
 packages:
 
-  '@antfu/eslint-config@4.13.0':
-    resolution: {integrity: sha512-zXEe1NWioKWgo094qo7D/IL2NjzWpLolslSFpZTBPtiFPR6DyRwfUVyWdODUgtzM9cU05ETnEPFRpXDYWFR0/A==}
+  '@antfu/eslint-config@4.13.1':
+    resolution: {integrity: sha512-Ldv0gzQEDH/M+6NfhVBK/9NTDwsYJuHHJBPaFQN9X6LGd927sfEWzMHQdEbrA7f8Rr6abbinReifK7OjDipJ/g==}
     hasBin: true
     peerDependencies:
       '@eslint-react/eslint-plugin': ^1.38.4
@@ -1415,8 +1415,8 @@ packages:
     resolution: {integrity: sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==}
     engines: {node: '>=8'}
 
-  ansis@3.17.0:
-    resolution: {integrity: sha512-0qWUglt9JEqLFr3w1I1pbrChn1grhaiAR2ocX1PP/flRmxgtwTzPFFFnfIlD6aMOLQZgSuCRlidD70lvx8yhzg==}
+  ansis@4.0.0:
+    resolution: {integrity: sha512-P8nrHI1EyW9OfBt1X7hMSwGN2vwRuqHSKJAT1gbLWZRzDa24oHjYwGHvEgHeBepupzk878yS/HBZ0NMPYtbolw==}
     engines: {node: '>=14'}
 
   are-docs-informative@0.0.2:
@@ -3250,7 +3250,7 @@ packages:
 
 snapshots:
 
-  '@antfu/eslint-config@4.13.0(@vue/compiler-sfc@3.5.14)(eslint@9.26.0)(typescript@5.8.3)(vitest@2.1.9(@types/node@22.15.18))':
+  '@antfu/eslint-config@4.13.1(@vue/compiler-sfc@3.5.14)(eslint@9.26.0)(typescript@5.8.3)(vitest@2.1.9(@types/node@22.15.18))':
     dependencies:
       '@antfu/install-pkg': 1.1.0
       '@clack/prompts': 0.10.1
@@ -3260,7 +3260,7 @@ snapshots:
       '@typescript-eslint/eslint-plugin': 8.32.1(@typescript-eslint/parser@8.32.1(eslint@9.26.0)(typescript@5.8.3))(eslint@9.26.0)(typescript@5.8.3)
       '@typescript-eslint/parser': 8.32.1(eslint@9.26.0)(typescript@5.8.3)
       '@vitest/eslint-plugin': 1.2.0(eslint@9.26.0)(typescript@5.8.3)(vitest@2.1.9(@types/node@22.15.18))
-      ansis: 3.17.0
+      ansis: 4.0.0
       cac: 6.7.14
       eslint: 9.26.0
       eslint-config-flat-gitignore: 2.1.0(eslint@9.26.0)
@@ -4302,7 +4302,7 @@ snapshots:
     dependencies:
       color-convert: 2.0.1
 
-  ansis@3.17.0: {}
+  ansis@4.0.0: {}
 
   are-docs-informative@0.0.2: {}
 
