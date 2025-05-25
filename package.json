@@ -39,6 +39,6 @@
     "tsx": "4.19.4",
     "typescript": "5.8.3",
     "vitest": "2.1.9",
-    "wrangler": "3.114.8"
+    "wrangler": "3.114.9"
   }
 }
