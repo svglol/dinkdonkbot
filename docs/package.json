@@ -26,7 +26,7 @@
     "eslint": "9.28.0",
     "eslint-plugin-tailwindcss": "3.18.0",
     "nuxt": "3.17.4",
-    "nuxt-og-image": "5.1.4",
+    "nuxt-og-image": "5.1.5",
     "postcss-html": "1.8.0",
     "stylelint": "16.20.0",
     "stylelint-config-recommended-vue": "1.6.0",
