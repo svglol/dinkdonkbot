@@ -137,6 +137,18 @@ declare global {
     data?: {
       name: string
       options?: DiscordInteractionOption[] | DiscordSubCommand[]
+      resolved?: {
+        messages?: Record<string, {
+          id: string
+          channel_id: string
+          content: string
+          sticker_items?: {
+            id: string
+            name: string
+            format_type: number
+          }[]
+        }>
+      }
     }
     guild_id: string
     channel_id: string

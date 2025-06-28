@@ -49,6 +49,10 @@ export async function discordInteractionHandler(interaction: DiscordInteraction,
         ctx.waitUntil(handleDinkdonkCommand(env, interaction))
         return interactionLoading()
       }
+      case commands.STEAL_EMOTE_COMMAND.name.toLowerCase(): {
+        ctx.waitUntil(handleStealEmoteCommand(interaction, env))
+        return interactionEphemeralLoading()
+      }
       default: {
         ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid command' }))
         return interactionEphemeralLoading()
@@ -560,4 +564,56 @@ async function handleTwitchClipsCommand(interaction: DiscordInteraction, env: En
  */
 function handleDinkdonkCommand(env: Env, interaction: DiscordInteraction) {
   return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: '<a:DinkDonk:1357111617787002962>' })
+}
+
+/**
+ * Handles the steal emote context menu command.
+ *
+ * This function retrieves a message from Discord and attempts to steal
+ * the first custom emote found in the message's content. If found, it
+ * uploads the emote to the current Discord server.
+ *
+ * @param interaction The interaction object from Discord, containing the message data.
+ * @param env The environment object containing configuration and authentication details.
+ * @returns A promise that resolves to nothing. Updates the interaction with a success or error message.
+ */
+
+async function handleStealEmoteCommand(interaction: DiscordInteraction, env: Env) {
+  if (!interaction.data)
+    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid interaction' })
+
+  if (!interaction.data.resolved || !interaction.data.resolved.messages)
+    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid interaction' })
+
+  const messageId = Object.keys(interaction.data.resolved?.messages || {})[0]
+  const message = interaction.data.resolved?.messages[messageId]
+  if (!message) {
+    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find the message to steal an emote from' })
+  }
+  const emote = message.content.match(/<a?:\w+:\d+>/)?.[0]
+
+  if (!emote) {
+    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'No emote found in the message to steal.' })
+  }
+
+  if (emote.startsWith('<a:') || emote.startsWith('<:')) {
+    const isAnimated = emote.startsWith('<a:')
+    const content = isAnimated ? emote.slice(3, -1) : emote.slice(2, -1)
+    const [name, id] = content.split(':')
+    let cleanName = name.replace(/[^\w\s]/g, '')
+    cleanName = cleanName.padEnd(2, '_').slice(0, 32)
+    const extension = isAnimated ? 'gif' : 'png'
+    const emoteUrl = `https://cdn.discordapp.com/emojis/${id}.${extension}`
+
+    try {
+      const imageBuffer = await fetchEmoteImageBuffer(emoteUrl)
+      const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, cleanName, imageBuffer)
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Emote added: <${isAnimated ? 'a' : ''}:${cleanName}:${discordEmote.id}>` })
+    }
+    catch (error) {
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${error}` })
+    }
+  }
+
+  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Something went wrong stealing the emote' })
 }

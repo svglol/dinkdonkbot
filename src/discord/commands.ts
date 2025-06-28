@@ -146,6 +146,13 @@ export const EMOTE_COMMAND = {
   ],
 }
 
+export const STEAL_EMOTE_COMMAND = {
+  name: 'Steal Emote',
+  type: 3,
+  default_member_permissions: '0',
+  dm_permission: false,
+}
+
 export const TWITCH_CLIPS_COMMAND = {
   name: 'clips',
   description: 'Manage Twitch clip subscriptions for streamers to be posted hourly',
