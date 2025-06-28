@@ -5,7 +5,7 @@ import { getChannelId, getStreamDetails, getStreamerDetails, removeSubscription,
 import { fetch7tvEmoteImageBuffer, fetchEmoteImageBuffer, fetchSingular7tvEmote } from '../util/emote'
 import { JsonResponse } from '../util/jsonResponse'
 import * as commands from './commands'
-import { checkChannelPermission, liveBodyBuilder, sendMessage, updateInteraction, uploadEmoji } from './discord'
+import { checkChannelPermission, fetchGuildEmojis, liveBodyBuilder, sendMessage, updateInteraction, uploadEmoji } from './discord'
 
 /**
  * Handles an interaction from Discord.
@@ -381,6 +381,12 @@ async function handleEmoteCommand(interaction: DiscordInteraction, env: Env) {
         const extension = isAnimated ? 'gif' : 'png'
         const emoteUrl = `https://cdn.discordapp.com/emojis/${id}.${extension}`
 
+        // Check if the emote already exists in the guild
+        const emojis = await fetchGuildEmojis(interaction.guild_id, env.DISCORD_TOKEN)
+        if (emojis.some(emoji => emoji.id === id)) {
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `That emote is already from this server.` })
+        }
+
         try {
           const imageBuffer = await fetchEmoteImageBuffer(emoteUrl)
           const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, cleanName, imageBuffer)
@@ -604,6 +610,12 @@ async function handleStealEmoteCommand(interaction: DiscordInteraction, env: Env
     cleanName = cleanName.padEnd(2, '_').slice(0, 32)
     const extension = isAnimated ? 'gif' : 'png'
     const emoteUrl = `https://cdn.discordapp.com/emojis/${id}.${extension}`
+
+    // Check if the emote already exists in the guild
+    const emojis = await fetchGuildEmojis(interaction.guild_id, env.DISCORD_TOKEN)
+    if (emojis.some(emoji => emoji.id === id)) {
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `That emote is already from this server.` })
+    }
 
     try {
       const imageBuffer = await fetchEmoteImageBuffer(emoteUrl)

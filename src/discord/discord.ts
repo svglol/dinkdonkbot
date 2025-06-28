@@ -305,3 +305,19 @@ export async function checkChannelPermission(channelId: string, discordToken: st
     return false
   }
 }
+
+export async function fetchGuildEmojis(guildId: string, discordToken: string) {
+  const url = `https://discord.com/api/v10/guilds/${guildId}/emojis`
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bot ${discordToken}`,
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch guild emojis: ${await response.text()}`)
+  }
+
+  return await response.json() as DiscordEmoji[]
+}
