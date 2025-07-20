@@ -24,7 +24,7 @@
     "@vueuse/core": "11.3.0",
     "@vueuse/nuxt": "11.3.0",
     "eslint": "9.31.0",
-    "eslint-plugin-tailwindcss": "3.18.0",
+    "eslint-plugin-tailwindcss": "3.18.2",
     "nuxt": "3.17.7",
     "nuxt-og-image": "5.1.9",
     "postcss-html": "1.8.0",
