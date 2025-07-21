@@ -28,7 +28,7 @@
     "nuxt": "3.17.7",
     "nuxt-og-image": "5.1.9",
     "postcss-html": "1.8.0",
-    "stylelint": "16.21.1",
+    "stylelint": "16.22.0",
     "stylelint-config-recommended-vue": "1.6.1",
     "stylelint-config-standard": "37.0.0",
     "unstorage": "1.16.1",
