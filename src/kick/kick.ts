@@ -126,3 +126,18 @@ export async function getKickToken(env: Env) {
     console.error('Error fetching access token:', error)
   }
 }
+
+export async function getKickPublicKey(env: Env) {
+  const key = await env.KV.get('kick-public-key', { type: 'json' }) as string | null
+  if (key)
+    return key
+  const response = await fetch(`${baseUrl}/public-key`, {
+    method: 'GET',
+  })
+
+  if (response.ok) {
+    const data = await response.json()
+    await env.KV.put('kick-public-key', JSON.stringify(data), { expirationTtl: 60 * 60 * 24 * 7 })
+    return data as string
+  }
+}

@@ -825,7 +825,6 @@ async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: message })
     }
     case 'help': {
-      // TODO update this to use kick instead of twitch
       const embed = {
         title: 'Available commands',
         description: '',

@@ -1,22 +1,21 @@
-export async function kickEventHandler(payload, env: Env) {
-  // TODO determine what to do with paylod
-  // TODO set up payload types
-  console.warn('kickEventHandler', payload)
-//   if (payload.event) {
-//     if (payload.subscription.type === 'stream.online') {
-//       await streamOnline(payload, env)
-//     }
-//     else if (payload.subscription.type === 'stream.offline') {
-//       await streamOffline(payload, env)
-//     }
-//   }
+export async function kickEventHandler(eventType: string, payload: KickLivestreamStatusUpdatedEvent, env: Env) {
+  if (eventType !== 'livestream.status.updated') {
+    throw new Error(`Invalid event type: ${eventType}`)
+  }
+
+  if (payload.is_live && payload.ended_at === null) {
+    await streamOnline(payload, env)
+  }
+  else {
+    await streamOffline(payload, env)
+  }
 }
-async function streamOnline(payload, env: Env) {
+async function streamOnline(payload: KickLivestreamStatusUpdatedEvent, env: Env) {
   // TODO handle payload
   console.warn('streamOnline', payload)
 }
 
-async function streamOffline(payload, env: Env) {
+async function streamOffline(payload: KickLivestreamStatusUpdatedEvent, env: Env) {
   // TODO handle payload
   console.warn('streamOffline', payload)
 }

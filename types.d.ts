@@ -9,7 +9,6 @@ declare global {
     TWITCH_CLIENT_SECRET: string
     TWITCH_EVENT_SECRET: string
     WEBHOOK_URL: string
-    KICK_PUBLIC_KEY: string
     KICK_CLIENT_ID: string
     KICK_CLIENT_SECRET: string
   }
@@ -409,6 +408,22 @@ declare global {
     thumbnail: string
     url: string
     viewer_count: number
+  }
+
+  interface KickLivestreamStatusUpdatedEvent {
+    broadcaster: {
+      is_anonymous: boolean
+      user_id: number
+      username: string
+      is_verified: boolean
+      profile_picture: string
+      channel_slug: string
+      identity: null | unknown
+    }
+    is_live: boolean // true when live, false when ended
+    title: string
+    started_at: string // ISO 8601 timestamp
+    ended_at: string | null // null when live, timestamp when ended
   }
 }
 

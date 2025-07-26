@@ -6,6 +6,7 @@ import {
 import { Router } from 'itty-router'
 import { discordInteractionHandler } from '../discord/interactionHandler'
 import { kickEventHandler } from '../kick/eventHandler'
+import { getKickPublicKey } from '../kick/kick'
 import { twitchEventHandler } from '../twitch/eventHandler'
 import { JsonResponse } from '../util/jsonResponse'
 
@@ -94,8 +95,10 @@ router.post('/kick-eventsub', async (request, env: Env) => {
   if (!isValid)
     return new Response('Signature verification failed', { status: 403 })
 
-  const payload = JSON.parse(body)
-  await kickEventHandler(payload, env)
+  const headers = Object.fromEntries(request.headers.entries())
+  const eventType = headers['kick-event-type']
+  const payload = JSON.parse(body) as KickLivestreamStatusUpdatedEvent
+  await kickEventHandler(eventType, payload, env)
   return new JsonResponse({ message: 'Success' }, { status: 200 })
 })
 
@@ -173,8 +176,11 @@ export async function verifyKickRequest(request: Request, env: Env) {
   const encoder = new TextEncoder()
   const data = encoder.encode(body)
 
+  const publicKey = await getKickPublicKey(env)
+  if (!publicKey)
+    return { isValid: false, body }
   // Decode the base64-encoded raw public key (must be 32 bytes for Ed25519)
-  const publicKeyBytes = Uint8Array.from(atob(env.KICK_PUBLIC_KEY), c => c.charCodeAt(0))
+  const publicKeyBytes = Uint8Array.from(atob(publicKey), c => c.charCodeAt(0))
 
   const cryptoKey = await crypto.subtle.importKey(
     'raw',
