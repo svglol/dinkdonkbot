@@ -141,3 +141,39 @@ export async function getKickPublicKey(env: Env) {
     return data as string
   }
 }
+
+export async function getKickUser(userId: number, env: Env) {
+  const response = await fetch(`${baseUrl}/users?id=${userId}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${await getKickToken(env)}`,
+    },
+  })
+  if (response.status === 401)
+    throw new Error('Unauthorized')
+  if (response.status === 403)
+    throw new Error('Forbidden')
+  if (!response.ok)
+    throw new Error(`HTTP error! status: ${response.status}`)
+
+  const users = await response.json() as KickUserResponse
+  return users.data.find(u => u.user_id === userId)
+}
+
+export async function getKickLivestream(broadcasterId: number, env: Env) {
+  const response = await fetch(`${baseUrl}/livestreams?broadcaster_user_id=${broadcasterId}?limit=1`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${await getKickToken(env)}`,
+    },
+  })
+  if (response.status === 401)
+    throw new Error('Unauthorized')
+  if (response.status === 403)
+    throw new Error('Forbidden')
+  if (!response.ok)
+    throw new Error(`HTTP error! status: ${response.status}`)
+
+  const streams = await response.json() as KickLiveStreamResponse
+  return streams.data.find(s => s.broadcaster_user_id === broadcasterId)
+}

@@ -1,7 +1,8 @@
 import { InteractionResponseFlags, InteractionResponseType, InteractionType } from 'discord-interactions'
 import { and, eq, like } from 'drizzle-orm'
 import { tables, useDB } from '../database/db'
-import { getKickChannel, kickSubscribe, kickUnsubscribe } from '../kick/kick'
+import { kickLiveBodyBuilder } from '../kick/eventHandler'
+import { getKickChannel, getKickLivestream, getKickUser, kickSubscribe, kickUnsubscribe } from '../kick/kick'
 import { getChannelId, getStreamDetails, getStreamerDetails, removeSubscription, subscribe } from '../twitch/twitch'
 import { fetch7tvEmoteImageBuffer, fetchEmoteImageBuffer, fetchSingular7tvEmote } from '../util/emote'
 import { JsonResponse } from '../util/jsonResponse'
@@ -774,36 +775,34 @@ async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: streamList })
     }
     case 'test':{
-      // TODO update this to use kick instead of twitch
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Not implemented' })
-      // const test = interaction.data.options.find(option => option.name === 'test') as DiscordSubCommand
-      // if (!test || !test.options)
-      //   return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
-      // const streamer = test.options.find(option => option.name === 'streamer')?.value as string
-      // const global = test.options.find(option => option.name === 'global')
-      // const stream = await useDB(env).query.streams.findFirst({
-      //   where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
-      // })
-      // if (!stream)
-      //   return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find subscription' })
+      const test = interaction.data.options.find(option => option.name === 'test') as DiscordSubCommand
+      if (!test || !test.options)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+      const streamer = test.options.find(option => option.name === 'streamer')?.value as string
+      const global = test.options.find(option => option.name === 'global')
+      const stream = await useDB(env).query.kickStreams.findFirst({
+        where: (kickStreams, { and, eq, like }) => and(like(kickStreams.name, streamer), eq(kickStreams.guildId, interaction.guild_id)),
+      })
+      if (!stream)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find subscription' })
 
-      // const [streamerData, streamData] = await Promise.all([
-      //   getStreamerDetails(stream.name, env),
-      //   getStreamDetails(stream.name, env),
-      // ])
-      // const body = liveBodyBuilder({ sub: stream, streamerData, streamData })
-      // if (global) {
-      //   if (global.value as boolean) {
-      //     await sendMessage(stream.channelId, env.DISCORD_TOKEN, body, env)
-      //     return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully sent test message for **${streamer}**` })
-      //   }
-      //   else {
-      //     return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, body)
-      //   }
-      // }
-      // else {
-      //   return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, body)
-      // }
+      const [kickUser, kickLivestream] = await Promise.all([
+        await getKickUser(Number(stream.broadcasterId), env),
+        await getKickLivestream(Number(stream.broadcasterId), env),
+      ])
+      const body = kickLiveBodyBuilder({ sub: stream, streamerData: kickUser, streamData: kickLivestream })
+      if (global) {
+        if (global.value as boolean) {
+          await sendMessage(stream.channelId, env.DISCORD_TOKEN, body, env)
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully sent test message for **${streamer}**` })
+        }
+        else {
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, body)
+        }
+      }
+      else {
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, body)
+      }
     }
     case 'details': {
       const details = interaction.data.options.find(option => option.name === 'details') as DiscordSubCommand

@@ -356,7 +356,15 @@ declare global {
   }
 
   interface KickLivestreamStatusUpdatedEvent {
-    broadcaster: KickBroadcasterEvent
+    broadcaster: {
+      is_anonymous: boolean
+      user_id: number
+      username: string
+      is_verified: boolean
+      profile_picture: string
+      channel_slug: string
+      identity: null | unknown
+    }
     is_live: boolean
     title: string
     started_at: string
@@ -424,6 +432,35 @@ declare global {
     title: string
     started_at: string // ISO 8601 timestamp
     ended_at: string | null // null when live, timestamp when ended
+  }
+
+  export interface KickLiveStream {
+    broadcaster_user_id: number
+    category: KickCategory
+    channel_id: number
+    has_mature_content: boolean
+    language: string
+    slug: string
+    started_at: string
+    stream_title: string
+    thumbnail: string
+    viewer_count: number
+  }
+
+  export interface KickLiveStreamResponse {
+    data: KickLiveStream[]
+  }
+
+  export interface KickUser {
+    email: string
+    name: string
+    profile_picture: string
+    user_id: number
+  }
+
+  export interface KickUserResponse {
+    data: KickUser[]
+    message: string
   }
 }
 

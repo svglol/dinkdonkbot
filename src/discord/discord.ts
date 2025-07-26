@@ -197,7 +197,7 @@ export function liveBodyBuilder({ sub, streamerData, streamData }: { sub: Stream
   }
   const embed = {
     title,
-    color: 0x00EA5E9,
+    color: 0x5865F2,
     description: `**${sub.name} is live!**`,
     fields: [
       {
