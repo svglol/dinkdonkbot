@@ -15,7 +15,7 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
-    "@antfu/eslint-config": "4.17.0",
+    "@antfu/eslint-config": "4.18.0",
     "@nuxt/content": "3.6.3",
     "@nuxt/eslint": "1.7.0",
     "@nuxt/fonts": "0.11.4",
