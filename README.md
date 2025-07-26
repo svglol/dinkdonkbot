@@ -46,8 +46,9 @@ For detailed documentation and usage instructions, visit [https://svglol.github.
 
 ### 🥳 Emote Management
 - `/emote add <url_or_emoji>` - Add emotes from other servers or 7TV to your own server
+-
 
-### 👊 Additional Commands
+### ✨ Additional Commands
 - `/invite` - Generate an invite link to add DinkDonk Bot to another Discord server
 - `/dinkdonk` - Get DinkDonked
 
