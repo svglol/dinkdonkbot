@@ -1,6 +1,7 @@
 import { InteractionResponseFlags, InteractionResponseType, InteractionType } from 'discord-interactions'
 import { and, eq, like } from 'drizzle-orm'
 import { tables, useDB } from '../database/db'
+import { getKickChannel, kickSubscribe, kickUnsubscribe } from '../kick/kick'
 import { getChannelId, getStreamDetails, getStreamerDetails, removeSubscription, subscribe } from '../twitch/twitch'
 import { fetch7tvEmoteImageBuffer, fetchEmoteImageBuffer, fetchSingular7tvEmote } from '../util/emote'
 import { JsonResponse } from '../util/jsonResponse'
@@ -51,6 +52,10 @@ export async function discordInteractionHandler(interaction: DiscordInteraction,
       }
       case commands.STEAL_EMOTE_COMMAND.name.toLowerCase(): {
         ctx.waitUntil(handleStealEmoteCommand(interaction, env))
+        return interactionEphemeralLoading()
+      }
+      case commands.KICK_COMMAND.name.toLowerCase(): {
+        ctx.waitUntil(handleKickCommand(interaction, env))
         return interactionEphemeralLoading()
       }
       default: {
@@ -628,4 +633,242 @@ async function handleStealEmoteCommand(interaction: DiscordInteraction, env: Env
   }
 
   return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Something went wrong stealing the emote' })
+}
+
+/**
+ * Handles the /kick commands.
+ * @param interaction The interaction object from Discord
+ * @param env The environment object containing configuration and authentication details.
+ * @returns A promise that resolves to nothing. Updates the interaction with a success or error message.
+ */
+async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
+  if (!interaction.data)
+    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid interaction' })
+  if (!interaction.data.options)
+    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+  const option = interaction.data.options[0].name
+  switch (option) {
+    case 'add': {
+      const server = interaction.guild_id
+      const add = interaction.data.options.find(option => option.name === 'add') as DiscordSubCommand
+      if (!add || !add.options)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+      const streamer = add.options.find(option => option.name === 'streamer')?.value as string
+      const channel = add.options.find(option => option.name === 'discord-channel')?.value as string
+      const role = add.options.find(option => option.name === 'ping-role')
+      const message = add.options.find(option => option.name === 'live-message')
+      const offlineMessage = add.options.find(option => option.name === 'offline-message')
+      // make sure we have all arguments
+      if (!server || !streamer || !channel)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+
+      // check if already subscribed to this channel
+      const subscriptions = await useDB(env).query.kickStreams.findMany({
+        where: (kickStreams, { eq, and, like }) => and(eq(kickStreams.guildId, server), like(kickStreams.name, streamer)),
+      })
+      if (subscriptions.length > 0)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'You have already subscribed to recieving notifications from this channel on this server' })
+
+      // check if kick channel exists
+      const kickChannel = await getKickChannel(streamer, env)
+      if (!kickChannel)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find kick channel, make sure you have the correct name' })
+
+      // check if we have permission to post in this discord channel
+      const hasPermission = await checkChannelPermission(channel, env.DISCORD_TOKEN, env)
+      if (!hasPermission)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'This bot does not have permission to post in this channel' })
+
+      // subscribe to event sub for this channel
+      const subscribed = await kickSubscribe(kickChannel.broadcaster_user_id, env)
+      if (!subscribed)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Something went wrong while trying to subscribe to kick events' })
+
+      let roleId: string | undefined
+      if (role) {
+        roleId = role.value as string
+        if (roleId === server)
+          roleId = undefined
+      }
+
+      const liveText = message ? message.value as string : undefined
+      const offlineText = offlineMessage ? offlineMessage.value as string : undefined
+
+      // add to database
+      await useDB(env).insert(tables.kickStreams).values({
+        name: kickChannel ? kickChannel.slug : streamer,
+        broadcasterId: String(kickChannel.broadcaster_user_id),
+        guildId: server,
+        channelId: channel,
+        roleId,
+        liveMessage: liveText,
+        offlineMessage: offlineText,
+      })
+
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully subscribed to kick notifications for **${streamer}** in <#${channel}>` })
+    }
+    case 'remove': {
+      const remove = interaction.data.options.find(option => option.name === 'remove') as DiscordSubCommand
+      if (!remove || !remove.options)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+      const streamer = remove.options.find(option => option.name === 'streamer')?.value as string
+      const stream = await useDB(env).query.kickStreams.findFirst({
+        where: (kickStreams, { eq, and, like }) => and(eq(kickStreams.guildId, interaction.guild_id), like(kickStreams.name, streamer)),
+      })
+
+      if (!stream)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find subscription' })
+
+      await useDB(env).delete(tables.kickStreams).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
+      const subscriptions = await useDB(env).query.kickStreams.findMany({
+        where: (kickStreams, { like }) => like(kickStreams.name, streamer),
+      })
+      if (subscriptions.length === 0 && stream)
+        await kickUnsubscribe(Number(stream.broadcasterId), env)
+
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully unsubscribed to notifications for **${streamer}**` })
+    }
+    case 'edit':{
+      const server = interaction.guild_id
+      const edit = interaction.data.options.find(option => option.name === 'edit') as DiscordSubCommand
+      if (!edit || !edit.options)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+      const streamer = edit.options.find(option => option.name === 'streamer')?.value as string
+      const dbStream = await useDB(env).query.kickStreams.findFirst({
+        where: (kickStreams, { and, eq, like }) => and(like(kickStreams.name, streamer), eq(kickStreams.guildId, interaction.guild_id)),
+      })
+      if (!dbStream)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find subscription' })
+
+      const channel = edit.options.find(option => option.name === 'discord-channel')
+      if (channel)
+        await useDB(env).update(tables.kickStreams).set({ channelId: String(channel.value) }).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
+      const role = edit.options.find(option => option.name === 'ping-role')
+      let roleId: string | undefined
+      if (role) {
+        roleId = role.value as string
+        if (roleId === server)
+          roleId = undefined
+      }
+      if (roleId)
+        await useDB(env).update(tables.kickStreams).set({ roleId }).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
+
+      const message = edit.options.find(option => option.name === 'live-message')
+      if (message)
+        await useDB(env).update(tables.kickStreams).set({ liveMessage: message.value as string }).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
+
+      const offlineMessage = edit.options.find(option => option.name === 'offline-message')
+      if (offlineMessage)
+        await useDB(env).update(tables.kickStreams).set({ offlineMessage: offlineMessage.value as string }).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
+
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully edited notifications for **${streamer}**` })
+    }
+    case 'list': {
+      const streams = await useDB(env).query.kickStreams.findMany({
+        where: (streams, { eq }) => eq(streams.guildId, interaction.guild_id),
+      })
+      let streamList = 'Not subscribed to any kick streams'
+      if (streams.length > 0)
+        streamList = streams.map(stream => `**${stream.name}** - <#${stream.channelId}>`).join('\n')
+
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: streamList })
+    }
+    case 'test':{
+      // TODO update this to use kick instead of twitch
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Not implemented' })
+      // const test = interaction.data.options.find(option => option.name === 'test') as DiscordSubCommand
+      // if (!test || !test.options)
+      //   return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+      // const streamer = test.options.find(option => option.name === 'streamer')?.value as string
+      // const global = test.options.find(option => option.name === 'global')
+      // const stream = await useDB(env).query.streams.findFirst({
+      //   where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
+      // })
+      // if (!stream)
+      //   return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find subscription' })
+
+      // const [streamerData, streamData] = await Promise.all([
+      //   getStreamerDetails(stream.name, env),
+      //   getStreamDetails(stream.name, env),
+      // ])
+      // const body = liveBodyBuilder({ sub: stream, streamerData, streamData })
+      // if (global) {
+      //   if (global.value as boolean) {
+      //     await sendMessage(stream.channelId, env.DISCORD_TOKEN, body, env)
+      //     return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully sent test message for **${streamer}**` })
+      //   }
+      //   else {
+      //     return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, body)
+      //   }
+      // }
+      // else {
+      //   return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, body)
+      // }
+    }
+    case 'details': {
+      const details = interaction.data.options.find(option => option.name === 'details') as DiscordSubCommand
+      if (!details || !details.options)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+      const streamer = details.options.find(option => option.name === 'streamer')?.value as string
+      const stream = await useDB(env).query.kickStreams.findFirst({
+        where: (kickStreams, { and, eq, like }) => and(like(kickStreams.name, streamer), eq(kickStreams.guildId, interaction.guild_id)),
+      })
+      if (!stream)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find subscription to his channel' })
+      let message = `Streamer: \`${stream.name}\`\n`
+      message += `Channel: <#${stream.channelId}>\n`
+      message += `Live Message: \`${stream.liveMessage}\`\n`
+      message += `Offline Message: \`${stream.offlineMessage}\`\n`
+      if (stream.roleId)
+        message += `\n Role: <@&${stream.roleId}>`
+
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: message })
+    }
+    case 'help': {
+      // TODO update this to use kick instead of twitch
+      const embed = {
+        title: 'Available commands',
+        description: '',
+        color: 0x00EA5E9,
+        fields: [
+          {
+            name: '/kick add <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
+            value: 'Add a Kick streamer to receive notifications for going online or offline\n<streamer> - The name of the streamer to add \n<discord-channel> - The Discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline',
+          },
+          {
+            name: '/kick edit <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
+            value: 'Edit a Kick streamer\'s settings\n<streamer> - The name of the streamer to edit \n<discord-channel> - The Discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline',
+          },
+          {
+            name: '/kick remove <streamer>',
+            value: 'Remove a Kick streamer from receiving notifications for going online or offline\n<streamer> - The name of the streamer to remove',
+          },
+          {
+            name: '/kick list',
+            value: 'List the Kick streamers that you are subscribed to',
+          },
+          {
+            name: '/kick test <streamer> <global>',
+            value: 'Test the notification for a streamer\n<streamer> - The name of the streamer to test\n<global> - Whether to send the message to everyone or not',
+          },
+          {
+            name: '/kick details <streamer>',
+            value: 'Show the details for a streamer you are subscribed to\n<streamer> - The name of the streamer to show',
+          },
+          {
+            name: '/kick help',
+            value: 'Get this help message',
+          },
+          {
+            name: 'Message variables',
+            value: '```{{name}} = the name of the streamer\n{{url}} = the url for the stream\n{{everyone}} = @everyone\n{{here}} = @here\n{{game}} or {{category}} = the game or category of the stream - only works on live message\n{{timestamp}} = the time the stream started/ended\n```',
+          },
+
+        ],
+      }
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
+    }
+  }
+
+  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Command not yet implemented' })
 }

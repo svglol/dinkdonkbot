@@ -9,12 +9,21 @@ declare global {
     TWITCH_CLIENT_SECRET: string
     TWITCH_EVENT_SECRET: string
     WEBHOOK_URL: string
+    KICK_PUBLIC_KEY: string
+    KICK_CLIENT_ID: string
+    KICK_CLIENT_SECRET: string
   }
 
   interface TwitchToken {
     access_token: string
     expires_in: number
     scope: string
+    token_type: string
+  }
+
+  interface KickToken {
+    access_token: string
+    expires_in: string
     token_type: string
   }
 
@@ -345,6 +354,61 @@ declare global {
     content?: string
     embeds?: DiscordEmbed[]
     components?: DiscordComponent[]
+  }
+
+  interface KickLivestreamStatusUpdatedEvent {
+    broadcaster: KickBroadcasterEvent
+    is_live: boolean
+    title: string
+    started_at: string
+    ended_at: string
+  }
+
+  interface KickChannelsResponse {
+    data: KickChannel[]
+    message: string
+  }
+  interface KickWebhooksResponse {
+    data: KickWebhookData[]
+    message: string
+  }
+
+  interface KickWebhookData {
+    app_id: string
+    broadcaster_user_id: number
+    created_at: string
+    event: string
+    id: string
+    method: string
+    updated_at: string
+    version: number
+  }
+
+  interface KickChannel {
+    banner_picture: string
+    broadcaster_user_id: number
+    category: KickCategory
+    channel_description: string
+    slug: string
+    stream: KickStream
+    stream_title: string
+  }
+
+  interface KickCategory {
+    id: number
+    name: string
+    thumbnail: string
+  }
+
+  interface KickStream {
+    is_live: boolean
+    is_mature: boolean
+    key: string
+    language: string
+    start_time: string
+    thumbnail: string
+    url: string
+    viewer_count: number
   }
 }
 

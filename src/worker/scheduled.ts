@@ -127,6 +127,9 @@ async function scheduledCheck(env: Env) {
 
       await Promise.all(subsciptionPromises)
     }
+
+//TODO add check to see if we are unnessarily subscribed to any kick streams
+
     return true
   }
   catch (error) {

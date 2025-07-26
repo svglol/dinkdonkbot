@@ -5,6 +5,7 @@ import {
 } from 'discord-interactions'
 import { Router } from 'itty-router'
 import { discordInteractionHandler } from '../discord/interactionHandler'
+import { kickEventHandler } from '../kick/eventHandler'
 import { twitchEventHandler } from '../twitch/eventHandler'
 import { JsonResponse } from '../util/jsonResponse'
 
@@ -85,6 +86,19 @@ router.post('/twitch-eventsub', async (request, env: Env) => {
   return new JsonResponse({ message: 'Success' }, { status: 200 })
 })
 
+/**
+ * Main route for all requests sent from Kick Eventsub.
+ */
+router.post('/kick-eventsub', async (request, env: Env) => {
+  const { isValid, body } = await verifyKickRequest(request, env)
+  if (!isValid)
+    return new Response('Signature verification failed', { status: 403 })
+
+  const payload = JSON.parse(body)
+  await kickEventHandler(payload, env)
+  return new JsonResponse({ message: 'Success' }, { status: 200 })
+})
+
 // all other routes return a 404
 router.all('*', () => new Response('Not Found.', { status: 404 }))
 
@@ -141,4 +155,45 @@ async function verifyDiscordRequest(request: Request, env: Env) {
     return { isValid: false }
 
   return { interaction: JSON.parse(body) as DiscordInteraction, isValid: true }
+}
+
+/**
+ * Verify a request came from Kick, and that it's not a replay attack.
+ * @param request The request to verify
+ * @param env The environment variables to use
+ * @returns An object with 2 properties: `isValid` and `body`
+ * - `isValid` will be `true` if the request is valid, and `false` otherwise.
+ * - `body` will be the parsed JSON payload of the request, or `undefined` if the request is invalid.
+ */
+export async function verifyKickRequest(request: Request, env: Env) {
+  const signatureBase64 = request.headers.get('Kick-Signature') ?? ''
+  const signature = Uint8Array.from(atob(signatureBase64), c => c.charCodeAt(0))
+
+  const body = await request.text()
+  const encoder = new TextEncoder()
+  const data = encoder.encode(body)
+
+  // Decode the base64-encoded raw public key (must be 32 bytes for Ed25519)
+  const publicKeyBytes = Uint8Array.from(atob(env.KICK_PUBLIC_KEY), c => c.charCodeAt(0))
+
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    publicKeyBytes,
+    { name: 'NODE-ED25519', namedCurve: 'NODE-ED25519' },
+    false,
+    ['verify'],
+  )
+
+  const isValid = await crypto.subtle.verify(
+    { name: 'NODE-ED25519' },
+    cryptoKey,
+    signature,
+    data,
+  )
+
+  if (!isValid) {
+    console.error('Kick request verification failed')
+  }
+
+  return { isValid, body }
 }

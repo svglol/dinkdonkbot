@@ -28,3 +28,19 @@ export const clips = sqliteTable('clips', {
   index('clipsBroadcasterIdx').on(streams.broadcasterId),
   index('clipsGuildIdx').on(clips.guildId),
 ])
+
+export const kickStreams = sqliteTable('kick-streams', {
+  id: integer('id').primaryKey(),
+  name: text('name').notNull(),
+  broadcasterId: text('broadcasterId').notNull(),
+  guildId: text('guild').notNull(),
+  channelId: text('channel').notNull(),
+  roleId: text('roleId'),
+  liveMessage: text('message').default('@everyone {{name}} is now live @ {{url}}'),
+  offlineMessage: text('offlineMessage').default('{{name}} is now offline'),
+}, streams => [
+  uniqueIndex('kick_idIdx').on(streams.id),
+  index('kick_nameIdx').on(streams.name),
+  index('kick_broadcasterIdIdx').on(streams.broadcasterId),
+  index('kick_guildIdIdx').on(streams.guildId),
+])
