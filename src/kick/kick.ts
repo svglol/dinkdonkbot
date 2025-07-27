@@ -250,22 +250,28 @@ export async function getKickLivestream(broadcasterId: number, env: Env) {
  * @throws If the request to fetch the channel fails.
  */
 export async function getKickChannelV2(slug: string) {
-  const response = await fetch(`https://kick.com/api/v2/channels/${slug}`, {
-    method: 'GET',
-    headers: {
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-        + '(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-      'Accept': 'application/json',
-    },
-  })
-  if (response.status === 401)
-    throw new Error('Unauthorized')
-  if (response.status === 403)
-    throw new Error('Forbidden')
-  if (!response.ok)
-    throw new Error(`HTTP error! status: ${response.status}`)
+  try {
+    const response = await fetch(`https://kick.com/api/v2/channels/${slug}`, {
+      method: 'GET',
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+          + '(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+      },
+    })
+    if (response.status === 401)
+      throw new Error('Unauthorized')
+    if (response.status === 403)
+      throw new Error('Forbidden')
+    if (!response.ok)
+      throw new Error(`HTTP error! status: ${response.status}`)
 
-  const channels = await response.json() as KickChannelV2
-  return channels
+    const channels = await response.json() as KickChannelV2
+    return channels
+  }
+  catch (error) {
+    console.error('Error fetching kick v2 channel:', error)
+    return undefined
+  }
 }
