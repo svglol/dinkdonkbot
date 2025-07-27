@@ -1,8 +1,16 @@
 import type { Stream } from '../database/db'
 import { useDB } from '../database/db'
 import { messageBuilder, sendMessage, updateMessage } from '../discord/discord'
-import { getKickChannel, getKickLivestream, getKickUser, kickUnsubscribe } from './kick'
+import { formatDuration } from '../util/formatDuration'
+import { getKickChannelV2, getKickLivestream, kickUnsubscribe } from './kick'
 
+/**
+ * Handles a 'livestream.status.updated' event by sending a live message to all subscribers.
+ *
+ * @param eventType - The type of the event. Must be 'livestream.status.updated'.
+ * @param payload - The payload containing the event data and subscription details.
+ * @param env - The environment variables for accessing configuration and services.
+ */
 export async function kickEventHandler(eventType: string, payload: KickLivestreamStatusUpdatedEvent, env: Env) {
   if (eventType !== 'livestream.status.updated') {
     throw new Error(`Invalid event type: ${eventType}`)
@@ -15,6 +23,13 @@ export async function kickEventHandler(eventType: string, payload: KickLivestrea
     await streamOffline(payload, env)
   }
 }
+
+/**
+ * Handles a 'livestream.status.updated' event by sending a live message to all subscribers.
+ *
+ * @param payload - The payload containing the event data and subscription details.
+ * @param env - The environment variables for accessing configuration and services.
+ */
 async function streamOnline(payload: KickLivestreamStatusUpdatedEvent, env: Env) {
   const broadcasterId = payload.broadcaster.user_id
 
@@ -25,7 +40,7 @@ async function streamOnline(payload: KickLivestreamStatusUpdatedEvent, env: Env)
   // send message to all subscriptions
   if (subscriptions.length > 0) {
     const [kickUser, kickLivestream] = await Promise.all([
-      await getKickUser(payload.broadcaster.user_id, env),
+      await getKickChannelV2(payload.broadcaster.channel_slug),
       await getKickLivestream(broadcasterId, env),
     ])
 
@@ -49,23 +64,32 @@ async function streamOnline(payload: KickLivestreamStatusUpdatedEvent, env: Env)
   }
 }
 
+/**
+ * Handles a 'livestream.status.updated' event by updating all subscribed Discord channels with an offline
+ * message. If a VOD is available, it adds a button to watch the VOD.
+ *
+ * @param payload - The payload containing the event data and subscription details.
+ * @param env - The environment variables for accessing configuration and services.
+ */
 async function streamOffline(payload: KickLivestreamStatusUpdatedEvent, env: Env) {
   const broadcasterId = payload.broadcaster.user_id
   const broadcasterName = payload.broadcaster.username
-  const channelInfo = await getKickChannel(payload.broadcaster.username, env)
+  const channelInfo = await getKickChannelV2(payload.broadcaster.username)
   const messagesToUpdate = await env.KV.get(`discord-messages-kick-${broadcasterId}`, { type: 'json' }) as KVDiscordMessage
   if (messagesToUpdate) {
     const updatePromises = messagesToUpdate.messages.map(async (message) => {
       // update embed with offline message
-      const duration = new Date(payload.ended_at).getTime() - new Date(payload.started_at).getTime()
+      const duration = formatDuration(new Date(payload.ended_at).getTime() - new Date(payload.started_at).getTime())
       message.embed.timestamp = new Date(payload.ended_at).toISOString()
       message.embed.description = `Streamed for **${duration}**`
       if (message.embed.footer)
         message.embed.footer.text = 'Last online'
 
-      if (channelInfo && channelInfo.banner_picture && message.embed.image)
-        message.embed.image.url = channelInfo.banner_picture
+      if (channelInfo && channelInfo.offline_banner_image && message.embed.image)
+        message.embed.image.url = channelInfo.offline_banner_image.src || 'https://kick.com/img/default-channel-banners/offline.webp'
+
       message.embed.fields = []
+
       const sub = await useDB(env).query.streams.findFirst({
         where: (streams, { eq }) => eq(streams.id, message.dbStreamId),
       })
@@ -79,14 +103,23 @@ async function streamOffline(payload: KickLivestreamStatusUpdatedEvent, env: Env
   }
 }
 
-export function kickLiveBodyBuilder({ sub, streamerData, streamData, eventData }: { sub: Stream, streamerData?: KickUser | null, streamData?: KickLiveStream | null, eventData?: KickLivestreamStatusUpdatedEvent | null }) {
+/**
+ * Builds a Discord message body for a live notification.
+ * @param sub - The subscription that triggered the notification.
+ * @param sub.sub - The subscrition object from the database.
+ * @param sub.streamerData - The Kick channel data for the stream. Optional.
+ * @param sub.streamData - The Kick stream data for the stream. Optional.
+ * @param sub.eventData - The Kick event data for the stream. Optional.
+ * @returns A DiscordBody object containing the message to be sent.
+ */
+export function kickLiveBodyBuilder({ sub, streamerData, streamData, eventData }: { sub: Stream, streamerData?: KickChannelV2 | null, streamData?: KickLiveStream | null, eventData?: KickLivestreamStatusUpdatedEvent | null }) {
   const components: DiscordComponent[] = []
   const component = {
     type: 1,
     components: [
       {
         type: 2,
-        label: 'Watch Stream',
+        label: 'Watch Kick Stream',
         url: `https://kick.com/${sub.name}`,
         style: 5,
       },
@@ -94,10 +127,9 @@ export function kickLiveBodyBuilder({ sub, streamerData, streamData, eventData }
   }
   components.push(component)
   const embeds: DiscordEmbed[] = []
-  let title = `${streamerData?.name ?? sub.name} is live!`
-  let thumbnail = streamerData?.profile_picture ?? ''
+  let title = `${streamerData?.slug ?? sub.name} is live!`
+  let thumbnail = streamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp'
   let timestamp = new Date().toISOString()
-
   if (eventData) {
     title = eventData.title
   }
@@ -120,17 +152,18 @@ export function kickLiveBodyBuilder({ sub, streamerData, streamData, eventData }
       url: thumbnail,
     },
     thumbnail: {
-      url: streamerData ? streamerData.profile_picture : '',
+      url: streamerData?.user.profile_pic ?? '',
     },
     timestamp,
     footer: {
       text: 'Online',
+      icon_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Kick.com_icon_logo.svg/2048px-Kick.com_icon_logo.svg.png',
     },
   }
   embeds.push(embed)
 
   const roleMention = sub.roleId && sub.roleId !== sub.guildId ? `<@&${sub.roleId}> ` : ''
-  const message = `${roleMention}${messageBuilder(sub.liveMessage ? sub.liveMessage : '{{name}} is live!', sub.name, streamData?.category.name, streamData?.started_at)}`
+  const message = `${roleMention}${messageBuilder(sub.liveMessage ? sub.liveMessage : '{{name}} is live!', sub.name, streamData?.category.name, streamData?.started_at, 'kick')}`
 
   return {
     content: message,

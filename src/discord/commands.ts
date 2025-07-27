@@ -317,5 +317,21 @@ export const KICK_COMMAND = {
         description: 'The message to post when the streamer goes offline',
       }],
     },
+    {
+      type: 1,
+      name: 'test',
+      description: 'Test the notification for a streamer',
+      dm_permission: false,
+      options: [{
+        type: 3,
+        name: 'streamer',
+        description: 'The name of the streamer to test',
+        required: true,
+      }, {
+        type: 5,
+        name: 'global',
+        description: 'Show the notification for everyone in the server',
+      }],
+    },
   ],
 }

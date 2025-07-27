@@ -462,6 +462,66 @@ declare global {
     data: KickUser[]
     message: string
   }
+
+  export interface KickChannelV2 {
+    id: number
+    user_id: number
+    slug: string
+    is_banned: boolean
+    playback_url: string
+    vod_enabled: boolean
+    subscription_enabled: boolean
+    is_affiliate: boolean
+    followers_count: number
+    subscriber_badges: any[] // If you know the structure, replace `any` with a specific type
+    banner_image: {
+      url: string
+    } | null
+    livestream: any | null // Replace with actual type if available
+    role: any | null
+    muted: boolean
+    follower_badges: any[] // Same as above
+    offline_banner_image: {
+      src: string
+      srcset: string
+    }
+    verified: boolean
+    recent_categories: any[] // Replace with actual type if known
+    can_host: boolean
+    user: {
+      id: number
+      username: string
+      agreed_to_terms: boolean
+      email_verified_at: string
+      bio: string
+      country: string
+      state: string
+      city: string
+      instagram: string
+      twitter: string
+      youtube: string
+      discord: string
+      tiktok: string
+      facebook: string
+      profile_pic: string
+    }
+    chatroom: {
+      id: number
+      chatable_type: string
+      channel_id: number
+      created_at: string
+      updated_at: string
+      chat_mode_old: string
+      chat_mode: string
+      slow_mode: boolean
+      chatable_id: number
+      followers_mode: boolean
+      subscribers_mode: boolean
+      emotes_mode: boolean
+      message_interval: number
+      following_min_duration: number
+    }
+  }
 }
 
 declare module 'cloudflare:test' {

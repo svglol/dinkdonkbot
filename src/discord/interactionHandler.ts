@@ -2,7 +2,7 @@ import { InteractionResponseFlags, InteractionResponseType, InteractionType } fr
 import { and, eq, like } from 'drizzle-orm'
 import { tables, useDB } from '../database/db'
 import { kickLiveBodyBuilder } from '../kick/eventHandler'
-import { getKickChannel, getKickLivestream, getKickUser, kickSubscribe, kickUnsubscribe } from '../kick/kick'
+import { getKickChannel, getKickChannelV2, getKickLivestream, kickSubscribe, kickUnsubscribe } from '../kick/kick'
 import { getChannelId, getStreamDetails, getStreamerDetails, removeSubscription, subscribe } from '../twitch/twitch'
 import { fetch7tvEmoteImageBuffer, fetchEmoteImageBuffer, fetchSingular7tvEmote } from '../util/emote'
 import { JsonResponse } from '../util/jsonResponse'
@@ -787,7 +787,7 @@ async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find subscription' })
 
       const [kickUser, kickLivestream] = await Promise.all([
-        await getKickUser(Number(stream.broadcasterId), env),
+        await getKickChannelV2(stream.name),
         await getKickLivestream(Number(stream.broadcasterId), env),
       ])
       const body = kickLiveBodyBuilder({ sub: stream, streamerData: kickUser, streamData: kickLivestream })
