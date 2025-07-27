@@ -199,6 +199,10 @@ export function liveBodyBuilder({ sub, streamerData, streamData }: { sub: Stream
     title,
     color: 0x6441A4,
     description: `**${sub.name} is live!**`,
+    author: {
+      name: 'Twitch',
+      icon_url: 'https://img.freepik.com/premium-vector/vector-twitch-social-media-logo_1093524-449.jpg?semt=ais_hybrid&w=740&q=80',
+    },
     fields: [
       {
         name: 'Game',
@@ -215,7 +219,6 @@ export function liveBodyBuilder({ sub, streamerData, streamData }: { sub: Stream
     timestamp,
     footer: {
       text: 'Online',
-      icon_url: 'https://img.freepik.com/premium-vector/vector-twitch-social-media-logo_1093524-449.jpg?semt=ais_hybrid&w=740&q=80',
     },
   }
   embeds.push(embed)

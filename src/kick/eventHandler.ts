@@ -141,6 +141,10 @@ export function kickLiveBodyBuilder({ sub, streamerData, streamData, eventData }
     title,
     color: 0x53FC18,
     description: `**${sub.name} is live!**`,
+    author: {
+      name: 'KICK',
+      icon_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Kick.com_icon_logo.svg/2048px-Kick.com_icon_logo.svg.png',
+    },
     fields: [
       {
         name: 'Game',
@@ -157,7 +161,6 @@ export function kickLiveBodyBuilder({ sub, streamerData, streamData, eventData }
     timestamp,
     footer: {
       text: 'Online',
-      icon_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Kick.com_icon_logo.svg/2048px-Kick.com_icon_logo.svg.png',
     },
   }
   embeds.push(embed)
