@@ -315,7 +315,6 @@ export async function fetchGuildEmojis(guildId: string, discordToken: string) {
       Authorization: `Bot ${discordToken}`,
     },
   })
-
   if (!response.ok) {
     throw new Error(`Failed to fetch guild emojis: ${await response.text()}`)
   }

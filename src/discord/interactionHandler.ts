@@ -388,9 +388,14 @@ async function handleEmoteCommand(interaction: DiscordInteraction, env: Env) {
         const emoteUrl = `https://cdn.discordapp.com/emojis/${id}.${extension}`
 
         // Check if the emote already exists in the guild
-        const emojis = await fetchGuildEmojis(interaction.guild_id, env.DISCORD_TOKEN)
-        if (emojis.some(emoji => emoji.id === id)) {
-          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `That emote is already from this server.` })
+        try {
+          const emojis = await fetchGuildEmojis(interaction.guild_id, env.DISCORD_TOKEN)
+          if (emojis.some(emoji => emoji.id === id)) {
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `That emote is already from this server.` })
+          }
+        }
+        catch (error) {
+          console.error('Error checking if emote already exists:', error)
         }
 
         try {
@@ -617,10 +622,15 @@ async function handleStealEmoteCommand(interaction: DiscordInteraction, env: Env
     const extension = isAnimated ? 'gif' : 'png'
     const emoteUrl = `https://cdn.discordapp.com/emojis/${id}.${extension}`
 
-    // Check if the emote already exists in the guild
-    const emojis = await fetchGuildEmojis(interaction.guild_id, env.DISCORD_TOKEN)
-    if (emojis.some(emoji => emoji.id === id)) {
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `That emote is already from this server.` })
+    try {
+      // Check if the emote already exists in the guild
+      const emojis = await fetchGuildEmojis(interaction.guild_id, env.DISCORD_TOKEN)
+      if (emojis.some(emoji => emoji.id === id)) {
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `That emote is already from this server.` })
+      }
+    }
+    catch (error) {
+      console.error('Error checking if emote already exists:', error)
     }
 
     try {
