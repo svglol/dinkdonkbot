@@ -31,6 +31,7 @@ export async function sendMessage(channelId: string, discordToken: string, body:
     else if (response.status === 404 || response.status === 403) {
       await useDB(env).delete(tables.streams).where(eq(tables.streams.channelId, channelId))
       await useDB(env).delete(tables.clips).where(eq(tables.clips.channelId, channelId))
+      await useDB(env).delete(tables.kickStreams).where(eq(tables.kickStreams.channelId, channelId))
       return null
     }
 
