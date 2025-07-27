@@ -7,7 +7,7 @@ import { getChannelId, getStreamDetails, getStreamerDetails, removeSubscription,
 import { fetch7tvEmoteImageBuffer, fetchEmoteImageBuffer, fetchSingular7tvEmote } from '../util/emote'
 import { JsonResponse } from '../util/jsonResponse'
 import * as commands from './commands'
-import { checkChannelPermission, fetchGuildEmojis, liveBodyBuilder, sendMessage, updateInteraction, uploadEmoji } from './discord'
+import { checkChannelPermission, liveBodyBuilder, sendMessage, updateInteraction, uploadEmoji } from './discord'
 
 /**
  * Handles an interaction from Discord.
