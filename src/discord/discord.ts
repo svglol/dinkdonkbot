@@ -178,7 +178,7 @@ export function liveBodyBuilder({ sub, streamerData, streamData }: { sub: Stream
     components: [
       {
         type: 2,
-        label: 'Watch Stream',
+        label: 'Watch Twitch Stream',
         url: `https://twitch.tv/${sub.name}`,
         style: 5,
       },
@@ -197,7 +197,7 @@ export function liveBodyBuilder({ sub, streamerData, streamData }: { sub: Stream
   }
   const embed = {
     title,
-    color: 0x00EA5E9,
+    color: 0x6441A4,
     description: `**${sub.name} is live!**`,
     fields: [
       {
@@ -215,6 +215,7 @@ export function liveBodyBuilder({ sub, streamerData, streamData }: { sub: Stream
     timestamp,
     footer: {
       text: 'Online',
+      icon_url: 'https://img.freepik.com/premium-vector/vector-twitch-social-media-logo_1093524-449.jpg?semt=ais_hybrid&w=740&q=80',
     },
   }
   embeds.push(embed)
@@ -247,9 +248,9 @@ export function liveBodyBuilder({ sub, streamerData, streamData }: { sub: Stream
  * @param startedAt - The timestamp of when the stream started (optional).
  * @returns The message with all placeholders replaced.
  */
-export function messageBuilder(message: string, streamName: string, game?: string, startedAt?: string) {
+export function messageBuilder(message: string, streamName: string, game?: string, startedAt?: string, service: 'twitch' | 'kick' = 'twitch') {
   return message.replace(/\{\{name\}\}/gi, streamName)
-    .replace(/\{\{url\}\}/gi, `https://twitch.tv/${streamName}`)
+    .replace(/\{\{url\}\}/gi, service === 'kick' ? `https://kick.com/${streamName}` : `https://twitch.tv/${streamName}`)
     .replace(/\{\{everyone\}\}/gi, '@everyone')
     .replace(/\{\{here\}\}/gi, '@here')
     .replace(/\{\{(game|category)\}\}/gi, game || '')

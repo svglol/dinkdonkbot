@@ -1,5 +1,7 @@
+import { inArray, not } from 'drizzle-orm'
 import { eq, tables, useDB } from '../database/db'
 import { sendMessage } from '../discord/discord'
+import { getKickSubscriptions, kickSubscribe, kickUnsubscribe } from '../kick/kick'
 import { getClipsLastHour, getSubscriptions, removeFailedSubscriptions, removeSubscription, subscribe } from '../twitch/twitch'
 
 export default {
@@ -60,14 +62,16 @@ async function scheduledTwitchClips(env: Env) {
 }
 
 /**
- * This function is called once a day by the scheduler.
- * It checks if the bot is subscribed to any servers it shouldn't be,
- * and if so, removes the subscriptions from the database and unsubscribes
- * from Twitch EventSub.
- * It also checks if Twitch EventSub is subscribed to all of our streams in the database,
- * and if not, subscribes to them.
+ * This function is scheduled to run every day and performs various checks and maintenance
+ * tasks to ensure the bot is functioning correctly.
+ *
+ * It checks if the bot is subscribed to any servers it shouldnt be and removes those subscriptions.
+ * It also checks if the bot is subscribed to all of the streams in the database and
+ * subscribes to any that it is not. It then checks if the bot is subscribed to any channels
+ * it shouldnt be and removes those subscriptions.
+ *
  * @param env The environment variables for accessing configuration and services.
- * @returns A promise that resolves to true if the check was successful, or false if there was an error.
+ * @returns A promise that resolves to true if all checks and maintenance tasks were successful.
  */
 async function scheduledCheck(env: Env) {
   try {
@@ -127,6 +131,35 @@ async function scheduledCheck(env: Env) {
 
       await Promise.all(subsciptionPromises)
     }
+
+    // Kick EventSub
+    const kickSubscriptions = await getKickSubscriptions(env)
+    // Check if kick event sub is subscribed to all of our streams in the database
+    if (kickSubscriptions) {
+      const kickStreamIds = kickSubscriptions.data.map(sub => sub.broadcaster_user_id.toString())
+      const kickStreams = await useDB(env)
+        .select()
+        .from(tables.kickStreams)
+        .where(not(inArray(tables.kickStreams.broadcasterId, kickStreamIds)))
+
+      const kickSubscriptionsPromises = kickStreams.map(async (kickStream) => {
+        await kickSubscribe(Number(kickStream.broadcasterId), env)
+      })
+      await Promise.all(kickSubscriptionsPromises)
+
+      // check if the bot is subscribed to any channels it shouldnt be
+      const dbBroadcasterIds = await useDB(env).query.kickStreams.findMany().then(streams => streams.map(stream => stream.broadcasterId))
+      const extraSubscriptions = kickSubscriptions.data.filter(sub =>
+        !dbBroadcasterIds.includes(sub.broadcaster_user_id.toString()),
+      )
+
+      const unsubscribePromises = extraSubscriptions.map(sub =>
+        kickUnsubscribe(Number(sub.broadcaster_user_id), env),
+      )
+
+      await Promise.all(unsubscribePromises)
+    }
+
     return true
   }
   catch (error) {

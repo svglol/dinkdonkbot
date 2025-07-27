@@ -1,11 +1,11 @@
 ---
 title: ''
-description: 'DinkDonk Bot is a Discord Bot that helps you stay updated with Twitch streams, clips, and Discord emotes effortlessly.'
+description: 'DinkDonk Bot is a Discord Bot that helps you stay updated with Twitch and Kick streams, clips, and Discord emotes effortlessly.'
 ogImage:
   component: OgImageDefault
   props:
     title: 'DinkDonk Bot'
-    description: 'DinkDonk Bot is a Discord Bot that helps you stay updated with Twitch streams, clips, and Discord emotes effortlessly.'
+    description: 'DinkDonk Bot is a Discord Bot that helps you stay updated with Twitch and Kick streams, clips, and Discord emotes effortlessly.'
 ---
 
 ::hero
@@ -27,7 +27,7 @@ buttons:
 DinkDonk Bot
 
 #subtitle
-Your all-in-one Discord bot for Twitch notifications and Discord emotes.
+Your all-in-one Discord bot for Twitch and Kick notifications and Discord emotes.
 
 #cards
 ::card{:icon="fa6-solid:bell"}
@@ -36,7 +36,7 @@ Your all-in-one Discord bot for Twitch notifications and Discord emotes.
 Live Stream Alerts
 
 #subtitle
-Never miss a stream! Get instant notifications when your favorite Twitch streamers go live.
+Never miss a stream! Get instant notifications when your favorite Twitch and Kick streamers go live.
 ::
 
 ::card{:icon="fa6-solid:film"}
@@ -67,7 +67,7 @@ Bot Commands
 ::card{:disableSpotlight="true"}
 
 #title
-Twitch Stream Alerts
+🟪 Twitch Stream Alerts
 
 #subtitle
 `/twitch add <streamer> <discord-channel> [ping-role] [live-message] [offline-message]` - Add streamer notifications
@@ -82,7 +82,22 @@ Twitch Stream Alerts
 ::card{:disableSpotlight="true"}
 
 #title
-Twitch Clip Highlights
+🟩 Kick Stream Alerts
+
+#subtitle
+`/kick add <streamer> <discord-channel> [ping-role] [live-message] [offline-message]` - Add streamer notifications
+`/kick remove <streamer>` - Stop notifications for a streamer
+`/kick edit <streamer> [discord-channel] [ping-role] [live-message] [offline-message]` - Update settings
+`/kick list` - View all subscribed streamers
+`/kick test <streamer> [global]` - Preview notification appearance
+`/kick details <streamer>` - See detailed streamer settings
+`/kick help` - Display command instructions
+::
+
+::card{:disableSpotlight="true"}
+
+#title
+🎬 Twitch Clip Highlights
 
 #subtitle
 `/clips add <streamer> <discord-channel>` - Subscribe to a streamer's clips
@@ -95,7 +110,7 @@ Twitch Clip Highlights
 ::card{:disableSpotlight="true"}
 
 #title
-Emote Management
+🥳 Emote Management
 
 #subtitle
 `/emote add <url_or_emoji>` - Add emotes from other servers or 7TV to your own server
@@ -104,7 +119,7 @@ Emote Management
 ::card{:disableSpotlight="true"}
 
 #title
-Additional Commands
+✨ Additional Commands
 
 #subtitle
 `/invite` - Generate an invite link to add DinkDonk Bot to another Discord server

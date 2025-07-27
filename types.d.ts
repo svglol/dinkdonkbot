@@ -9,12 +9,20 @@ declare global {
     TWITCH_CLIENT_SECRET: string
     TWITCH_EVENT_SECRET: string
     WEBHOOK_URL: string
+    KICK_CLIENT_ID: string
+    KICK_CLIENT_SECRET: string
   }
 
   interface TwitchToken {
     access_token: string
     expires_in: number
     scope: string
+    token_type: string
+  }
+
+  interface KickToken {
+    access_token: string
+    expires_in: string
     token_type: string
   }
 
@@ -345,6 +353,174 @@ declare global {
     content?: string
     embeds?: DiscordEmbed[]
     components?: DiscordComponent[]
+  }
+
+  interface KickLivestreamStatusUpdatedEvent {
+    broadcaster: {
+      is_anonymous: boolean
+      user_id: number
+      username: string
+      is_verified: boolean
+      profile_picture: string
+      channel_slug: string
+      identity: null | unknown
+    }
+    is_live: boolean
+    title: string
+    started_at: string
+    ended_at: string
+  }
+
+  interface KickChannelsResponse {
+    data: KickChannel[]
+    message: string
+  }
+  interface KickWebhooksResponse {
+    data: KickWebhookData[]
+    message: string
+  }
+
+  interface KickWebhookData {
+    app_id: string
+    broadcaster_user_id: number
+    created_at: string
+    event: string
+    id: string
+    method: string
+    updated_at: string
+    version: number
+  }
+
+  interface KickChannel {
+    banner_picture: string
+    broadcaster_user_id: number
+    category: KickCategory
+    channel_description: string
+    slug: string
+    stream: KickStream
+    stream_title: string
+  }
+
+  interface KickCategory {
+    id: number
+    name: string
+    thumbnail: string
+  }
+
+  interface KickStream {
+    is_live: boolean
+    is_mature: boolean
+    key: string
+    language: string
+    start_time: string
+    thumbnail: string
+    url: string
+    viewer_count: number
+  }
+
+  interface KickLivestreamStatusUpdatedEvent {
+    broadcaster: {
+      is_anonymous: boolean
+      user_id: number
+      username: string
+      is_verified: boolean
+      profile_picture: string
+      channel_slug: string
+      identity: null | unknown
+    }
+    is_live: boolean // true when live, false when ended
+    title: string
+    started_at: string // ISO 8601 timestamp
+    ended_at: string | null // null when live, timestamp when ended
+  }
+
+  export interface KickLiveStream {
+    broadcaster_user_id: number
+    category: KickCategory
+    channel_id: number
+    has_mature_content: boolean
+    language: string
+    slug: string
+    started_at: string
+    stream_title: string
+    thumbnail: string
+    viewer_count: number
+  }
+
+  export interface KickLiveStreamResponse {
+    data: KickLiveStream[]
+  }
+
+  export interface KickUser {
+    email: string
+    name: string
+    profile_picture: string
+    user_id: number
+  }
+
+  export interface KickUserResponse {
+    data: KickUser[]
+    message: string
+  }
+
+  export interface KickChannelV2 {
+    id: number
+    user_id: number
+    slug: string
+    is_banned: boolean
+    playback_url: string
+    vod_enabled: boolean
+    subscription_enabled: boolean
+    is_affiliate: boolean
+    followers_count: number
+    subscriber_badges: any[] // If you know the structure, replace `any` with a specific type
+    banner_image: {
+      url: string
+    } | null
+    livestream: any | null // Replace with actual type if available
+    role: any | null
+    muted: boolean
+    follower_badges: any[] // Same as above
+    offline_banner_image: {
+      src: string
+      srcset: string
+    }
+    verified: boolean
+    recent_categories: any[] // Replace with actual type if known
+    can_host: boolean
+    user: {
+      id: number
+      username: string
+      agreed_to_terms: boolean
+      email_verified_at: string
+      bio: string
+      country: string
+      state: string
+      city: string
+      instagram: string
+      twitter: string
+      youtube: string
+      discord: string
+      tiktok: string
+      facebook: string
+      profile_pic: string
+    }
+    chatroom: {
+      id: number
+      chatable_type: string
+      channel_id: number
+      created_at: string
+      updated_at: string
+      chat_mode_old: string
+      chat_mode: string
+      slow_mode: boolean
+      chatable_id: number
+      followers_mode: boolean
+      subscribers_mode: boolean
+      emotes_mode: boolean
+      message_interval: number
+      following_min_duration: number
+    }
   }
 }
 

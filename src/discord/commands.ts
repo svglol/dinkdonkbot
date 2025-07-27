@@ -15,13 +15,13 @@ export const DINKDONK_COMMAND = {
 
 export const TWITCH_COMMAND = {
   name: 'twitch',
-  description: 'Twitch streamer notifications',
+  description: 'Twitch stream notifications',
   default_member_permissions: '0',
   dm_permission: false,
   options: [{
     type: 1,
     name: 'add',
-    description: 'Add a Twitch streamer to receive notifications for going online or offline',
+    description: 'Add a Twitch streamer to receive notifications for going online',
     dm_permission: false,
     options: [{
       type: 3,
@@ -214,4 +214,124 @@ export const TWITCH_CLIPS_COMMAND = {
     description: 'Show help for the Twitch clips command',
     dm_permission: false,
   }],
+}
+
+export const KICK_COMMAND = {
+  name: 'kick',
+  description: 'Kick Stream Notifications',
+  default_member_permissions: '0',
+  dm_permission: false,
+  options: [
+    {
+      type: 1,
+      name: 'add',
+      description: 'Add a Kick streamer to receive notifications for going online',
+      dm_permission: false,
+      options: [{
+        type: 3,
+        name: 'streamer',
+        description: 'The name of the streamer to add',
+        required: true,
+      }, {
+        type: 7,
+        name: 'discord-channel',
+        description: 'The discord channel to post to when the streamer goes live',
+        required: true,
+        channel_types: [0],
+      }, {
+        type: 8,
+        name: 'ping-role',
+        description: 'What role to @ when the streamer goes live',
+      }, {
+        type: 3,
+        name: 'live-message',
+        description: 'The message to post when the streamer goes live',
+      }, {
+        type: 3,
+        name: 'offline-message',
+        description: 'The message to post when the streamer goes offline',
+      }],
+    },
+    {
+      type: 1,
+      name: 'remove',
+      description: 'Remove a Kick streamer from receiving notifications for going online',
+      dm_permission: false,
+      options: [{
+        type: 3,
+        name: 'streamer',
+        description: 'The name of the streamer to remove',
+        required: true,
+      }],
+    },
+    {
+      type: 1,
+      name: 'list',
+      description: 'View your subscribed Kick streamers',
+      dm_permission: false,
+    },
+    {
+      type: 1,
+      name: 'help',
+      description: 'Show help for the kick command',
+      dm_permission: false,
+    },
+    {
+      type: 1,
+      name: 'details',
+      description: 'Show the details for a streamer you are subscribed to',
+      dm_permission: false,
+      options: [{
+        type: 3,
+        name: 'streamer',
+        description: 'The name of the streamer to show',
+        required: true,
+      }],
+    },
+    {
+      type: 1,
+      name: 'edit',
+      description: 'Edit a Kick streamer\'s settings',
+      dm_permission: false,
+      options: [{
+        type: 3,
+        name: 'streamer',
+        description: 'The name of the streamer to edit',
+        required: true,
+      }, {
+        type: 7,
+        name: 'discord-channel',
+        description: 'The discord channel to post to when the streamer goes live',
+        channel_types: [0],
+      }, {
+        type: 8,
+        name: 'ping-role',
+        description: 'What role/who to @ when the streamer goes live',
+      }, {
+        type: 3,
+        name: 'live-message',
+        description: 'The message to post when the streamer goes live',
+      }, {
+        type: 3,
+        name: 'offline-message',
+        description: 'The message to post when the streamer goes offline',
+      }],
+    },
+    {
+      type: 1,
+      name: 'test',
+      description: 'Test the notification for a streamer',
+      dm_permission: false,
+      options: [{
+        type: 3,
+        name: 'streamer',
+        description: 'The name of the streamer to test',
+        required: true,
+      }, {
+        type: 5,
+        name: 'global',
+        description: 'Show the notification for everyone in the server',
+      }],
+    },
+  ],
 }
