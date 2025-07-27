@@ -19,8 +19,8 @@ importers:
         version: 5.0.18
     devDependencies:
       '@antfu/eslint-config':
-        specifier: 4.18.0
-        version: 4.18.0(@vue/compiler-sfc@3.5.18)(eslint@9.31.0)(typescript@5.8.3)(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.1.0)(tsx@4.20.3)(yaml@2.8.0))
+        specifier: 4.19.0
+        version: 4.19.0(@vue/compiler-sfc@3.5.18)(eslint@9.31.0)(typescript@5.8.3)(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.1.0)(tsx@4.20.3)(yaml@2.8.0))
       '@cloudflare/vitest-pool-workers':
         specifier: 0.8.56
         version: 0.8.56(@cloudflare/workers-types@4.20250724.0)(@vitest/runner@3.2.4)(@vitest/snapshot@3.2.4)(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.1.0)(tsx@4.20.3)(yaml@2.8.0))
@@ -54,11 +54,12 @@ importers:
 
 packages:
 
-  '@antfu/eslint-config@4.18.0':
-    resolution: {integrity: sha512-NjzC2VS0UU45xMPN7FJcIF/hhfYHb/ILVp8T6JdfPKel5QToC4bjC8P0v1tp+cy0/F+5jRJdaGrnH31s7Ku4jw==}
+  '@antfu/eslint-config@4.19.0':
+    resolution: {integrity: sha512-IQlML0cc7qNA1Uk55raMRZjOmh26rkX3bi2MFYjhO+VOtTQt8Mz2ngxBlIwpTgZFgfuYjle6JPuOuALnEZHDFw==}
     hasBin: true
     peerDependencies:
       '@eslint-react/eslint-plugin': ^1.38.4
+      '@next/eslint-plugin-next': ^15.4.0-canary.115
       '@prettier/plugin-xml': ^3.4.1
       '@unocss/eslint-plugin': '>=0.50.0'
       astro-eslint-parser: ^1.0.2
@@ -75,6 +76,8 @@ packages:
       svelte-eslint-parser: '>=0.37.0'
     peerDependenciesMeta:
       '@eslint-react/eslint-plugin':
+        optional: true
+      '@next/eslint-plugin-next':
         optional: true
       '@prettier/plugin-xml':
         optional: true
@@ -2674,7 +2677,7 @@ packages:
 
 snapshots:
 
-  '@antfu/eslint-config@4.18.0(@vue/compiler-sfc@3.5.18)(eslint@9.31.0)(typescript@5.8.3)(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.1.0)(tsx@4.20.3)(yaml@2.8.0))':
+  '@antfu/eslint-config@4.19.0(@vue/compiler-sfc@3.5.18)(eslint@9.31.0)(typescript@5.8.3)(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.1.0)(tsx@4.20.3)(yaml@2.8.0))':
     dependencies:
       '@antfu/install-pkg': 1.1.0
       '@clack/prompts': 0.11.0
