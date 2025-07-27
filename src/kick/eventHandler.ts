@@ -56,7 +56,7 @@ async function streamOnline(payload: KickLivestreamStatusUpdatedEvent, env: Env)
 
     // add message IDs to KV
     const messagesToUpdate = { streamId: payload.broadcaster.user_id, messages }
-    await env.KV.put(`discord-messages-kick-${broadcasterId}`, JSON.stringify(messagesToUpdate), { expirationTtl: 50 * 60 * 60 })
+    await env.KV.put(`discord-messages-kick-${broadcasterId}-${payload.started_at}`, JSON.stringify(messagesToUpdate), { expirationTtl: 50 * 60 * 60 })
   }
   else {
     // remove subscription if no one is subscribed
@@ -75,7 +75,7 @@ async function streamOffline(payload: KickLivestreamStatusUpdatedEvent, env: Env
   const broadcasterId = payload.broadcaster.user_id
   const broadcasterName = payload.broadcaster.username
   const channelInfo = await getKickChannelV2(payload.broadcaster.username)
-  const messagesToUpdate = await env.KV.get(`discord-messages-kick-${broadcasterId}`, { type: 'json' }) as KVDiscordMessage
+  const messagesToUpdate = await env.KV.get(`discord-messages-kick-${broadcasterId}-${payload.started_at}`, { type: 'json' }) as KVDiscordMessage
   if (messagesToUpdate) {
     const updatePromises = messagesToUpdate.messages.map(async (message) => {
       // update embed with offline message
