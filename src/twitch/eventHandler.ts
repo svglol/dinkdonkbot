@@ -1,4 +1,4 @@
-import { useDB } from '../database/db'
+import { eq, tables, useDB } from '../database/db'
 import { liveBodyBuilder, messageBuilder, sendMessage, updateMessage } from '../discord/discord'
 import { formatDuration } from '../util/formatDuration'
 import { getLatestVOD, getStreamDetails, getStreamerDetails, removeSubscription } from './twitch'
@@ -53,11 +53,22 @@ async function streamOnline(payload: SubscriptionEventResponseData<SubscriptionT
             return { messageId, channelId: sub.channelId, embed: body.embeds[body.embeds.length - 1], dbStreamId: sub.id }
         })
     })
-    const messages = await Promise.all(messagesPromises)
+    const messages = (await Promise.all(messagesPromises)).flatMap(message =>
+      message ? [message] : [],
+    )
 
-    // add message IDs to KV
-    const messagesToUpdate = { streamId: event.id, messages }
-    await env.KV.put(`discord-messages-${broadcasterId}`, JSON.stringify(messagesToUpdate), { expirationTtl: 50 * 60 * 60 })
+    // save messages to database
+    await useDB(env).insert(tables.twitchStreamMessages).values(messages.map((message) => {
+      return {
+        broadcasterId,
+        streamStartedAt: event.started_at,
+        discordMessageId: message.messageId,
+        discordChannelId: message.channelId,
+        embedData: message.embed,
+        streamId: message.dbStreamId,
+        twitchStreamId: event.id,
+      }
+    }))
   }
   else {
     // remove subscription if no one is subscribed
@@ -77,10 +88,17 @@ async function streamOffline(payload: SubscriptionEventResponseData<Subscription
   const broadcasterId = event.broadcaster_user_id
   const broadcasterName = event.broadcaster_user_name
   const streamerData = await getStreamerDetails(broadcasterName, env)
-  const messagesToUpdate = await env.KV.get(`discord-messages-${broadcasterId}`, { type: 'json' }) as KVDiscordMessage
+  const messagesToUpdate = await useDB(env).query.twitchStreamMessages.findMany({
+    where: (messages, { eq }) => eq(messages.broadcasterId, broadcasterId),
+    with: {
+      stream: true,
+    },
+  })
+
   if (messagesToUpdate) {
     const components: DiscordComponent[] = []
-    const latestVOD = await getLatestVOD(broadcasterId, messagesToUpdate.streamId, env)
+
+    const latestVOD = await getLatestVOD(broadcasterId, messagesToUpdate[0].twitchStreamId, env)
     if (latestVOD) {
       components.push(
         {
@@ -96,25 +114,27 @@ async function streamOffline(payload: SubscriptionEventResponseData<Subscription
         },
       )
     }
-    const updatePromises = messagesToUpdate.messages.map(async (message) => {
+    const updatePromises = messagesToUpdate.map(async (message) => {
+      if (!message.embedData)
+        return
       // update embed with offline message
-      const duration = latestVOD ? latestVOD.duration : formatDuration(Date.now() - new Date(message.embed.timestamp ? message.embed.timestamp : '').getTime())
-      message.embed.timestamp = new Date().toISOString()
-      message.embed.description = `Streamed for **${duration}**`
-      if (message.embed.footer)
-        message.embed.footer.text = 'Last online'
+      const duration = latestVOD ? latestVOD.duration : formatDuration(Date.now() - new Date(message.embedData.timestamp ? message.embedData.timestamp : '').getTime())
+      message.embedData.timestamp = new Date().toISOString()
+      message.embedData.description = `Streamed for **${duration}**`
+      if (message.embedData.footer)
+        message.embedData.footer.text = 'Last online'
 
-      if (streamerData && streamerData.offline_image_url && message.embed.image)
-        message.embed.image.url = streamerData.offline_image_url
-      message.embed.fields = []
-      const sub = await useDB(env).query.streams.findFirst({
-        where: (streams, { eq }) => eq(streams.id, message.dbStreamId),
-      })
-      const offlineMessage = messageBuilder(sub?.offlineMessage ? sub.offlineMessage : '{{name}} is now offline.', broadcasterName)
+      if (streamerData && streamerData.offline_image_url && message.embedData.image)
+        message.embedData.image.url = streamerData.offline_image_url
+      message.embedData.fields = []
 
-      return updateMessage(message.channelId, message.messageId, env.DISCORD_TOKEN, { content: offlineMessage, embeds: [message.embed], components })
+      const offlineMessage = messageBuilder(message.stream?.offlineMessage ? message.stream.offlineMessage : '{{name}} is now offline.', broadcasterName)
+
+      return updateMessage(message.discordChannelId, message.discordMessageId, env.DISCORD_TOKEN, { content: offlineMessage, embeds: [message.embedData], components })
     })
     await Promise.all(updatePromises)
+    // delete all messages from db for this stream
+    await useDB(env).delete(tables.twitchStreamMessages).where(eq(tables.twitchStreamMessages.broadcasterId, event.broadcaster_user_id))
 
     await env.KV.delete(`discord-messages-${broadcasterId}`)
   }

@@ -1,0 +1,538 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "2be1be8b-9b8c-4708-bceb-7325d0971707",
+  "prevId": "69cc7453-ff70-405d-bd6b-cb74ac117546",
+  "tables": {
+    "clips": {
+      "name": "clips",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "streamer": {
+          "name": "streamer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "broadcasterId": {
+          "name": "broadcasterId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "guild": {
+          "name": "guild",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "channel": {
+          "name": "channel",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "clipsidIdx": {
+          "name": "clipsidIdx",
+          "columns": [
+            "id"
+          ],
+          "isUnique": true
+        },
+        "clipsStreamerIdx": {
+          "name": "clipsStreamerIdx",
+          "columns": [
+            "streamer"
+          ],
+          "isUnique": false
+        },
+        "clipsBroadcasterIdx": {
+          "name": "clipsBroadcasterIdx",
+          "columns": [
+            "broadcasterId"
+          ],
+          "isUnique": false
+        },
+        "clipsGuildIdx": {
+          "name": "clipsGuildIdx",
+          "columns": [
+            "guild"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "kick-stream-messages": {
+      "name": "kick-stream-messages",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "broadcasterId": {
+          "name": "broadcasterId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "streamStartedAt": {
+          "name": "streamStartedAt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "kickStreamId": {
+          "name": "kickStreamId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "discordChannelId": {
+          "name": "discordChannelId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "discordMessageId": {
+          "name": "discordMessageId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "embedData": {
+          "name": "embedData",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(current_timestamp)"
+        }
+      },
+      "indexes": {
+        "kick_messages_idIdx": {
+          "name": "kick_messages_idIdx",
+          "columns": [
+            "id"
+          ],
+          "isUnique": true
+        },
+        "kick_messages_broadcasterIdIdx": {
+          "name": "kick_messages_broadcasterIdIdx",
+          "columns": [
+            "broadcasterId"
+          ],
+          "isUnique": false
+        },
+        "kick_messages_streamStartedAtIdx": {
+          "name": "kick_messages_streamStartedAtIdx",
+          "columns": [
+            "streamStartedAt"
+          ],
+          "isUnique": false
+        },
+        "kick_messages_kickStreamIdIdx": {
+          "name": "kick_messages_kickStreamIdIdx",
+          "columns": [
+            "kickStreamId"
+          ],
+          "isUnique": false
+        },
+        "kick_messages_discordChannelIdIdx": {
+          "name": "kick_messages_discordChannelIdIdx",
+          "columns": [
+            "discordChannelId"
+          ],
+          "isUnique": false
+        },
+        "kick_messages_uniqueIdx": {
+          "name": "kick_messages_uniqueIdx",
+          "columns": [
+            "broadcasterId",
+            "streamStartedAt",
+            "kickStreamId"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "kick-stream-messages_kickStreamId_kick-streams_id_fk": {
+          "name": "kick-stream-messages_kickStreamId_kick-streams_id_fk",
+          "tableFrom": "kick-stream-messages",
+          "tableTo": "kick-streams",
+          "columnsFrom": [
+            "kickStreamId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "kick-streams": {
+      "name": "kick-streams",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "broadcasterId": {
+          "name": "broadcasterId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "guild": {
+          "name": "guild",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "channel": {
+          "name": "channel",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "roleId": {
+          "name": "roleId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "message": {
+          "name": "message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'@everyone {{name}} is now live @ {{url}}'"
+        },
+        "offlineMessage": {
+          "name": "offlineMessage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'{{name}} is now offline'"
+        }
+      },
+      "indexes": {
+        "kick_idIdx": {
+          "name": "kick_idIdx",
+          "columns": [
+            "id"
+          ],
+          "isUnique": true
+        },
+        "kick_nameIdx": {
+          "name": "kick_nameIdx",
+          "columns": [
+            "name"
+          ],
+          "isUnique": false
+        },
+        "kick_broadcasterIdIdx": {
+          "name": "kick_broadcasterIdIdx",
+          "columns": [
+            "broadcasterId"
+          ],
+          "isUnique": false
+        },
+        "kick_guildIdIdx": {
+          "name": "kick_guildIdIdx",
+          "columns": [
+            "guild"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "streams": {
+      "name": "streams",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "broadcasterId": {
+          "name": "broadcasterId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "guild": {
+          "name": "guild",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "channel": {
+          "name": "channel",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "roleId": {
+          "name": "roleId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "message": {
+          "name": "message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'@everyone {{name}} is now live @ {{url}}'"
+        },
+        "offlineMessage": {
+          "name": "offlineMessage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "'{{name}} is now offline'"
+        }
+      },
+      "indexes": {
+        "idIdx": {
+          "name": "idIdx",
+          "columns": [
+            "id"
+          ],
+          "isUnique": true
+        },
+        "nameIdx": {
+          "name": "nameIdx",
+          "columns": [
+            "name"
+          ],
+          "isUnique": false
+        },
+        "broadcasterIdIdx": {
+          "name": "broadcasterIdIdx",
+          "columns": [
+            "broadcasterId"
+          ],
+          "isUnique": false
+        },
+        "guildIdIdx": {
+          "name": "guildIdIdx",
+          "columns": [
+            "guild"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "twitch-stream-messages": {
+      "name": "twitch-stream-messages",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "broadcasterId": {
+          "name": "broadcasterId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "streamStartedAt": {
+          "name": "streamStartedAt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "streamId": {
+          "name": "streamId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "discordChannelId": {
+          "name": "discordChannelId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "discordMessageId": {
+          "name": "discordMessageId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "twitchStreamId": {
+          "name": "twitchStreamId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "embedData": {
+          "name": "embedData",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": "(current_timestamp)"
+        }
+      },
+      "indexes": {
+        "twitch_messages_idIdx": {
+          "name": "twitch_messages_idIdx",
+          "columns": [
+            "id"
+          ],
+          "isUnique": true
+        },
+        "twitch_messages_broadcasterIdIdx": {
+          "name": "twitch_messages_broadcasterIdIdx",
+          "columns": [
+            "broadcasterId"
+          ],
+          "isUnique": false
+        },
+        "twitch_messages_streamIdIdx": {
+          "name": "twitch_messages_streamIdIdx",
+          "columns": [
+            "streamId"
+          ],
+          "isUnique": false
+        },
+        "twitch_messages_discordChannelIdIdx": {
+          "name": "twitch_messages_discordChannelIdIdx",
+          "columns": [
+            "discordChannelId"
+          ],
+          "isUnique": false
+        },
+        "twitch_messages_uniqueIdx": {
+          "name": "twitch_messages_uniqueIdx",
+          "columns": [
+            "broadcasterId",
+            "streamStartedAt",
+            "streamId"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "twitch-stream-messages_streamId_streams_id_fk": {
+          "name": "twitch-stream-messages_streamId_streams_id_fk",
+          "tableFrom": "twitch-stream-messages",
+          "tableTo": "streams",
+          "columnsFrom": [
+            "streamId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

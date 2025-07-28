@@ -160,6 +160,25 @@ async function scheduledCheck(env: Env) {
       await Promise.all(unsubscribePromises)
     }
 
+    // Clean up any discord messages for kick/twitch that are older than 48h
+    const twitchMesagesToDelete = await useDB(env).query.twitchStreamMessages.findMany({
+      where: (twitchStreamMessages, { sql }) => sql`created_at < ${sql`datetime('now', '-48 hours')`}`,
+    })
+
+    const kickMessagesToDelete = await useDB(env).query.kickStreamMessages.findMany({
+      where: (kickStreamMessages, { sql }) => sql`created_at < ${sql`datetime('now', '-48 hours')`}`,
+    })
+
+    useDB(env).transaction(async (tx) => {
+      await Promise.all(kickMessagesToDelete.map(async (message) => {
+        await tx.delete(tables.kickStreamMessages).where(eq(tables.kickStreamMessages.id, message.id))
+      }))
+
+      await Promise.all(twitchMesagesToDelete.map(async (message) => {
+        await tx.delete(tables.twitchStreamMessages).where(eq(tables.twitchStreamMessages.id, message.id))
+      }))
+    })
+
     return true
   }
   catch (error) {

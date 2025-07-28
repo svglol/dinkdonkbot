@@ -1,5 +1,5 @@
 import type { Stream } from '../database/db'
-import { useDB } from '../database/db'
+import { eq, tables, useDB } from '../database/db'
 import { messageBuilder, sendMessage, updateMessage } from '../discord/discord'
 import { formatDuration } from '../util/formatDuration'
 import { getKickChannelV2, getKickLivestream, kickUnsubscribe } from './kick'
@@ -52,11 +52,21 @@ async function streamOnline(payload: KickLivestreamStatusUpdatedEvent, env: Env)
             return { messageId, channelId: sub.channelId, embed: body.embeds[body.embeds.length - 1], dbStreamId: sub.id }
         })
     })
-    const messages = await Promise.all(messagesPromises)
+    const messages = (await Promise.all(messagesPromises)).flatMap(message =>
+      message ? [message] : [],
+    )
 
-    // add message IDs to KV
-    const messagesToUpdate = { streamId: payload.broadcaster.user_id, messages }
-    await env.KV.put(`discord-messages-kick-${broadcasterId}-${payload.started_at}`, JSON.stringify(messagesToUpdate), { expirationTtl: 50 * 60 * 60 })
+    // add messages to database
+    await useDB(env).insert(tables.kickStreamMessages).values(messages.map((message) => {
+      return {
+        broadcasterId: broadcasterId.toString(),
+        streamStartedAt: payload.started_at,
+        discordMessageId: message.messageId,
+        discordChannelId: message.channelId,
+        embedData: message.embed,
+        kickStreamId: message.dbStreamId,
+      }
+    }))
   }
   else {
     // remove subscription if no one is subscribed
@@ -75,31 +85,36 @@ async function streamOffline(payload: KickLivestreamStatusUpdatedEvent, env: Env
   const broadcasterId = payload.broadcaster.user_id
   const broadcasterName = payload.broadcaster.username
   const channelInfo = await getKickChannelV2(payload.broadcaster.username)
-  const messagesToUpdate = await env.KV.get(`discord-messages-kick-${broadcasterId}-${payload.started_at}`, { type: 'json' }) as KVDiscordMessage
+  const messagesToUpdate = await useDB(env).query.kickStreamMessages.findMany({
+    where: (messages, { eq }) => eq(messages.broadcasterId, broadcasterId.toString()),
+    with: {
+      kickStream: true,
+    },
+  })
   if (messagesToUpdate) {
-    const updatePromises = messagesToUpdate.messages.map(async (message) => {
+    const updatePromises = messagesToUpdate.map(async (message) => {
+      if (!message.embedData)
+        return
       // update embed with offline message
       const duration = formatDuration(new Date(payload.ended_at).getTime() - new Date(payload.started_at).getTime())
-      message.embed.timestamp = new Date(payload.ended_at).toISOString()
-      message.embed.description = `Streamed for **${duration}**`
-      if (message.embed.footer)
-        message.embed.footer.text = 'Last online'
+      message.embedData.timestamp = new Date(payload.ended_at).toISOString()
+      message.embedData.description = `Streamed for **${duration}**`
+      if (message.embedData.footer)
+        message.embedData.footer.text = 'Last online'
 
-      if (channelInfo && channelInfo.offline_banner_image && message.embed.image)
-        message.embed.image.url = channelInfo.offline_banner_image.src || 'https://kick.com/img/default-channel-banners/offline.webp'
+      if (channelInfo && channelInfo.offline_banner_image && message.embedData.image)
+        message.embedData.image.url = channelInfo.offline_banner_image.src || 'https://kick.com/img/default-channel-banners/offline.webp'
 
-      message.embed.fields = []
+      message.embedData.fields = []
 
-      const sub = await useDB(env).query.streams.findFirst({
-        where: (streams, { eq }) => eq(streams.id, message.dbStreamId),
-      })
-      const offlineMessage = messageBuilder(sub?.offlineMessage ? sub.offlineMessage : '{{name}} is now offline.', broadcasterName)
+      const offlineMessage = messageBuilder(message.kickStream?.offlineMessage ? message.kickStream.offlineMessage : '{{name}} is now offline.', broadcasterName)
 
-      return updateMessage(message.channelId, message.messageId, env.DISCORD_TOKEN, { content: offlineMessage, embeds: [message.embed], components: [] })
+      return updateMessage(message.discordChannelId, message.discordMessageId, env.DISCORD_TOKEN, { content: offlineMessage, embeds: [message.embedData], components: [] })
     })
     await Promise.all(updatePromises)
 
-    await env.KV.delete(`discord-messages-${broadcasterId}`)
+    // delete all messages from db for this stream
+    await useDB(env).delete(tables.kickStreamMessages).where(eq(tables.kickStreamMessages.broadcasterId, broadcasterId.toString()))
   }
 }
 
