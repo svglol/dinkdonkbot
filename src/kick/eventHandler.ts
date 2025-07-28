@@ -86,7 +86,7 @@ async function streamOffline(payload: KickLivestreamStatusUpdatedEvent, env: Env
   const broadcasterName = payload.broadcaster.username
   const channelInfo = await getKickChannelV2(payload.broadcaster.username)
   const messagesToUpdate = await useDB(env).query.kickStreamMessages.findMany({
-    where: (messages, { eq }) => eq(messages.broadcasterId, broadcasterId.toString()),
+    where: (messages, { eq, and }) => and(eq(messages.broadcasterId, broadcasterId.toString()), eq(messages.streamStartedAt, payload.started_at)),
     with: {
       kickStream: true,
     },
