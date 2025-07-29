@@ -15,8 +15,8 @@ importers:
         specifier: 0.44.3
         version: 0.44.3(@cloudflare/workers-types@4.20250726.0)
       itty-router:
-        specifier: 5.0.18
-        version: 5.0.18
+        specifier: 5.0.20
+        version: 5.0.20
     devDependencies:
       '@antfu/eslint-config':
         specifier: 4.19.0
@@ -1900,8 +1900,8 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
-  itty-router@5.0.18:
-    resolution: {integrity: sha512-mK3ReOt4ARAGy0V0J7uHmArG2USN2x0zprZ+u+YgmeRjXTDbaowDy3kPcsmQY6tH+uHhDgpWit9Vqmv/4rTXwA==}
+  itty-router@5.0.20:
+    resolution: {integrity: sha512-D27Q+6D3q4Fho3ixmbE+qbu+7N/OqO7ty8Eh62PkyEhg4oBRPV3+HBU3GBXneuc430sRql9Az6qTdCiJKFbHtw==}
 
   js-tokens@9.0.1:
     resolution: {integrity: sha512-mxa9E9ITFOt0ban3j6L5MpjwegGz6lBQmM1IJkWeBZGcMxto50+eWdjC/52xDbS2vy0k7vIMK0Fe2wfL9OQSpQ==}
@@ -4297,7 +4297,7 @@ snapshots:
 
   isexe@2.0.0: {}
 
-  itty-router@5.0.18: {}
+  itty-router@5.0.20: {}
 
   js-tokens@9.0.1: {}
 
