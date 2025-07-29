@@ -95,7 +95,7 @@ async function streamOffline(payload: SubscriptionEventResponseData<Subscription
     },
   })
 
-  if (messagesToUpdate) {
+  if (messagesToUpdate?.length > 0) {
     const components: DiscordComponent[] = []
 
     const latestVOD = await getLatestVOD(broadcasterId, messagesToUpdate[0].twitchStreamId, env)
