@@ -231,56 +231,76 @@ export async function getSubscriptions(env: Env) {
 }
 
 /**
- * Fetches the stream details for a given user.
+ * Fetches the stream details for a given user with retry functionality.
  *
  * @param user - The username of the streamer to fetch.
  * @param env - The environment variables containing configuration such as client ID
  *              and secrets.
+ * @param maxRetries - The maximum number of retry attempts if the stream is not found.
+ * @param baseDelay - The base delay in milliseconds between retries, which is used for
+ *                    exponential backoff.
  * @returns A promise that resolves to a TwitchStream object containing the stream
- *          details, or null if the stream was not found.
- * @throws If the request to fetch the stream fails.
+ *          details, or null if the stream was not found or an error occurred.
+ * @throws If the request to fetch the stream fails and is not retried.
  */
-export async function getStreamDetails(user: string, env: Env) {
-  try {
-    const streamRes = await fetch(`https://api.twitch.tv/helix/streams?user_login=${user}`, {
-      headers: {
-        'Client-ID': env.TWITCH_CLIENT_ID,
-        'Authorization': `Bearer ${await getToken(env)}`,
-      },
-    })
+export async function getStreamDetails(user: string, env: Env, maxRetries = 3, baseDelay = 1000) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const streamRes = await fetch(`https://api.twitch.tv/helix/streams?user_login=${user}`, {
+        headers: {
+          'Client-ID': env.TWITCH_CLIENT_ID,
+          'Authorization': `Bearer ${await getToken(env)}`,
+        },
+      })
 
-    const responseDetails = {
-      ok: streamRes.ok,
-      status: streamRes.status,
-      statusText: streamRes.statusText,
-      headers: Object.fromEntries(streamRes.headers.entries()),
-      url: streamRes.url,
-    }
+      const responseDetails = {
+        ok: streamRes.ok,
+        status: streamRes.status,
+        statusText: streamRes.statusText,
+        headers: Object.fromEntries(streamRes.headers.entries()),
+        url: streamRes.url,
+      }
 
-    if (!streamRes.ok) {
-      const errorBody = await streamRes.text()
-      throw new Error(JSON.stringify({
-        message: 'Failed to fetch stream',
-        response: responseDetails,
-        body: errorBody,
-      }))
-    }
+      if (!streamRes.ok) {
+        const errorBody = await streamRes.text()
+        throw new Error(JSON.stringify({
+          message: 'Failed to fetch stream',
+          response: responseDetails,
+          body: errorBody,
+        }))
+      }
 
-    const streamData = await streamRes.json() as TwitchStreamResponse
-    if (streamData.data.length === 0) {
-      throw new Error(JSON.stringify({
-        message: 'Stream not found',
-        response: responseDetails,
-        body: streamData,
-      }))
+      const streamData = await streamRes.json() as TwitchStreamResponse
+
+      // If no stream data and we have retries left, wait and retry
+      if (streamData.data.length === 0 && attempt < maxRetries) {
+        const delay = baseDelay * 2 ** attempt // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, delay))
+        continue
+      }
+
+      // If still no data after all retries, throw error
+      if (streamData.data.length === 0) {
+        throw new Error(JSON.stringify({
+          message: 'Stream not found after retries',
+          response: responseDetails,
+          body: streamData,
+        }))
+      }
+
+      const stream = streamData.data[0]
+      return stream
     }
-    const stream = streamData.data[0]
-    return stream
+    catch (error: any) {
+      // If it's the last attempt or not a "stream not found" error, don't retry
+      if (attempt === maxRetries || !error.message.includes('Stream not found')) {
+        console.error('Error fetching stream details:', error)
+        return null
+      }
+    }
   }
-  catch (error) {
-    console.error('Error fetching stream details:', error)
-    return null
-  }
+
+  return null
 }
 
 /**
