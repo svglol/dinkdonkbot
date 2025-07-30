@@ -1,7 +1,8 @@
 export default defineAppConfig({
   ui: {
-    primary: 'yellow',
-    gray: 'zinc',
+    colors: {
+      primary: 'yellow',
+      neutral: 'zinc',
+    },
   },
-  nuxtIcon: {},
 })

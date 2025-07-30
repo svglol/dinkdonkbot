@@ -1,6 +1,11 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* stylelint-disable import-notation */
+/* stylelint-disable value-keyword-case */
+/* stylelint-disable hue-degree-notation */
+/* stylelint-disable lightness-notation */
+/* stylelint-disable at-rule-no-unknown */
+@import "tailwindcss";
+@import "@nuxt/ui";
+
 
 @layer base {
     ::-webkit-scrollbar {
@@ -12,27 +17,27 @@
     }
     
     ::-webkit-scrollbar-thumb {
-        @apply bg-gray-300  rounded-lg    
+        @apply bg-neutral-300  rounded-lg    
     }
     
     ::-webkit-scrollbar-thumb:hover {
-      @apply bg-gray-400 
+      @apply bg-neutral-400 
     }
 
     ::-webkit-scrollbar-thumb:active {
-        @apply bg-gray-500 
+        @apply bg-neutral-500 
       }
 
     .dark ::-webkit-scrollbar-thumb {
-        @apply bg-gray-700 rounded-lg   
+        @apply bg-neutral-700 rounded-lg   
     }
 
     .dark ::-webkit-scrollbar-thumb:hover {
-        @apply bg-gray-600    
+        @apply bg-neutral-600    
     }
     
     .dark ::-webkit-scrollbar-thumb:active {
-        @apply bg-gray-500    
+        @apply bg-neutral-500    
     }
   }
 

@@ -25,7 +25,9 @@
         transform="scale(2) rotate(0) translate(-3, 0)"
       />
     </svg>
-    <div class="relative z-10 flex size-full flex-col items-center justify-center">
+    <div
+      class="relative z-10 flex size-full flex-col items-center justify-center"
+    >
       <div class="mb-[8%] ml-[55%] flex items-center justify-center gap-8">
         <img src="/dinkDonk-512.png" class="size-48 drop-shadow-lg">
       </div>
@@ -34,7 +36,9 @@
       <h1 class="mb-4 text-6xl font-extrabold text-white drop-shadow-lg">
         {{ title }}
       </h1>
-      <p class="max-w-[80%] text-2xl font-medium text-neutral-200 drop-shadow-lg">
+      <p
+        class="max-w-[80%] text-2xl font-medium text-neutral-200 drop-shadow-lg"
+      >
         {{ description }}
       </p>
     </div>

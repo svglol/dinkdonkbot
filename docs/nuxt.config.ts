@@ -10,16 +10,19 @@ export default defineNuxtConfig({
     strict: true,
   },
   modules: [
-    '@nuxt/eslint',
     '@nuxt/ui',
+    '@nuxt/eslint',
     '@nuxt/fonts',
     '@vueuse/nuxt',
     '@nuxt/content',
     'nuxt-og-image',
   ],
-  tailwindcss: {
-    cssPath: '~/assets/global.css',
+  ui: {
+    theme: {
+      colors: ['primary', 'secondary', 'tertiary', 'info', 'success', 'warning', 'error'],
+    },
   },
+  css: ['~/assets/css/main.css'],
   imports: {
     autoImport: true,
   },
@@ -41,6 +44,6 @@ export default defineNuxtConfig({
     },
   },
   app: {
-    baseURL: '/dinkdonkbot', // replace with your repository name
+    baseURL: '/dinkdonkbot',
   },
 })

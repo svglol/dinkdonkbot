@@ -22,8 +22,5 @@ export default {
         ignorePseudoClasses: ['global'],
       },
     ],
-    'at-rule-no-deprecated': [
-      null,
-    ],
   },
 }

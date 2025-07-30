@@ -1,7 +1,12 @@
 <template>
-  <main class="main">
+  <main>
     <BackgroundGradient v-if="isHomePage" />
-    <div class="relative z-10 flex min-h-screen flex-col dark:text-gray-50">
+    <div
+      class="
+        relative z-10 flex min-h-screen flex-col
+        dark:text-gray-50
+      "
+    >
       <Header />
       <div class="grid grow">
         <slot />

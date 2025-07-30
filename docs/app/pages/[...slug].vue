@@ -1,13 +1,19 @@
 <template>
-  <div class="bg-gray-100 dark:bg-gray-900">
+  <div
+    class="
+      bg-neutral-100
+      dark:bg-neutral-900
+    "
+  >
     <ContentRenderer v-if="page" :value="page" />
   </div>
 </template>
 
 <script setup lang="ts">
 const route = useRoute()
-const slug = route.params.slug as string
-const { data: page } = await useAsyncData(() => queryCollection('content').path(`/${slug}`).first())
+const { data: page } = await useAsyncData(`page-${route.path}`, () => {
+  return queryCollection('content').path(route.path).first()
+})
 
 if (!page.value) {
   throw createError({

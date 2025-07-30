@@ -1,7 +1,10 @@
 <template>
   <div
     ref="el"
-    class="card relative rounded-lg bg-gray-100 p-0.5 shadow-lg dark:bg-gray-900"
+    class="
+      card relative rounded-lg bg-neutral-200 p-0.5 shadow-lg
+      dark:bg-neutral-800
+    "
     :style="{
       '--x': `${x - (el?.offsetLeft ?? 0)}px`,
       '--y': `${y - (el?.offsetTop ?? 0)}px`,
@@ -25,9 +28,8 @@ const el = ref<HTMLElement | null>(null)
   inset: 0;
   background: radial-gradient(
     var(--spotlight-size, 200px) circle at var(--x) var(--y),
-    var(--spotlight-color-stops, rgb(var(--color-primary-800)), rgb(var(--color-primary-500)), transparent)
+    var(--spotlight-color-stops, var(--color-primary-800), var(--color-primary-500), transparent)
   );
-
-  @apply rounded-lg;
+  border-radius: 0.5rem;
 }
 </style>

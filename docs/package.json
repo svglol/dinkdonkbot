@@ -15,26 +15,26 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
-    "@antfu/eslint-config": "4.19.0",
+    "@antfu/eslint-config": "5.0.0",
     "@nuxt/content": "3.6.3",
     "@nuxt/eslint": "1.7.1",
     "@nuxt/fonts": "0.11.4",
-    "@nuxt/ui": "2.22.1",
+    "@nuxt/ui": "3.3.0",
     "@unhead/vue": "2.0.12",
-    "@vueuse/core": "13.5.0",
-    "@vueuse/nuxt": "13.5.0",
+    "@vueuse/core": "13.6.0",
+    "@vueuse/nuxt": "13.6.0",
     "better-sqlite3": "^12.2.0",
     "eslint": "9.32.0",
-    "eslint-plugin-tailwindcss": "3.18.2",
-    "nuxt": "3.17.7",
+    "eslint-plugin-better-tailwindcss": "3.7.2",
+    "nuxt": "4.0.2",
     "nuxt-og-image": "5.1.9",
     "postcss-html": "1.8.0",
-    "stylelint": "16.22.0",
+    "stylelint": "16.23.0",
     "stylelint-config-recommended-vue": "1.6.1",
-    "stylelint-config-standard": "38.0.0",
+    "stylelint-config-standard": "39.0.0",
     "unstorage": "1.16.1",
     "vue": "3.5.18",
     "vue-router": "4.5.1",
-    "vue-tsc": "2.2.12"
+    "vue-tsc": "3.0.4"
   }
 }

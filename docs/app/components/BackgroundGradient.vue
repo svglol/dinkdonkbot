@@ -1,12 +1,24 @@
 <template>
-  <div class="bg absolute inset-y-0 right-0 -z-10 size-full transform-gpu overflow-hidden blur-[100px] transition-all duration-1000 ease-in-out" aria-hidden="true" :style="{ height: `${height}px !important` }">
+  <div
+    class="
+      absolute inset-y-0 right-0 -z-10 size-full transform-gpu overflow-hidden
+      bg-neutral-100 blur-[100px] transition-all duration-1000 ease-in-out
+      dark:bg-neutral-950
+    " aria-hidden="true" :style="{ height: `${height}px !important` }"
+  >
     <div
       :style="{ height: `${height}px !important`, clipPath: primaryClipPath }"
-      class="bg-primary-500 absolute left-[calc(-20%)] top-0 size-[200%] h-full opacity-100 transition-all duration-1000 ease-in-out"
+      class="
+        absolute top-0 left-[calc(-20%)] size-[200%] h-full bg-primary-500
+        opacity-100 transition-all duration-1000 ease-in-out
+      "
     />
     <div
       :style="{ height: `${height}px !important`, clipPath: secondaryClipPath }"
-      class="bg-primary-300 absolute left-[calc(-15%)] top-0 size-[200%] h-full opacity-50  transition-all duration-1000 ease-in-out"
+      class="
+        absolute top-0 left-[calc(-15%)] size-[200%] h-full bg-primary-300
+        opacity-50 transition-all duration-1000 ease-in-out
+      "
     />
   </div>
 </template>
