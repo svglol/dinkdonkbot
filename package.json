@@ -25,13 +25,13 @@
   },
   "dependencies": {
     "discord-interactions": "4.3.0",
-    "drizzle-orm": "0.44.3",
+    "drizzle-orm": "0.44.4",
     "itty-router": "5.0.20"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "4.19.0",
-    "@cloudflare/vitest-pool-workers": "0.8.57",
-    "@cloudflare/workers-types": "4.20250726.0",
+    "@antfu/eslint-config": "5.0.0",
+    "@cloudflare/vitest-pool-workers": "0.8.58",
+    "@cloudflare/workers-types": "4.20250730.0",
     "dotenv": "17.2.1",
     "drizzle-kit": "0.31.4",
     "eslint": "9.32.0",
@@ -39,6 +39,6 @@
     "tsx": "4.20.3",
     "typescript": "5.8.3",
     "vitest": "3.2.4",
-    "wrangler": "4.26.0"
+    "wrangler": "4.26.1"
   }
 }
