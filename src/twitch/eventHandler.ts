@@ -124,6 +124,10 @@ async function streamOffline(payload: SubscriptionEventResponseData<Subscription
       if (message.embedData.footer)
         message.embedData.footer.text = 'Last online'
 
+      if (message.embedData.author) {
+        message.embedData.author.name = 'Twitch'
+      }
+
       if (streamerData && streamerData.offline_image_url && message.embedData.image)
         message.embedData.image.url = streamerData.offline_image_url
       message.embedData.fields = []

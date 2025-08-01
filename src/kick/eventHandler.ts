@@ -105,6 +105,9 @@ async function streamOffline(payload: KickLivestreamStatusUpdatedEvent, env: Env
       if (channelInfo && channelInfo.offline_banner_image && message.embedData.image)
         message.embedData.image.url = channelInfo.offline_banner_image.src || 'https://kick.com/img/default-channel-banners/offline.webp'
 
+      if (message.embedData.author) {
+        message.embedData.author.name = 'Kick'
+      }
       message.embedData.fields = []
 
       const offlineMessage = messageBuilder(message.kickStream?.offlineMessage ? message.kickStream.offlineMessage : '{{name}} is now offline.', broadcasterName)
@@ -157,7 +160,7 @@ export function kickLiveBodyBuilder({ sub, streamerData, streamData, eventData }
     color: 0x53FC18,
     description: `**${sub.name} is live!**`,
     author: {
-      name: 'KICK',
+      name: 'Live on KICK',
       icon_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Kick.com_icon_logo.svg/2048px-Kick.com_icon_logo.svg.png',
     },
     fields: [

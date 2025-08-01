@@ -201,7 +201,7 @@ export function liveBodyBuilder({ sub, streamerData, streamData }: { sub: Stream
     color: 0x6441A4,
     description: `**${sub.name} is live!**`,
     author: {
-      name: 'Twitch',
+      name: 'Live on Twitch',
       icon_url: 'https://img.freepik.com/premium-vector/vector-twitch-social-media-logo_1093524-449.jpg?semt=ais_hybrid&w=740&q=80',
     },
     fields: [
