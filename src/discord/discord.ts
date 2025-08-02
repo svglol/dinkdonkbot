@@ -170,9 +170,10 @@ export async function uploadEmoji(guildId: string, discordToken: string, emojiNa
  * @param sub.sub - The subscrition object from the database.
  * @param sub.streamerData - The Twitch stream data for the stream. Optional.
  * @param sub.streamData - The Twitch stream data for the stream. Optional.
+ * @param sub.baseUrl - The base URL of the webhook. Optional.
  * @returns A DiscordBody object containing the message to be sent.
  */
-export function liveBodyBuilder({ sub, streamerData, streamData }: { sub: Stream, streamerData?: TwitchUser | null, streamData?: TwitchStream | null }) {
+export function liveBodyBuilder({ sub, streamerData, streamData, baseUrl }: { sub: Stream, streamerData?: TwitchUser | null, streamData?: TwitchStream | null, baseUrl?: string }) {
   const components: DiscordComponent[] = []
   const component = {
     type: 1,
@@ -202,7 +203,7 @@ export function liveBodyBuilder({ sub, streamerData, streamData }: { sub: Stream
     description: `**${sub.name} is live!**`,
     author: {
       name: 'Live on Twitch',
-      icon_url: 'https://img.freepik.com/premium-vector/vector-twitch-social-media-logo_1093524-449.jpg?semt=ais_hybrid&w=740&q=80',
+      icon_url: baseUrl ? `${baseUrl}/static/twitch-logo.png` : '/static/twitch-logo.png',
     },
     fields: [
       {

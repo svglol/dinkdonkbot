@@ -111,6 +111,13 @@ router.post('/kick-eventsub', async (request, env: Env, ctx: ExecutionContext) =
   return new JsonResponse({ message: 'Success' }, { status: 200 })
 })
 
+/**
+ * Static assets route for serving images and other static files.
+ */
+router.get('/static/:filename', async (request, env: Env) => {
+  return env.ASSETS.fetch(request)
+})
+
 // all other routes return a 404
 router.all('*', () => new Response('Not Found.', { status: 404 }))
 

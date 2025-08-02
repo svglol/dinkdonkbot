@@ -260,7 +260,7 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
         getStreamerDetails(stream.name, env),
         getStreamDetails(stream.name, env),
       ])
-      const body = liveBodyBuilder({ sub: stream, streamerData, streamData })
+      const body = liveBodyBuilder({ sub: stream, streamerData, streamData, baseUrl: env.WEBHOOK_URL })
       if (global) {
         if (global.value as boolean) {
           await sendMessage(stream.channelId, env.DISCORD_TOKEN, body, env)
@@ -800,7 +800,7 @@ async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
         await getKickChannelV2(stream.name),
         await getKickLivestream(Number(stream.broadcasterId), env),
       ])
-      const body = kickLiveBodyBuilder({ sub: stream, streamerData: kickUser, streamData: kickLivestream })
+      const body = kickLiveBodyBuilder({ sub: stream, streamerData: kickUser, streamData: kickLivestream, baseUrl: env.WEBHOOK_URL })
       if (global) {
         if (global.value as boolean) {
           await sendMessage(stream.channelId, env.DISCORD_TOKEN, body, env)

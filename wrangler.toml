@@ -1,6 +1,6 @@
 name = "dinkdonkbot"
 main = "./src/server.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2025-07-26"
 kv_namespaces = [ { binding = "KV", id = "2368012e59c642ada32014c95609dd1b" } ]
 compatibility_flags = [ "nodejs_compat" ]
 
@@ -22,6 +22,10 @@ mode = "smart"
 [observability]
 enabled = true
 
+[assets]
+directory = "./src/static"
+binding = "ASSETS"
+
 # [secrets]
 # DISCORD_TOKEN
 # DISCORD_PUBLIC_KEY
@@ -30,3 +34,5 @@ enabled = true
 # TWITCH_CLIENT_SECRET
 # TWITCH_EVENT_SECRET
 # WEBHOOK_URL
+# KICK_CLIENT_ID
+# KICK_SECRET_ID
