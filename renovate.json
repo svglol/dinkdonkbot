@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base",
+    "config:recommended",
     ":labels(dependencies, chore)",
     ":pinDependencies",
     ":pinDevDependencies",
@@ -18,16 +18,33 @@
     "npm:unpublishSafe"
   ],
   "packageRules": [
-    { "matchPackagePatterns": ["*"], "rangeStrategy": "pin" },
     {
-      "extends": ["packages:test"],
-      "matchPackageNames": ["c8", "happy-dom", "jsdom", "vitest"],
-      "matchPackagePatterns": ["^@vitest/"],
+      "rangeStrategy": "pin",
+      "matchPackageNames": [
+        "*"
+      ]
+    },
+    {
+      "extends": [
+        "packages:test"
+      ],
+      "matchPackageNames": [
+        "c8",
+        "happy-dom",
+        "jsdom",
+        "vitest",
+        "/^@vitest//"
+      ],
       "groupName": "test packages"
     },
     {
-      "extends": ["packages:linters"],
-      "matchPackageNames": ["@commitlint", "stylelint"],
+      "extends": [
+        "packages:linters"
+      ],
+      "matchPackageNames": [
+        "@commitlint",
+        "stylelint"
+      ],
       "groupName": "all linters"
     }
   ],
