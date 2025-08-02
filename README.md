@@ -12,10 +12,10 @@ A powerful Discord bot for Twitch & Kick notifications and emote management, run
 - **Emote Uploader**: Easily add emotes from 7TV or other Discord servers to your own server
 
 ## Add the Bot
-[Click here to add DinkDonk Bot to your Discord server](https://discord.com/oauth2/authorize?client_id=1227866873220173824&permissions=8797166895104&scope=applications.commands+bot)
+[![Add DinkDonk Bot](https://img.shields.io/badge/Add%20to-Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/oauth2/authorize?client_id=1227866873220173824&permissions=8797166895104&scope=applications.commands+bot)
 
 ## Documentation
-For detailed documentation and usage instructions, visit [https://svglol.github.io/dinkdonkbot/](https://svglol.github.io/dinkdonkbot/)
+[![Documentation](https://img.shields.io/badge/Read-Documentation-blue?style=for-the-badge&logo=gitbook&logoColor=white)](https://svglol.github.io/dinkdonkbot/)
 
 ## Commands
 
