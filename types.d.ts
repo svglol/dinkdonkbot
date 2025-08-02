@@ -226,10 +226,6 @@ declare global {
     title: string
     color?: number
     description?: string
-    author?: {
-      name: string
-      icon_url?: string
-    }
     fields?: {
       name: string
       value: string
