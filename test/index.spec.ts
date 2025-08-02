@@ -1,6 +1,6 @@
-import { env, SELF } from 'cloudflare:test'
+import { createExecutionContext, createScheduledController, env, SELF, waitOnExecutionContext } from 'cloudflare:test'
 import { describe, expect, it } from 'vitest'
-import '../src/server'
+import worker from '../src/server'
 
 describe('worker fetch router', () => {
   it('responds with discord application id', async () => {
@@ -20,18 +20,37 @@ describe('worker fetch router', () => {
     expect(await response.text()).toBe('Signature verification failed')
   })
 
+  it('kick eventsub endpoint responds with Signature verification failed', async () => {
+    const response = await SELF.fetch('http://example.com/kick-eventsub', { method: 'POST' })
+    expect(response.status).toBe(403)
+    expect(await response.text()).toBe('Signature verification failed')
+  })
+
   it('responds with not found and proper status for /404', async () => {
     const response = await SELF.fetch('http://example.com/404')
     expect(response.status).toBe(404)
     expect(await response.text()).toBe('Not Found.')
   })
 
-  it('dispatches scheduled event', async () => {
-    // @ts-expect-error Types are incorrect
-    const result = await SELF.scheduled({
+  it('static images are served', async () => {
+    // twitch
+    const twitch = await SELF.fetch('http://example.com/static/twitch-logo.png')
+    expect(twitch.status).toBe(200)
+    expect(await twitch.blob()).toBeInstanceOf(Blob)
+
+    // kick
+    const kick = await SELF.fetch('http://example.com/static/kick-logo.png')
+    expect(kick.status).toBe(200)
+    expect(await kick.blob()).toBeInstanceOf(Blob)
+  })
+
+  it('calls scheduled handler', async () => {
+    const ctrl = createScheduledController({
       scheduledTime: new Date(1000),
       cron: '0 0 * * *',
     })
-    expect(result.outcome).toBe('ok')
+    const ctx = createExecutionContext()
+    await worker.scheduled(ctrl, env, ctx)
+    await waitOnExecutionContext(ctx)
   })
 })
