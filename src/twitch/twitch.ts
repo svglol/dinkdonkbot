@@ -272,31 +272,30 @@ export async function getStreamDetails(user: string, env: Env, maxRetries = 3, b
 
       const streamData = await streamRes.json() as TwitchStreamResponse
 
-      // If no stream data and we have retries left, wait and retry
       if (streamData.data.length === 0 && attempt < maxRetries) {
-        const delay = baseDelay * 2 ** attempt // Exponential backoff
+        const delay = baseDelay * (2 ** attempt)
         await new Promise(resolve => setTimeout(resolve, delay))
         continue
       }
 
-      // If still no data after all retries, throw error
       if (streamData.data.length === 0) {
-        throw new Error(JSON.stringify({
-          message: 'Stream not found after retries',
-          response: responseDetails,
-          body: streamData,
-        }))
+        return null
       }
 
       const stream = streamData.data[0]
       return stream
     }
     catch (error: any) {
-      // If it's the last attempt or not a "stream not found" error, don't retry
-      if (attempt === maxRetries || !error.message.includes('Stream not found')) {
-        console.error('Error fetching stream details:', error)
+      console.error(`Attempt ${attempt + 1} failed for user ${user}:`, error)
+
+      if (attempt === maxRetries) {
+        console.error('Max retries reached, returning null')
         return null
       }
+
+      // For non-final attempts, add exponential backoff delay
+      const delay = baseDelay * (2 ** attempt)
+      await new Promise(resolve => setTimeout(resolve, delay))
     }
   }
 
