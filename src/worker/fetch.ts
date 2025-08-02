@@ -1,11 +1,4 @@
 import { Buffer } from 'node:buffer'
-//     return { isValid, body }
-//   }
-//   catch (error) {
-//     console.error('Crypto operation failed:', error)
-//     return { isValid: false, body }
-//   }
-// }
 import crypto from 'node:crypto'
 import {
   InteractionResponseType,
