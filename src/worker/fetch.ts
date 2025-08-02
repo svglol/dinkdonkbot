@@ -111,6 +111,12 @@ router.post('/kick-eventsub', async (request, env: Env, ctx: ExecutionContext) =
   return new JsonResponse({ message: 'Success' }, { status: 200 })
 })
 
+router.get('/static/:filename', async (request, env: Env) => {
+  const filename = request.params.filename
+  const url = new URL(`/${filename}`, request.url)
+  return env.ASSETS.fetch(url)
+})
+
 // all other routes return a 404
 router.all('*', () => new Response('Not Found.', { status: 404 }))
 
