@@ -2,7 +2,6 @@ declare global {
   interface Env {
     DB: D1Database
     KV: KVNamespace
-    ASSETS: Fetcher
     DISCORD_TOKEN: string
     DISCORD_PUBLIC_KEY: string
     DISCORD_APPLICATION_ID: string

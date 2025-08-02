@@ -45,7 +45,7 @@ async function streamOnline(payload: KickLivestreamStatusUpdatedEvent, env: Env)
     ])
 
     const messagesPromises = subscriptions.map(async (sub) => {
-      const body = kickLiveBodyBuilder({ sub, streamerData: kickUser, streamData: kickLivestream, eventData: payload, baseUrl: env.WEBHOOK_URL })
+      const body = kickLiveBodyBuilder({ sub, streamerData: kickUser, streamData: kickLivestream, eventData: payload })
       return sendMessage(sub.channelId, env.DISCORD_TOKEN, body, env)
         .then((messageId) => {
           if (messageId)
@@ -128,10 +128,9 @@ async function streamOffline(payload: KickLivestreamStatusUpdatedEvent, env: Env
  * @param sub.streamerData - The Kick channel data for the stream. Optional.
  * @param sub.streamData - The Kick stream data for the stream. Optional.
  * @param sub.eventData - The Kick event data for the stream. Optional.
- * @param sub.baseUrl - The base URL of the webhook. Optional.
  * @returns A DiscordBody object containing the message to be sent.
  */
-export function kickLiveBodyBuilder({ sub, streamerData, streamData, eventData, baseUrl }: { sub: Stream, streamerData?: KickChannelV2 | null, streamData?: KickLiveStream | null, eventData?: KickLivestreamStatusUpdatedEvent | null, baseUrl?: string }) {
+export function kickLiveBodyBuilder({ sub, streamerData, streamData, eventData }: { sub: Stream, streamerData?: KickChannelV2 | null, streamData?: KickLiveStream | null, eventData?: KickLivestreamStatusUpdatedEvent | null }) {
   const components: DiscordComponent[] = []
   const component = {
     type: 1,
@@ -162,7 +161,7 @@ export function kickLiveBodyBuilder({ sub, streamerData, streamData, eventData, 
     description: `**${sub.name} is live!**`,
     author: {
       name: 'Live on KICK',
-      icon_url: baseUrl ? `${baseUrl}/static/kick-logo.png` : '/static/kick-logo.png',
+      icon_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Kick.com_icon_logo.svg/2048px-Kick.com_icon_logo.svg.png',
     },
     fields: [
       {

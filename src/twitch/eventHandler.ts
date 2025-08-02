@@ -46,7 +46,7 @@ async function streamOnline(payload: SubscriptionEventResponseData<SubscriptionT
       getStreamDetails(event.broadcaster_user_name, env),
     ])
     const messagesPromises = subscriptions.map(async (sub) => {
-      const body = liveBodyBuilder({ sub, streamerData, streamData, baseUrl: env.WEBHOOK_URL })
+      const body = liveBodyBuilder({ sub, streamerData, streamData })
       return sendMessage(sub.channelId, env.DISCORD_TOKEN, body, env)
         .then((messageId) => {
           if (messageId)
