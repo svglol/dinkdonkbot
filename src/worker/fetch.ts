@@ -8,8 +8,9 @@ import {
 import { Router } from 'itty-router'
 import { discordInteractionHandler } from '../discord/interactionHandler'
 import { kickEventHandler } from '../kick/eventHandler'
-import { twitchEventHandler } from '../twitch/eventHandler'
+import { getKickChannelV2 } from '../kick/kick'
 
+import { twitchEventHandler } from '../twitch/eventHandler'
 import { JsonResponse } from '../util/jsonResponse'
 
 const router = Router()
@@ -108,6 +109,15 @@ router.get('/static/:filename', async (request, env: Env) => {
   const filename = request.params.filename
   const url = new URL(`/${filename}`, request.url)
   return env.ASSETS.fetch(url)
+})
+
+router.get('/kick/channel/:slug', async (request) => {
+  const slug = request.params.slug
+  const channel = await getKickChannelV2(slug)
+  if (!channel) {
+    return new Response('Channel not found', { status: 404 })
+  }
+  return new JsonResponse(channel)
 })
 
 // all other routes return a 404
