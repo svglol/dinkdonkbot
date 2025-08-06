@@ -12,6 +12,7 @@ declare global {
     WEBHOOK_URL: string
     KICK_CLIENT_ID: string
     KICK_CLIENT_SECRET: string
+    ACCESS_KEY: string
   }
 
   interface TwitchToken {

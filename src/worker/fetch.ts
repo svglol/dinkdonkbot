@@ -111,12 +111,21 @@ router.get('/static/:filename', async (request, env: Env) => {
   return env.ASSETS.fetch(url)
 })
 
-router.get('/kick/channel/:slug', async (request) => {
+router.get('/kick/channel/:slug', async (request, env: Env) => {
+  const providedKey = request.headers.get('x-api-key')
+  const allowedKey = env.ACCESS_KEY
+
+  if (providedKey !== allowedKey) {
+    return new Response('Unauthorized', { status: 401 })
+  }
+
   const slug = request.params.slug
   const channel = await getKickChannelV2(slug)
+
   if (!channel) {
     return new Response('Channel not found', { status: 404 })
   }
+
   return new JsonResponse(channel)
 })
 
