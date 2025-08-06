@@ -2,7 +2,7 @@ import type { Stream } from '../database/db'
 import { eq, tables, useDB } from '../database/db'
 import { messageBuilder, sendMessage, updateMessage } from '../discord/discord'
 import { formatDuration } from '../util/formatDuration'
-import { getKickChannelV2, getKickLivestream, kickUnsubscribe } from './kick'
+import { getKickChannelV2, getKickLatestVod, getKickLivestream, kickUnsubscribe } from './kick'
 
 /**
  * Handles a 'livestream.status.updated' event by sending a live message to all subscribers.
@@ -92,6 +92,24 @@ async function streamOffline(payload: KickLivestreamStatusUpdatedEvent, env: Env
     },
   })
   if (messagesToUpdate) {
+    const latestVOD = await getKickLatestVod(broadcasterName)
+    const components: DiscordComponent[] = []
+    if (latestVOD) {
+      components.push(
+        {
+          type: 1,
+          components: [
+            {
+              type: 2,
+              label: 'Watch VOD',
+              url: `https://kick.com/${broadcasterName}/videos/${latestVOD.video.uuid}`,
+              style: 5,
+            },
+          ],
+        },
+      )
+    }
+
     const updatePromises = messagesToUpdate.map(async (message) => {
       if (!message.embedData)
         return
@@ -112,7 +130,7 @@ async function streamOffline(payload: KickLivestreamStatusUpdatedEvent, env: Env
 
       const offlineMessage = messageBuilder(message.kickStream?.offlineMessage ? message.kickStream.offlineMessage : '{{name}} is now offline.', broadcasterName)
 
-      return updateMessage(message.discordChannelId, message.discordMessageId, env.DISCORD_TOKEN, { content: offlineMessage, embeds: [message.embedData], components: [] })
+      return updateMessage(message.discordChannelId, message.discordMessageId, env.DISCORD_TOKEN, { content: offlineMessage, embeds: [message.embedData], components })
     })
     await Promise.all(updatePromises)
 

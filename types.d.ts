@@ -475,20 +475,20 @@ declare global {
     subscription_enabled: boolean
     is_affiliate: boolean
     followers_count: number
-    subscriber_badges: any[] // If you know the structure, replace `any` with a specific type
+    subscriber_badges: any[]
     banner_image: {
       url: string
     } | null
-    livestream: any | null // Replace with actual type if available
+    livestream: any | null
     role: any | null
     muted: boolean
-    follower_badges: any[] // Same as above
+    follower_badges: any[]
     offline_banner_image: {
       src: string
       srcset: string
     }
     verified: boolean
-    recent_categories: any[] // Replace with actual type if known
+    recent_categories: any[]
     can_host: boolean
     user: {
       id: number
@@ -523,6 +523,70 @@ declare global {
       message_interval: number
       following_min_duration: number
     }
+  }
+
+  export interface KickThumbnail {
+    src: string
+    srcset: string
+  }
+
+  export interface KickVideo {
+    id: number
+    live_stream_id: number
+    slug: string | null
+    thumb: string | null
+    s3: string | null
+    trading_platform_id: number | null
+    created_at: string
+    updated_at: string
+    uuid: string
+    views: number
+    deleted_at: string | null
+    is_pruned: boolean
+    is_private: boolean
+    status: string
+  }
+
+  export interface KickCategoryBanner {
+    responsive: string
+    url: string
+  }
+
+  export interface KickCategory {
+    id: number
+    category_id: number
+    name: string
+    slug: string
+    tags: string[]
+    description: string | null
+    deleted_at: string | null
+    is_mature: boolean
+    is_promoted: boolean
+    viewers: number
+    is_fallback: boolean
+    banner: KickCategoryBanner
+  }
+
+  export interface KickVOD {
+    id: number
+    slug: string
+    channel_id: number
+    created_at: string
+    session_title: string
+    is_live: boolean
+    risk_level_id: number | null
+    start_time: string
+    source: string
+    twitch_channel: string | null
+    duration: number // Duration in milliseconds
+    language: string
+    is_mature: boolean
+    viewer_count: number
+    tags: string[]
+    thumbnail: KickThumbnail
+    views: number
+    video: KickVideo
+    categories: KickCategory[]
   }
 }
 

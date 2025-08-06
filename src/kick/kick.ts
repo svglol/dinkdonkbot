@@ -275,3 +275,70 @@ export async function getKickChannelV2(slug: string) {
     return undefined
   }
 }
+
+/**
+ * Fetches the latest Video on Demand (VOD) for a given Kick channel.
+ *
+ * @param slug - The slug of the channel to fetch the latest VOD from.
+ * @returns A promise that resolves to a KickVOD object containing the VOD details,
+ *          or undefined if no VOD is found or an error occurs.
+ * @throws Will throw an error if the request fails due to network issues or invalid responses.
+ *         Specific errors are thrown for unauthorized access, forbidden access, channel not found,
+ *         rate limits, or other HTTP errors.
+ */
+
+export async function getKickLatestVod(slug: string): Promise<KickVOD | undefined> {
+  try {
+    if (!slug || slug.trim() === '') {
+      throw new Error('Channel slug is required')
+    }
+
+    const response = await fetch(`https://kick.com/api/v2/channels/${encodeURIComponent(slug)}/videos`, {
+      method: 'GET',
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+          + '(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+      },
+    })
+
+    if (response.status === 401) {
+      throw new Error('Unauthorized: API key may be required')
+    }
+    if (response.status === 403) {
+      throw new Error('Forbidden: Access denied to this channel')
+    }
+    if (response.status === 404) {
+      throw new Error(`Channel "${slug}" not found`)
+    }
+    if (response.status === 429) {
+      throw new Error('Rate limited: Too many requests')
+    }
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const videos = await response.json() as KickVOD[]
+
+    // Check if videos array exists and has content
+    if (!Array.isArray(videos)) {
+      throw new TypeError('Invalid response format: expected array of videos')
+    }
+
+    if (videos.length === 0) {
+      return undefined
+    }
+
+    return videos[0]
+  }
+  catch (error) {
+    if (error instanceof Error) {
+      console.error(`Error fetching latest VOD for channel "${slug}":`, error.message)
+    }
+    else {
+      console.error(`Unknown error fetching latest VOD for channel "${slug}":`, error)
+    }
+    return undefined
+  }
+}
