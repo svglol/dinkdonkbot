@@ -1,8 +1,7 @@
-import { inArray, not } from 'drizzle-orm'
 import { eq, tables, useDB } from '../database/db'
 import { sendMessage } from '../discord/discord'
-import { getKickSubscriptions, kickSubscribe, kickUnsubscribe } from '../kick/kick'
-import { getClipsLastHour, getSubscriptions, removeFailedSubscriptions, removeSubscription, subscribe } from '../twitch/twitch'
+import { getKickSubscriptions, getKickUser, kickSubscribe, kickUnsubscribe } from '../kick/kick'
+import { getClipsLastHour, getSubscriptions, getUserbyID, removeFailedSubscriptions, removeSubscription, subscribe } from '../twitch/twitch'
 
 export default {
   async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext) {
@@ -70,12 +69,15 @@ async function scheduledTwitchClips(env: Env) {
  * subscribes to any that it is not. It then checks if the bot is subscribed to any channels
  * it shouldnt be and removes those subscriptions.
  *
+ * It also check if a twitch/kick channel changes name and updates it in the database
+ *
  * @param env The environment variables for accessing configuration and services.
  * @returns A promise that resolves to true if all checks and maintenance tasks were successful.
  */
 async function scheduledCheck(env: Env) {
   try {
     const streams = await useDB(env).select().from(tables.streams)
+    const kickStreams = await useDB(env).select().from(tables.kickStreams)
     const clips = await useDB(env).select().from(tables.clips)
 
     // check if the bot is subscribed to any servers it shouldnt be
@@ -130,6 +132,16 @@ async function scheduledCheck(env: Env) {
       })
 
       await Promise.all(subsciptionPromises)
+
+      // ensure all twitch streams have the correct name
+      const twitchStreamsPromises = streams.map(async (stream) => {
+        const twitchUser = await getUserbyID(stream.broadcasterId, env)
+        if (twitchUser && twitchUser.display_name !== stream.name) {
+          await useDB(env).update(tables.streams).set({ name: twitchUser.display_name }).where(eq(tables.streams.id, stream.id))
+        }
+      })
+
+      await Promise.all(twitchStreamsPromises)
     }
 
     // Kick EventSub
@@ -137,27 +149,32 @@ async function scheduledCheck(env: Env) {
     // Check if kick event sub is subscribed to all of our streams in the database
     if (kickSubscriptions) {
       const kickStreamIds = kickSubscriptions.data.map(sub => sub.broadcaster_user_id.toString())
-      const kickStreams = await useDB(env)
-        .select()
-        .from(tables.kickStreams)
-        .where(not(inArray(tables.kickStreams.broadcasterId, kickStreamIds)))
 
-      const kickSubscriptionsPromises = kickStreams.map(async (kickStream) => {
+      const streamsToSubscribe = kickStreams.filter(stream => !kickStreamIds.includes(stream.broadcasterId.toString()))
+
+      const kickSubscriptionsPromises = streamsToSubscribe.map(async (kickStream) => {
         await kickSubscribe(Number(kickStream.broadcasterId), env)
       })
       await Promise.all(kickSubscriptionsPromises)
 
       // check if the bot is subscribed to any channels it shouldnt be
-      const dbBroadcasterIds = await useDB(env).query.kickStreams.findMany().then(streams => streams.map(stream => stream.broadcasterId))
-      const extraSubscriptions = kickSubscriptions.data.filter(sub =>
-        !dbBroadcasterIds.includes(sub.broadcaster_user_id.toString()),
-      )
+      const subscriptionsToRemove = kickSubscriptions.data.filter(sub => !streamsToSubscribe.map(stream => stream.broadcasterId.toString()).includes(sub.broadcaster_user_id.toString()))
 
-      const unsubscribePromises = extraSubscriptions.map(sub =>
+      const unsubscribePromises = subscriptionsToRemove.map(sub =>
         kickUnsubscribe(Number(sub.broadcaster_user_id), env),
       )
 
       await Promise.all(unsubscribePromises)
+
+      // ensure all kick streams have the correct name
+      const kickStreamsPromises = kickStreams.map(async (kickStream) => {
+        const kickUser = await getKickUser(Number(kickStream.broadcasterId), env)
+        if (kickUser && kickUser.name !== kickStream.name) {
+          await useDB(env).update(tables.kickStreams).set({ name: kickUser.name }).where(eq(tables.kickStreams.id, kickStream.id))
+        }
+      })
+
+      await Promise.all(kickStreamsPromises)
     }
 
     // Clean up any discord messages for kick/twitch that are older than 48h
