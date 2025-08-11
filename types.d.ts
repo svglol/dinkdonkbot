@@ -1,3 +1,5 @@
+import type { ChannelState } from './durable/ChannelState'
+
 declare global {
   interface Env {
     DB: D1Database
@@ -13,6 +15,7 @@ declare global {
     KICK_CLIENT_ID: string
     KICK_CLIENT_SECRET: string
     ACCESS_KEY: string
+    CHANNELSTATE: DurableObjectNamespace<ChannelState>
   }
 
   interface TwitchToken {

@@ -1,5 +1,6 @@
-import type { Stream } from '../database/db'
+import type { StreamMessage } from '../database/db'
 import { eq, tables, useDB } from '../database/db'
+import { formatDuration } from '../util/formatDuration'
 
 /**
  * Sends a message to the specified channel.
@@ -165,77 +166,6 @@ export async function uploadEmoji(guildId: string, discordToken: string, emojiNa
 }
 
 /**
- * Builds a Discord message body for a live notification.
- * @param sub - The subscription that triggered the notification.
- * @param sub.sub - The subscrition object from the database.
- * @param sub.streamerData - The Twitch stream data for the stream. Optional.
- * @param sub.streamData - The Twitch stream data for the stream. Optional.
- * @param sub.baseUrl - The base URL for static files.
- * @returns A DiscordBody object containing the message to be sent.
- */
-export function liveBodyBuilder({ sub, streamerData, streamData, baseUrl }: { sub: Stream, streamerData?: TwitchUser | null, streamData?: TwitchStream | null, baseUrl?: string }) {
-  const components: DiscordComponent[] = []
-  const component = {
-    type: 1,
-    components: [
-      {
-        type: 2,
-        label: 'Watch Twitch Stream',
-        url: `https://twitch.tv/${sub.name}`,
-        style: 5,
-      },
-    ],
-  }
-  components.push(component)
-  const embeds: DiscordEmbed[] = []
-  let title = `${streamerData?.display_name ?? sub.name} is live!`
-  let thumbnail = streamerData?.offline_image_url ?? ''
-  let timestamp = new Date().toISOString()
-
-  if (streamData) {
-    title = streamData.title
-    thumbnail = `${streamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamData.id}`
-    timestamp = new Date(streamData.started_at).toISOString()
-  }
-  const embed = {
-    title,
-    color: 0x6441A4,
-    description: `**${sub.name} is live!**`,
-    author: {
-      name: 'Live on Twitch',
-      icon_url: baseUrl ? `${baseUrl}/static/twitch-logo.png` : undefined,
-    },
-    fields: [
-      {
-        name: 'Game',
-        value: streamData?.game_name ?? 'No game',
-      },
-    ],
-    url: `https://twitch.tv/${sub.name}`,
-    image: {
-      url: thumbnail,
-    },
-    thumbnail: {
-      url: streamerData ? streamerData.profile_image_url : '',
-    },
-    timestamp,
-    footer: {
-      text: 'Online',
-    },
-  }
-  embeds.push(embed)
-
-  const roleMention = sub.roleId && sub.roleId !== sub.guildId ? `<@&${sub.roleId}> ` : ''
-  const message = `${roleMention}${messageBuilder(sub.liveMessage ? sub.liveMessage : '{{name}} is live!', sub.name, streamData?.game_name, streamData?.started_at)}`
-
-  return {
-    content: message,
-    embeds,
-    components,
-  }
-}
-
-/**
  * Replaces placeholders in a message with actual values.
  *
  * Replaces the following placeholders:
@@ -253,9 +183,29 @@ export function liveBodyBuilder({ sub, streamerData, streamData, baseUrl }: { su
  * @param startedAt - The timestamp of when the stream started (optional).
  * @returns The message with all placeholders replaced.
  */
-export function messageBuilder(message: string, streamName: string, game?: string, startedAt?: string, service: 'twitch' | 'kick' = 'twitch') {
+export function messageBuilder(message: string, streamName: string, game?: string, startedAt?: string, service: 'twitch' | 'kick' | 'both' = 'twitch') {
+  const twitchUrl = `https://twitch.tv/${streamName}`
+  const kickUrl = `https://kick.com/${streamName}`
+
+  let urlReplacement: string
+
+  switch (service) {
+    case 'kick':
+      urlReplacement = kickUrl
+      break
+    case 'both':
+      urlReplacement = `${twitchUrl} | ${kickUrl}`
+      break
+    case 'twitch':
+    default:
+      urlReplacement = twitchUrl
+      break
+  }
+
   return message.replace(/\{\{name\}\}/gi, streamName)
-    .replace(/\{\{url\}\}/gi, service === 'kick' ? `https://kick.com/${streamName}` : `https://twitch.tv/${streamName}`)
+    .replace(/\{\{url\}\}/gi, urlReplacement)
+    .replace(/\{\{twitch_url\}\}/gi, twitchUrl)
+    .replace(/\{\{kick_url\}\}/gi, kickUrl)
     .replace(/\{\{everyone\}\}/gi, '@everyone')
     .replace(/\{\{here\}\}/gi, '@here')
     .replace(/\{\{(game|category)\}\}/gi, game || '')
@@ -312,6 +262,15 @@ export async function checkChannelPermission(channelId: string, discordToken: st
   }
 }
 
+/**
+ * Fetches all custom emojis for a guild.
+ *
+ * @param guildId - The ID of the guild to fetch emojis from.
+ * @param discordToken - The bot token for authorization.
+ * @returns An array of DiscordEmoji objects, each containing the ID and name of the emoji.
+ *
+ * @throws If there is an error fetching the emojis.
+ */
 export async function fetchGuildEmojis(guildId: string, discordToken: string) {
   const url = `https://discord.com/api/v10/guilds/${guildId}/emojis`
 
@@ -325,4 +284,303 @@ export async function fetchGuildEmojis(guildId: string, discordToken: string) {
   }
 
   return await response.json() as DiscordEmoji[]
+}
+
+/**
+ * Builds a Discord message body based on the given StreamMessage data.
+ *
+ * @param streamMessage - The StreamMessage data to build a message body from.
+ * @param env - The environment variables for accessing configuration and services.
+ * @returns An object containing the body of the message, any embeds, and any components.
+ */
+export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
+  if (!streamMessage)
+    return { content: '', embeds: [], components: [] }
+
+  const components: DiscordComponent[] = []
+  const embeds: DiscordEmbed[] = []
+  let content = ''
+
+  // build components
+  if (streamMessage?.stream) {
+    if (streamMessage.twitchOnline) {
+      const component = {
+        type: 1,
+        components: [
+          {
+            type: 2,
+            label: 'Watch Twitch Stream',
+            url: `https://twitch.tv/${streamMessage.stream.name}`,
+            style: 5,
+          },
+        ],
+      }
+      components.push(component)
+    }
+    else if (streamMessage.twitchVod) {
+      const component = {
+        type: 1,
+        components: [
+          {
+            type: 2,
+            label: 'Watch Twitch VOD',
+            url: `https://twitch.tv/videos/${streamMessage.twitchVod?.id}`,
+            style: 5,
+          },
+        ],
+      }
+      components.push(component)
+    }
+  }
+
+  if (streamMessage?.kickStream) {
+    if (streamMessage.kickOnline) {
+      const component = {
+        type: 1,
+        components: [
+          {
+            type: 2,
+            label: 'Watch Kick Stream',
+            url: `https://kick.com/${streamMessage.kickStream.name}`,
+            style: 5,
+          },
+        ],
+      }
+      components.push(component)
+    }
+    else if (streamMessage.kickVod) {
+      const component = {
+        type: 1,
+        components: [
+          {
+            type: 2,
+            label: 'Watch Kick VOD',
+            url: `https://kick.com/${streamMessage.kickStream.name}/videos/${streamMessage.kickVod?.video.uuid}`,
+            style: 5,
+          },
+        ],
+      }
+      components.push(component)
+    }
+  }
+
+  // build embeds
+  if (streamMessage?.stream) {
+    if (streamMessage.twitchOnline) {
+      // online embed
+      let title = `${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} is live!`
+      let thumbnail = streamMessage.twitchStreamerData?.offline_image_url ?? ''
+      let timestamp = new Date().toISOString()
+
+      if (streamMessage.twitchStreamData) {
+        title = streamMessage.twitchStreamData.title
+        thumbnail = `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}`
+        timestamp = new Date(streamMessage.twitchStreamData.started_at).toISOString()
+      }
+
+      const embed = {
+        title,
+        color: 0x6441A4,
+        description: `**${streamMessage.stream.name} is live!**`,
+        author: {
+          name: 'Live on Twitch',
+          icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/twitch-logo.png` : undefined,
+        },
+        fields: [
+          {
+            name: 'Game',
+            value: streamMessage.twitchStreamData?.game_name ?? 'No game',
+          },
+        ],
+        url: `https://twitch.tv/${streamMessage.stream.name}`,
+        image: {
+          url: thumbnail,
+        },
+        thumbnail: {
+          url: streamMessage.twitchStreamerData ? streamMessage.twitchStreamerData.profile_image_url : '',
+        },
+        timestamp,
+        footer: {
+          text: 'Online',
+        },
+      }
+
+      embeds.push(embed)
+    }
+    else {
+      // offline embed
+      const duration = streamMessage.twitchVod
+        ? streamMessage.twitchVod.duration
+        : streamMessage.twitchStreamEndedAt && streamMessage.twitchStreamStartedAt
+          ? formatDuration(streamMessage.twitchStreamEndedAt.getTime() - streamMessage.twitchStreamStartedAt.getTime())
+          : '0'
+      const timestamp = streamMessage.twitchStreamEndedAt?.toISOString()
+      const backupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}` : ''
+      let title = `${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} is no longer live!`
+      if (streamMessage.twitchStreamData) {
+        title = streamMessage.twitchStreamData.title
+      }
+      const embed = {
+        title,
+        color: 0x6441A4,
+        description: `Streamed for **${duration}**`,
+        author: {
+          name: 'Twitch',
+          icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/twitch-logo.png` : undefined,
+        },
+        url: `https://twitch.tv/${streamMessage.stream.name}`,
+        image: {
+          url: streamMessage.twitchStreamerData?.offline_image_url ? streamMessage.twitchStreamerData.offline_image_url : backupImage,
+        },
+        thumbnail: {
+          url: streamMessage.twitchStreamerData ? streamMessage.twitchStreamerData.profile_image_url : '',
+        },
+        timestamp,
+        footer: {
+          text: 'Last online',
+        },
+      }
+
+      embeds.push(embed)
+    }
+  }
+  if (streamMessage?.kickStream) {
+    if (streamMessage.kickOnline) {
+      // online embed
+      let title = `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} is live!`
+      let thumbnail = streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp'
+      let timestamp = new Date().toISOString()
+      if (streamMessage.kickStreamData) {
+        title = streamMessage.kickStreamData.stream_title
+        thumbnail = `${streamMessage.kickStreamData.thumbnail}?b=${streamMessage.kickStreamData.started_at}`
+        timestamp = new Date(streamMessage.kickStreamData.started_at).toISOString()
+      }
+      const embed = {
+        title,
+        color: 0x53FC18,
+        description: `**${streamMessage.kickStream.name} is live!**`,
+        author: {
+          name: 'Live on KICK',
+          icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/kick-logo.png` : undefined,
+        },
+        fields: [
+          {
+            name: 'Game',
+            value: streamMessage.kickStreamData?.category.name ?? 'No game',
+          },
+        ],
+        url: `https://kick.com/${streamMessage.kickStream.name}`,
+        image: {
+          url: thumbnail,
+        },
+        thumbnail: {
+          url: streamMessage.kickStreamerData?.user.profile_pic ?? '',
+        },
+        timestamp,
+        footer: {
+          text: 'Online',
+        },
+      }
+      embeds.push(embed)
+    }
+    else {
+      // offline embed
+      const duration = streamMessage.kickVod
+        ? formatDuration(streamMessage.kickVod.duration)
+        : streamMessage.kickStreamEndedAt && streamMessage.kickStreamStartedAt
+          ? formatDuration(streamMessage.kickStreamEndedAt.getTime() - streamMessage.kickStreamStartedAt.getTime())
+          : '0'
+      const timestamp = streamMessage.kickStreamEndedAt?.toISOString()
+      let title = `${streamMessage.kickStreamerData?.user.username ?? streamMessage.kickStream.name} is no longer live!`
+      if (streamMessage.kickStreamData) {
+        title = streamMessage.kickStreamData.stream_title
+      }
+      const embed = {
+        title,
+        color: 0x53FC18,
+        description: `Streamed for **${duration}**`,
+        author: {
+          name: 'Kick',
+          icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/kick-logo.png` : undefined,
+        },
+        url: `https://kick.com/${streamMessage.kickStream.name}`,
+        image: {
+          url: streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp',
+        },
+        thumbnail: {
+          url: streamMessage.kickStreamerData ? streamMessage.kickStreamerData.user.profile_pic : '',
+        },
+        timestamp,
+        footer: {
+          text: 'Last online',
+        },
+      }
+      embeds.push(embed)
+    }
+  }
+
+  // build content message
+  if (streamMessage?.stream) {
+    if (streamMessage.twitchOnline) {
+      const roleMention = streamMessage.stream.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''
+      const message = `${roleMention}${messageBuilder(streamMessage.stream.liveMessage ? streamMessage.stream.liveMessage : '{{name}} is live!', streamMessage.stream.name, streamMessage.twitchStreamData?.game_name, streamMessage.twitchStreamData?.started_at)}`
+      content = message
+    }
+    else {
+      const offlineMessage = messageBuilder(streamMessage.stream.offlineMessage ? streamMessage.stream.offlineMessage : '{{name}} is now offline.', streamMessage.stream.name)
+      content = offlineMessage
+    }
+  }
+  if (streamMessage?.kickStream) {
+    if (streamMessage.kickOnline) {
+      const roleMention = streamMessage.kickStream.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
+      const message = `${roleMention}${messageBuilder(streamMessage.kickStream.liveMessage ? streamMessage.kickStream.liveMessage : '{{name}} is live!', streamMessage.kickStream.name, streamMessage.kickStreamData?.category.name, streamMessage.kickStreamData?.started_at, 'kick')}`
+
+      if (content !== '') {
+        content += '\n'
+      }
+      content += message
+    }
+    else {
+      const offlineMessage = messageBuilder(streamMessage.kickStream?.offlineMessage ? streamMessage.kickStream?.offlineMessage : '{{name}} is now offline.', streamMessage.kickStream.name)
+
+      if (content && content !== offlineMessage) {
+        content += `\n${offlineMessage}`
+      }
+      else if (!content) {
+        content = offlineMessage
+      }
+    }
+  }
+
+  if (streamMessage?.stream && streamMessage?.kickStream && streamMessage.twitchOnline && streamMessage.kickOnline) {
+    // combined online message
+    const roleMention = streamMessage.stream.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''
+    const kickRoleMention = streamMessage.kickStream.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
+
+    if (streamMessage.stream.liveMessage === streamMessage.kickStream.liveMessage) {
+      // we can combine the messages
+      content = [roleMention, kickRoleMention, messageBuilder(
+        streamMessage.stream.liveMessage ? streamMessage.stream.liveMessage : '@everyone {{name}} is now live @ {{url}}',
+        streamMessage.stream.name,
+        streamMessage.twitchStreamData?.game_name,
+        streamMessage.twitchStreamData?.started_at,
+        'both',
+      )].filter(Boolean).join(' ')
+    }
+  }
+  if (streamMessage?.stream && streamMessage?.kickStream && !streamMessage.twitchOnline && !streamMessage.kickOnline) {
+    // combined offline message
+    const twitchOfflineMessage = messageBuilder(streamMessage.stream.offlineMessage ? streamMessage.stream.offlineMessage : '{{name}} is now offline.', streamMessage.stream.name)
+    const kickOfflineMessage = messageBuilder(streamMessage.kickStream?.offlineMessage ? streamMessage.kickStream?.offlineMessage : '{{name}} is now offline.', streamMessage.kickStream.name)
+    if (twitchOfflineMessage === kickOfflineMessage) {
+      content = twitchOfflineMessage
+    }
+  }
+
+  return {
+    content,
+    embeds,
+    components,
+  }
 }

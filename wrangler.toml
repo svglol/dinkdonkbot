@@ -26,6 +26,10 @@ enabled = true
 directory = "./static"
 binding = "ASSETS"
 
+[[durable_objects.bindings]]
+name = "CHANNELSTATE"
+class_name = "ChannelState"
+
 # [secrets]
 # DISCORD_TOKEN
 # DISCORD_PUBLIC_KEY

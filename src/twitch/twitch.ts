@@ -452,3 +452,23 @@ export async function getClipsLastHour(broadcasterId: string, env: Env) {
     console.error('Error fetching clips:', error)
   }
 }
+
+export async function getUserbyID(userId: string, env: Env) {
+  try {
+    const userRes = await fetch(`https://api.twitch.tv/helix/users?id=${userId}`, {
+      headers: {
+        'Client-ID': env.TWITCH_CLIENT_ID,
+        'Authorization': `Bearer ${await getToken(env)}`,
+      },
+    })
+    if (!userRes.ok)
+      throw new Error(`Failed to fetch user: ${JSON.stringify(await userRes.json())}`)
+    const userData = await userRes.json() as TwitchUserData
+    if (userData.data.length === 0)
+      return null
+    return userData.data[0]
+  }
+  catch (error) {
+    console.error('Error fetching user by ID:', error)
+  }
+}

@@ -286,7 +286,6 @@ export async function getKickChannelV2(slug: string) {
  *         Specific errors are thrown for unauthorized access, forbidden access, channel not found,
  *         rate limits, or other HTTP errors.
  */
-
 export async function getKickLatestVod(slug: string): Promise<KickVOD | undefined> {
   try {
     if (!slug || slug.trim() === '') {

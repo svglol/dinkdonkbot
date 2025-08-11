@@ -1,8 +1,7 @@
-import type { Stream } from '../database/db'
-import { eq, tables, useDB } from '../database/db'
-import { messageBuilder, sendMessage, updateMessage } from '../discord/discord'
-import { formatDuration } from '../util/formatDuration'
-import { getKickChannelV2, getKickLatestVod, getKickLivestream, kickUnsubscribe } from './kick'
+import type { ChannelState } from '../durable/ChannelState'
+import { and, eq, tables, useDB } from '../database/db'
+import { bodyBuilder, updateMessage } from '../discord/discord'
+import { getKickLatestVod } from './kick'
 
 /**
  * Handles a 'livestream.status.updated' event by sending a live message to all subscribers.
@@ -11,67 +10,31 @@ import { getKickChannelV2, getKickLatestVod, getKickLivestream, kickUnsubscribe 
  * @param payload - The payload containing the event data and subscription details.
  * @param env - The environment variables for accessing configuration and services.
  */
-export async function kickEventHandler(eventType: string, payload: KickLivestreamStatusUpdatedEvent, env: Env) {
+export async function kickEventHandler(eventType: string, payload: KickLivestreamStatusUpdatedEvent, env: Env, ctx: ExecutionContext) {
   if (eventType !== 'livestream.status.updated') {
     throw new Error(`Invalid event type: ${eventType}`)
   }
 
   if (payload.is_live && payload.ended_at === null) {
-    await streamOnline(payload, env)
+    ctx.waitUntil(streamOnline(payload, env))
   }
   else {
-    await streamOffline(payload, env)
+    ctx.waitUntil(streamOffline(payload, env))
   }
 }
 
 /**
- * Handles a 'livestream.status.updated' event by sending a live message to all subscribers.
+ * Handles a 'livestream.status.updated' event with 'is_live' set to true by sending a live message to all subscribers.
  *
  * @param payload - The payload containing the event data and subscription details.
  * @param env - The environment variables for accessing configuration and services.
  */
 async function streamOnline(payload: KickLivestreamStatusUpdatedEvent, env: Env) {
-  const broadcasterId = payload.broadcaster.user_id
+  const broadcasterName = payload.broadcaster.channel_slug
 
-  const subscriptions = await useDB(env).query.kickStreams.findMany({
-    where: (kickStreams, { eq }) => eq(kickStreams.broadcasterId, broadcasterId.toString()),
-  })
-
-  // send message to all subscriptions
-  if (subscriptions.length > 0) {
-    const [kickUser, kickLivestream] = await Promise.all([
-      await getKickChannelV2(payload.broadcaster.channel_slug),
-      await getKickLivestream(broadcasterId, env),
-    ])
-
-    const messagesPromises = subscriptions.map(async (sub) => {
-      const body = kickLiveBodyBuilder({ sub, streamerData: kickUser, streamData: kickLivestream, eventData: payload, baseUrl: env.WEBHOOK_URL })
-      return sendMessage(sub.channelId, env.DISCORD_TOKEN, body, env)
-        .then((messageId) => {
-          if (messageId)
-            return { messageId, channelId: sub.channelId, embed: body.embeds[body.embeds.length - 1], dbStreamId: sub.id }
-        })
-    })
-    const messages = (await Promise.all(messagesPromises)).flatMap(message =>
-      message ? [message] : [],
-    )
-
-    // add messages to database
-    await useDB(env).insert(tables.kickStreamMessages).values(messages.map((message) => {
-      return {
-        broadcasterId: broadcasterId.toString(),
-        streamStartedAt: payload.started_at,
-        discordMessageId: message.messageId,
-        discordChannelId: message.channelId,
-        embedData: message.embed,
-        kickStreamId: message.dbStreamId,
-      }
-    }))
-  }
-  else {
-    // remove subscription if no one is subscribed
-    await kickUnsubscribe(broadcasterId, env)
-  }
+  const durableObjectId = env.CHANNELSTATE.idFromName(broadcasterName.toLowerCase())
+  const durableObject: DurableObjectStub<ChannelState> = env.CHANNELSTATE.get(durableObjectId)
+  return await durableObject.handleStream({ platform: 'kick', payload })
 }
 
 /**
@@ -84,130 +47,48 @@ async function streamOnline(payload: KickLivestreamStatusUpdatedEvent, env: Env)
 async function streamOffline(payload: KickLivestreamStatusUpdatedEvent, env: Env) {
   const broadcasterId = payload.broadcaster.user_id
   const broadcasterName = payload.broadcaster.username
-  const channelInfo = await getKickChannelV2(payload.broadcaster.username)
-  const messagesToUpdate = await useDB(env).query.kickStreamMessages.findMany({
-    where: (messages, { eq, and }) => and(eq(messages.broadcasterId, broadcasterId.toString()), eq(messages.streamStartedAt, payload.started_at)),
+  const latestVOD = await getKickLatestVod(broadcasterName)
+
+  // get any stream messages with this kick broadcaster id that need to be updated
+  const streamMessages = await useDB(env).query.streamMessages.findMany({
     with: {
+      stream: true,
       kickStream: true,
     },
+    where: (messages, { eq }) => eq(messages.kickStreamStartedAt, new Date(payload.started_at)),
   })
-  if (messagesToUpdate) {
-    const latestVOD = await getKickLatestVod(broadcasterName)
-    const components: DiscordComponent[] = []
-    if (latestVOD) {
-      components.push(
-        {
-          type: 1,
-          components: [
-            {
-              type: 2,
-              label: 'Watch VOD',
-              url: `https://kick.com/${broadcasterName}/videos/${latestVOD.video.uuid}`,
-              style: 5,
-            },
-          ],
+
+  const filteredStreamMessages = streamMessages.filter(message => message.kickStream?.broadcasterId === broadcasterId.toString())
+
+  if (filteredStreamMessages.length > 0) {
+    // these are the stream messages that need to be updated
+
+    const promises = filteredStreamMessages.map(async (message) => {
+      // first we will update the database entry
+      const updatedMessage = await useDB(env).update(tables.streamMessages).set({
+        kickOnline: false,
+        kickStreamEndedAt: new Date(payload.ended_at),
+        kickVod: latestVOD,
+      }).where(eq(tables.streamMessages.id, message.id)).returning({ id: tables.streamMessages.id }).get()
+
+      const updatedMessageWithStreams = await useDB(env).query.streamMessages.findFirst({
+        where: (messages, { eq }) => eq(messages.id, updatedMessage.id),
+        with: {
+          stream: true,
+          kickStream: true,
         },
-      )
-    }
+      })
 
-    const updatePromises = messagesToUpdate.map(async (message) => {
-      if (!message.embedData)
+      if (!updatedMessageWithStreams) {
         return
-      // update embed with offline message
-      const duration = formatDuration(new Date(payload.ended_at).getTime() - new Date(payload.started_at).getTime())
-      message.embedData.timestamp = new Date(payload.ended_at).toISOString()
-      message.embedData.description = `Streamed for **${duration}**`
-      if (message.embedData.footer)
-        message.embedData.footer.text = 'Last online'
-
-      if (channelInfo && channelInfo.offline_banner_image && message.embedData.image)
-        message.embedData.image.url = channelInfo.offline_banner_image.src || 'https://kick.com/img/default-channel-banners/offline.webp'
-
-      if (message.embedData.author) {
-        message.embedData.author.name = 'Kick'
       }
-      message.embedData.fields = []
 
-      const offlineMessage = messageBuilder(message.kickStream?.offlineMessage ? message.kickStream.offlineMessage : '{{name}} is now offline.', broadcasterName)
-
-      return updateMessage(message.discordChannelId, message.discordMessageId, env.DISCORD_TOKEN, { content: offlineMessage, embeds: [message.embedData], components })
+      const discordMessage = await bodyBuilder(updatedMessageWithStreams, env)
+      await updateMessage(message.discordChannelId, message?.discordMessageId ?? '', env.DISCORD_TOKEN, discordMessage)
     })
-    await Promise.all(updatePromises)
+    await Promise.allSettled(promises)
 
-    // delete all messages from db for this stream
-    await useDB(env).delete(tables.kickStreamMessages).where(eq(tables.kickStreamMessages.broadcasterId, broadcasterId.toString()))
-  }
-}
-
-/**
- * Builds a Discord message body for a live notification.
- * @param sub - The subscription that triggered the notification.
- * @param sub.sub - The subscrition object from the database.
- * @param sub.streamerData - The Kick channel data for the stream. Optional.
- * @param sub.streamData - The Kick stream data for the stream. Optional.
- * @param sub.eventData - The Kick event data for the stream. Optional.
- * @param sub.baseUrl - The base URL for static files.
- * @returns A DiscordBody object containing the message to be sent.
- */
-export function kickLiveBodyBuilder({ sub, streamerData, streamData, eventData, baseUrl }: { sub: Stream, streamerData?: KickChannelV2 | null, streamData?: KickLiveStream | null, eventData?: KickLivestreamStatusUpdatedEvent | null, baseUrl?: string }) {
-  const components: DiscordComponent[] = []
-  const component = {
-    type: 1,
-    components: [
-      {
-        type: 2,
-        label: 'Watch Kick Stream',
-        url: `https://kick.com/${sub.name}`,
-        style: 5,
-      },
-    ],
-  }
-  components.push(component)
-  const embeds: DiscordEmbed[] = []
-  let title = `${streamerData?.slug ?? sub.name} is live!`
-  let thumbnail = streamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp'
-  let timestamp = new Date().toISOString()
-  if (eventData) {
-    title = eventData.title
-  }
-  if (streamData) {
-    thumbnail = `${streamData.thumbnail}?b=${streamData.started_at}`
-    timestamp = new Date(streamData.started_at).toISOString()
-  }
-  const embed = {
-    title,
-    color: 0x53FC18,
-    description: `**${sub.name} is live!**`,
-    author: {
-      name: 'Live on KICK',
-      icon_url: baseUrl ? `${baseUrl}/static/kick-logo.png` : undefined,
-    },
-    fields: [
-      {
-        name: 'Game',
-        value: streamData?.category.name ?? 'No game',
-      },
-    ],
-    url: `https://kick.com/${sub.name}`,
-    image: {
-      url: thumbnail,
-    },
-    thumbnail: {
-      url: streamerData?.user.profile_pic ?? '',
-    },
-    timestamp,
-    footer: {
-      text: 'Online',
-    },
-  }
-  embeds.push(embed)
-
-  const roleMention = sub.roleId && sub.roleId !== sub.guildId ? `<@&${sub.roleId}> ` : ''
-  const message = `${roleMention}${messageBuilder(sub.liveMessage ? sub.liveMessage : '{{name}} is live!', sub.name, streamData?.category.name, streamData?.started_at, 'kick')}`
-
-  return {
-    content: message,
-    embeds,
-    components,
+    // delete any stream messages that are no longer live on both kick and twitch (these are no longer needed)
+    await useDB(env).delete(tables.streamMessages).where(and(eq(tables.streamMessages.kickOnline, false), eq(tables.streamMessages.twitchOnline, false)))
   }
 }

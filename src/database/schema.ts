@@ -1,5 +1,5 @@
 import { relations, sql } from 'drizzle-orm'
-import { index, integer, sqliteTable, text, unique, uniqueIndex } from 'drizzle-orm/sqlite-core'
+import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
 export const streams = sqliteTable('streams', {
   id: integer('id').primaryKey(),
@@ -46,60 +46,53 @@ export const kickStreams = sqliteTable('kick-streams', {
   index('kick_guildIdIdx').on(streams.guildId),
 ])
 
-export const kickStreamMessages = sqliteTable('kick-stream-messages', {
+export const streamMessages = sqliteTable('stream-messages', {
   id: integer('id').primaryKey(),
-  broadcasterId: text('broadcasterId').notNull(),
-  streamStartedAt: text('streamStartedAt').notNull(),
-  kickStreamId: integer('kickStreamId').notNull().references(() => kickStreams.id, { onDelete: 'cascade' }),
+  streamId: integer('streamId').references(() => streams.id, { onDelete: 'cascade' }),
+  kickStreamId: integer('kickStreamId').references(() => kickStreams.id, { onDelete: 'cascade' }),
+  kickStreamStartedAt: integer('kickStreamStartedAt', { mode: 'timestamp' }),
+  twitchStreamStartedAt: integer('twitchStreamStartedAt', { mode: 'timestamp' }),
+  kickStreamEndedAt: integer('kickStreamEndedAt', { mode: 'timestamp' }),
+  twitchStreamEndedAt: integer('twitchStreamEndedAt', { mode: 'timestamp' }),
   discordChannelId: text('discordChannelId').notNull(),
-  discordMessageId: text('discordMessageId').notNull(),
-  embedData: text({ mode: 'json' }).$type<DiscordEmbed>(),
+  discordMessageId: text('discordMessageId'),
+  twitchStreamId: text('twitchStreamId'),
+  twitchOnline: integer('twitchOnline', { mode: 'boolean' }).default(false),
+  kickOnline: integer('kickOnline', { mode: 'boolean' }).default(false),
   createdAt: text('created_at').default(sql`(current_timestamp)`),
+  twitchStreamData: text({ mode: 'json' }).$type<TwitchStream>(),
+  twitchStreamerData: text({ mode: 'json' }).$type<TwitchUser>(),
+  twitchVod: text({ mode: 'json' }).$type<VideoData>(),
+  kickStreamData: text({ mode: 'json' }).$type<KickLiveStream>(),
+  kickStreamerData: text({ mode: 'json' }).$type<KickChannelV2>(),
+  kickVod: text({ mode: 'json' }).$type<KickVOD>(),
+
 }, messages => [
-  uniqueIndex('kick_messages_idIdx').on(messages.id),
-  unique('kick_messages_uniqueIdx').on(messages.broadcasterId, messages.streamStartedAt, messages.kickStreamId),
-  index('kick_messages_broadcasterIdIdx').on(messages.broadcasterId),
-  index('kick_messages_streamStartedAtIdx').on(messages.streamStartedAt),
-  index('kick_messages_kickStreamIdIdx').on(messages.kickStreamId),
-  index('kick_messages_discordChannelIdIdx').on(messages.discordChannelId),
+  index('stream_messages_discord_channel_created_idx').on(messages.discordChannelId, messages.createdAt),
+  index('stream_messages_stream_created_idx').on(messages.streamId, messages.createdAt),
+  index('stream_messages_streamIdIdx').on(messages.streamId),
+  index('stream_messages_kickStreamIdIdx').on(messages.kickStreamId),
+  index('stream_messages_discordChannelId_idx').on(messages.discordChannelId),
+  index('stream_messages_createdAt_idx').on(messages.createdAt),
+  index('stream_messages_twitchOnline_idx').on(messages.twitchOnline),
+  index('stream_messages_kickOnline_idx').on(messages.kickOnline),
 ])
 
-export const twitchStreamMessages = sqliteTable('twitch-stream-messages', {
-  id: integer('id').primaryKey(),
-  broadcasterId: text('broadcasterId').notNull(),
-  streamStartedAt: text('streamStartedAt').notNull(),
-  streamId: integer('streamId').notNull().references(() => streams.id, { onDelete: 'cascade' }),
-  discordChannelId: text('discordChannelId').notNull(),
-  discordMessageId: text('discordMessageId').notNull(),
-  twitchStreamId: text('twitchStreamId').notNull(),
-  embedData: text({ mode: 'json' }).$type<DiscordEmbed>(),
-  createdAt: text('created_at').default(sql`(current_timestamp)`),
-}, messages => [
-  uniqueIndex('twitch_messages_idIdx').on(messages.id),
-  unique('twitch_messages_uniqueIdx').on(messages.broadcasterId, messages.streamStartedAt, messages.streamId),
-  index('twitch_messages_broadcasterIdIdx').on(messages.broadcasterId),
-  index('twitch_messages_streamIdIdx').on(messages.streamId),
-  index('twitch_messages_discordChannelIdIdx').on(messages.discordChannelId),
-])
-
-export const kickStreamsMessagesRelations = relations(kickStreamMessages, ({ one }) => ({
+export const streamMessageRelations = relations(streamMessages, ({ one }) => ({
+  stream: one(streams, {
+    fields: [streamMessages.streamId],
+    references: [streams.id],
+  }),
   kickStream: one(kickStreams, {
-    fields: [kickStreamMessages.kickStreamId],
+    fields: [streamMessages.kickStreamId],
     references: [kickStreams.id],
   }),
 }))
 
-export const twitchStreamMessagesRelations = relations(twitchStreamMessages, ({ one }) => ({
-  stream: one(streams, {
-    fields: [twitchStreamMessages.streamId],
-    references: [streams.id],
-  }),
-}))
-
 export const kickStreamsRelations = relations(kickStreams, ({ many }) => ({
-  messages: many(kickStreamMessages),
+  messages: many(streamMessages),
 }))
 
 export const streamsRelations = relations(streams, ({ many }) => ({
-  messages: many(twitchStreamMessages),
+  messages: many(streamMessages),
 }))

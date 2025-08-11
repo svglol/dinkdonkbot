@@ -1,3 +1,4 @@
+import { ChannelState } from './durable/ChannelState'
 import fetch from './worker/fetch'
 import scheduled from './worker/scheduled'
 
@@ -7,3 +8,4 @@ const server = {
 } satisfies ExportedHandler<Env>
 
 export default server
+export { ChannelState }

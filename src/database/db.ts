@@ -24,3 +24,10 @@ export function isTuple<T>(array: T[]): array is [T, ...T[]] {
 }
 
 export type Stream = typeof schema.streams.$inferSelect
+
+export type StreamKick = typeof schema.kickStreams.$inferSelect
+
+export type StreamMessage = typeof schema.streamMessages.$inferSelect & {
+  stream?: Stream | null
+  kickStream?: StreamKick | null
+}

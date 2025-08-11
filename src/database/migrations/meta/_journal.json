@@ -57,6 +57,13 @@
       "when": 1753665835304,
       "tag": "0007_steep_cloak",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1754612748820,
+      "tag": "0008_dusty_retro_girl",
+      "breakpoints": true
     }
   ]
 }

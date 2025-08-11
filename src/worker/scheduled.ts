@@ -101,7 +101,7 @@ async function scheduledCheck(env: Env) {
       const deleteClips = clipsToDelete.map(async (clip) => {
         await useDB(env).delete(tables.clips).where(eq(tables.clips.id, clip.id))
       })
-      await Promise.all(deleteClips)
+      await Promise.allSettled(deleteClips)
 
       const deleteStreamsAndSubscriptions = streamsToRemove.map(async (stream) => {
         await useDB(env).delete(tables.streams).where(eq(tables.streams.id, stream.id))
@@ -111,7 +111,7 @@ async function scheduledCheck(env: Env) {
         if (subscriptions.length === 0)
           await removeSubscription(stream.broadcasterId, env)
       })
-      await Promise.all(deleteStreamsAndSubscriptions)
+      await Promise.allSettled(deleteStreamsAndSubscriptions)
     }
 
     // check if twitch event sub is subscribed to all of our streams in the database
@@ -131,7 +131,7 @@ async function scheduledCheck(env: Env) {
         return await subscribe(broadcasterId, env)
       })
 
-      await Promise.all(subsciptionPromises)
+      await Promise.allSettled(subsciptionPromises)
 
       // ensure all twitch streams have the correct name
       const twitchStreamsPromises = streams.map(async (stream) => {
@@ -141,7 +141,7 @@ async function scheduledCheck(env: Env) {
         }
       })
 
-      await Promise.all(twitchStreamsPromises)
+      await Promise.allSettled(twitchStreamsPromises)
     }
 
     // Kick EventSub
@@ -155,7 +155,7 @@ async function scheduledCheck(env: Env) {
       const kickSubscriptionsPromises = streamsToSubscribe.map(async (kickStream) => {
         await kickSubscribe(Number(kickStream.broadcasterId), env)
       })
-      await Promise.all(kickSubscriptionsPromises)
+      await Promise.allSettled(kickSubscriptionsPromises)
 
       // check if the bot is subscribed to any channels it shouldnt be
       const subscriptionsToRemove = kickSubscriptions.data.filter(sub => !streamsToSubscribe.map(stream => stream.broadcasterId.toString()).includes(sub.broadcaster_user_id.toString()))
@@ -164,7 +164,7 @@ async function scheduledCheck(env: Env) {
         kickUnsubscribe(Number(sub.broadcaster_user_id), env),
       )
 
-      await Promise.all(unsubscribePromises)
+      await Promise.allSettled(unsubscribePromises)
 
       // ensure all kick streams have the correct name
       const kickStreamsPromises = kickStreams.map(async (kickStream) => {
@@ -174,25 +174,17 @@ async function scheduledCheck(env: Env) {
         }
       })
 
-      await Promise.all(kickStreamsPromises)
+      await Promise.allSettled(kickStreamsPromises)
     }
 
     // Clean up any discord messages for kick/twitch that are older than 48h
-    const twitchMesagesToDelete = await useDB(env).query.twitchStreamMessages.findMany({
+    const streamMesagesToDelete = await useDB(env).query.streamMessages.findMany({
       where: (twitchStreamMessages, { sql }) => sql`created_at < ${sql`datetime('now', '-48 hours')`}`,
     })
 
-    const kickMessagesToDelete = await useDB(env).query.kickStreamMessages.findMany({
-      where: (kickStreamMessages, { sql }) => sql`created_at < ${sql`datetime('now', '-48 hours')`}`,
-    })
-
     useDB(env).transaction(async (tx) => {
-      await Promise.all(kickMessagesToDelete.map(async (message) => {
-        await tx.delete(tables.kickStreamMessages).where(eq(tables.kickStreamMessages.id, message.id))
-      }))
-
-      await Promise.all(twitchMesagesToDelete.map(async (message) => {
-        await tx.delete(tables.twitchStreamMessages).where(eq(tables.twitchStreamMessages.id, message.id))
+      await Promise.allSettled(streamMesagesToDelete.map(async (message) => {
+        await tx.delete(tables.streamMessages).where(eq(tables.streamMessages.id, message.id))
       }))
     })
 

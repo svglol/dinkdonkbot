@@ -85,7 +85,7 @@ router.post('/twitch-eventsub', async (request, env: Env, ctx: ExecutionContext)
   }
 
   // Process the Twitch event here...
-  ctx.waitUntil(twitchEventHandler(payload, env))
+  ctx.waitUntil(twitchEventHandler(payload, env, ctx))
 
   return new JsonResponse({ message: 'Success' }, { status: 200 })
 })
@@ -101,7 +101,7 @@ router.post('/kick-eventsub', async (request, env: Env, ctx: ExecutionContext) =
   const headers = Object.fromEntries(request.headers.entries())
   const eventType = headers['kick-event-type']
   const payload = JSON.parse(body) as KickLivestreamStatusUpdatedEvent
-  ctx.waitUntil(kickEventHandler(eventType, payload, env))
+  ctx.waitUntil(kickEventHandler(eventType, payload, env, ctx))
   return new JsonResponse({ message: 'Success' }, { status: 200 })
 })
 

@@ -1,13 +1,13 @@
+import type { StreamMessage } from '../database/db'
 import { InteractionResponseFlags, InteractionResponseType, InteractionType } from 'discord-interactions'
 import { and, eq, like } from 'drizzle-orm'
 import { tables, useDB } from '../database/db'
-import { kickLiveBodyBuilder } from '../kick/eventHandler'
 import { getKickChannel, getKickChannelV2, getKickLivestream, kickSubscribe, kickUnsubscribe } from '../kick/kick'
 import { getChannelId, getStreamDetails, getStreamerDetails, removeSubscription, subscribe } from '../twitch/twitch'
 import { fetch7tvEmoteImageBuffer, fetchEmoteImageBuffer, fetchSingular7tvEmote } from '../util/emote'
 import { JsonResponse } from '../util/jsonResponse'
 import * as commands from './commands'
-import { checkChannelPermission, liveBodyBuilder, sendMessage, updateInteraction, uploadEmoji } from './discord'
+import { bodyBuilder, checkChannelPermission, sendMessage, updateInteraction, uploadEmoji } from './discord'
 
 /**
  * Handles an interaction from Discord.
@@ -260,7 +260,31 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
         getStreamerDetails(stream.name, env),
         getStreamDetails(stream.name, env),
       ])
-      const body = liveBodyBuilder({ sub: stream, streamerData, streamData, baseUrl: env.WEBHOOK_URL })
+      // build a fake stream message object
+      const streamMessage = {
+        id: 0,
+        streamId: stream.id,
+        stream,
+        kickStreamId: null,
+        kickStreamStartedAt: null,
+        kickStreamEndedAt: null,
+        twitchStreamStartedAt: new Date(),
+        twitchStreamEndedAt: null,
+        discordChannelId: stream.channelId,
+        discordMessageId: null,
+        twitchStreamId: null,
+        twitchOnline: true,
+        twitchStreamData: streamData,
+        twitchStreamerData: streamerData,
+        twitchVod: null,
+        kickStreamData: null,
+        kickStreamerData: null,
+        kickVod: null,
+        kickOnline: false,
+        createdAt: new Date().toISOString(),
+      } satisfies StreamMessage
+
+      const body = bodyBuilder(streamMessage, env)
       if (global) {
         if (global.value as boolean) {
           await sendMessage(stream.channelId, env.DISCORD_TOKEN, body, env)
@@ -273,6 +297,8 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
       else {
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, body)
       }
+
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Not implemented` })
     }
     case 'details': {
       const details = interaction.data.options.find(option => option.name === 'details') as DiscordSubCommand
@@ -800,7 +826,32 @@ async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
         await getKickChannelV2(stream.name),
         await getKickLivestream(Number(stream.broadcasterId), env),
       ])
-      const body = kickLiveBodyBuilder({ sub: stream, streamerData: kickUser, streamData: kickLivestream, baseUrl: env.WEBHOOK_URL })
+
+      // build a fake stream message object
+      const streamMessage = {
+        id: 0,
+        streamId: null,
+        kickStream: stream,
+        kickStreamId: null,
+        kickStreamStartedAt: new Date(),
+        kickStreamEndedAt: null,
+        twitchStreamStartedAt: null,
+        twitchStreamEndedAt: null,
+        discordChannelId: stream.channelId,
+        discordMessageId: null,
+        twitchStreamId: null,
+        twitchOnline: true,
+        twitchStreamData: null,
+        twitchStreamerData: null,
+        twitchVod: null,
+        kickStreamData: kickLivestream ?? null,
+        kickStreamerData: kickUser ?? null,
+        kickVod: null,
+        kickOnline: true,
+        createdAt: new Date().toISOString(),
+      } satisfies StreamMessage
+
+      const body = bodyBuilder(streamMessage, env)
       if (global) {
         if (global.value as boolean) {
           await sendMessage(stream.channelId, env.DISCORD_TOKEN, body, env)

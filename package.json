@@ -12,6 +12,7 @@
   "scripts": {
     "start": "tsx src/server.ts",
     "dev": "wrangler dev src/server.ts --test-scheduled",
+    "localtunnel": "npx localtunnel --port 8787 --subdomain dinkdonkbotdev",
     "ngrok": "ngrok http 8787",
     "fix": "eslint --fix .",
     "lint": "eslint .",
