@@ -30,6 +30,10 @@ binding = "ASSETS"
 name = "CHANNELSTATE"
 class_name = "ChannelState"
 
+[[migrations]]
+tag = "v1"
+new_classes = [ "ChannelState" ]
+
 # [secrets]
 # DISCORD_TOKEN
 # DISCORD_PUBLIC_KEY
