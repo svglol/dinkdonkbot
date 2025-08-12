@@ -50,6 +50,7 @@ async function streamOffline(payload: SubscriptionEventResponseData<Subscription
       stream: true,
       kickStream: true,
     },
+    where: (messages, { eq, and, lte }) => and(eq(messages.twitchOnline, true), lte(messages.twitchStreamStartedAt, new Date(Date.now() - 2 * 60 * 1000))),
   })
 
   const filteredStreamMessages = streamMessages.filter(message => message.stream?.broadcasterId === broadcasterId)

@@ -55,6 +55,7 @@ async function streamOffline(payload: KickLivestreamStatusUpdatedEvent, env: Env
       stream: true,
       kickStream: true,
     },
+    where: (messages, { eq, and, lte }) => and(eq(messages.kickOnline, true), lte(messages.kickStreamStartedAt, new Date(Date.now() - 2 * 60 * 1000))),
   })
 
   const filteredStreamMessages = streamMessages.filter(message => message.kickStream?.broadcasterId === broadcasterId.toString())
