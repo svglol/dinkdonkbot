@@ -27,7 +27,7 @@
   "dependencies": {
     "discord-interactions": "4.3.0",
     "drizzle-orm": "0.44.4",
-    "itty-router": "5.0.20"
+    "itty-router": "5.0.21"
   },
   "devDependencies": {
     "@antfu/eslint-config": "5.1.0",
