@@ -312,7 +312,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
         style: 5,
         emoji: {
           name: 'twitch',
-          id: '1404659206170083388',
+          id: '1404661243373031585',
           animated: false,
         },
       })
@@ -325,7 +325,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
         style: 5,
         emoji: {
           name: 'twitch',
-          id: '1404659206170083388',
+          id: '1404661243373031585',
           animated: false,
         },
       })
@@ -341,7 +341,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
         style: 5,
         emoji: {
           name: 'kick',
-          id: '1404659170179027015',
+          id: '1404661261030916246',
           animated: false,
         },
       })
@@ -354,7 +354,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
         style: 5,
         emoji: {
           name: 'kick',
-          id: '1404659170179027015',
+          id: '1404661261030916246',
           animated: false,
         },
       })
