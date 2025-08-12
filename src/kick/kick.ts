@@ -127,7 +127,7 @@ export async function getKickChannel(channel: string, env: Env) {
     throw new Error(`HTTP error! status: ${response.status}`)
 
   const channels = await response.json() as KickChannelsResponse
-  return channels.data.find(c => c.slug === channel)
+  return channels.data.find(c => c.slug === channel.toLowerCase())
 }
 
 /**
