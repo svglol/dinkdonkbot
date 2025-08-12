@@ -302,66 +302,50 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
   let content = ''
 
   // build components
+  const buttons: DiscordComponentData[] = []
   if (streamMessage?.stream) {
     if (streamMessage.twitchOnline) {
-      const component = {
-        type: 1,
-        components: [
-          {
-            type: 2,
-            label: 'Watch Twitch Stream',
-            url: `https://twitch.tv/${streamMessage.stream.name}`,
-            style: 5,
-          },
-        ],
-      }
-      components.push(component)
+      buttons.push({
+        type: 2,
+        label: 'Watch Twitch Stream',
+        url: `https://twitch.tv/${streamMessage.stream.name}`,
+        style: 5,
+      })
     }
     else if (streamMessage.twitchVod) {
-      const component = {
-        type: 1,
-        components: [
-          {
-            type: 2,
-            label: 'Watch Twitch VOD',
-            url: `https://twitch.tv/videos/${streamMessage.twitchVod?.id}`,
-            style: 5,
-          },
-        ],
-      }
-      components.push(component)
+      buttons.push({
+        type: 2,
+        label: 'Watch Twitch VOD',
+        url: `https://twitch.tv/videos/${streamMessage.twitchVod?.id}`,
+        style: 5,
+      })
     }
   }
 
   if (streamMessage?.kickStream) {
     if (streamMessage.kickOnline) {
-      const component = {
-        type: 1,
-        components: [
-          {
-            type: 2,
-            label: 'Watch Kick Stream',
-            url: `https://kick.com/${streamMessage.kickStream.name}`,
-            style: 5,
-          },
-        ],
-      }
-      components.push(component)
+      buttons.push({
+        type: 2,
+        label: 'Watch Kick Stream',
+        url: `https://kick.com/${streamMessage.kickStream.name}`,
+        style: 5,
+      })
     }
     else if (streamMessage.kickVod) {
-      const component = {
-        type: 1,
-        components: [
-          {
-            type: 2,
-            label: 'Watch Kick VOD',
-            url: `https://kick.com/${streamMessage.kickStream.name}/videos/${streamMessage.kickVod?.video.uuid}`,
-            style: 5,
-          },
-        ],
-      }
-      components.push(component)
+      buttons.push({
+        type: 2,
+        label: 'Watch Kick VOD',
+        url: `https://kick.com/${streamMessage.kickStream.name}/videos/${streamMessage.kickVod?.video.uuid}`,
+        style: 5,
+      })
     }
+  }
+
+  if (buttons.length > 0) {
+    components.push({
+      type: 1,
+      components: buttons,
+    })
   }
 
   // build embeds
