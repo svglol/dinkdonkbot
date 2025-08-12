@@ -194,6 +194,12 @@ export const EMOTE_COMMAND = {
         required: true,
       }],
     },
+    {
+      type: 1,
+      name: 'help',
+      description: 'Show help for the emote command',
+      dm_permission: false,
+    },
   ],
 }
 
@@ -385,4 +391,10 @@ export const KICK_COMMAND = {
       }],
     },
   ],
+}
+
+export const HELP_COMMAND = {
+  name: 'help',
+  description: 'Show help for DinkDonk Bot',
+  dm_permission: false,
 }

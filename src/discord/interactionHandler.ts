@@ -59,6 +59,10 @@ export async function discordInteractionHandler(interaction: DiscordInteraction,
         ctx.waitUntil(handleKickCommand(interaction, env))
         return interactionEphemeralLoading()
       }
+      case commands.HELP_COMMAND.name.toLowerCase(): {
+        ctx.waitUntil(handleHelpCommand(interaction, env))
+        return interactionEphemeralLoading()
+      }
       default: {
         ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid command' }))
         return interactionEphemeralLoading()
@@ -297,8 +301,6 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
       else {
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, body)
       }
-
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Not implemented` })
     }
     case 'details': {
       const details = interaction.data.options.find(option => option.name === 'details') as DiscordSubCommand
@@ -321,36 +323,36 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
     }
     case 'help': {
       const embed = {
-        title: 'Available commands',
+        title: '<:twitch:1404661243373031585> Available commands',
         description: '',
-        color: 0x00EA5E9,
+        color: 0x6441A4,
         fields: [
           {
-            name: '/twitch add <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
+            name: '</twitch add:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
             value: 'Add a Twitch streamer to receive notifications for going online or offline\n<streamer> - The name of the streamer to add \n<discord-channel> - The discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline',
           },
           {
-            name: '/twitch edit <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
+            name: '</twitch edit:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
             value: 'Edit a Twitch streamer\'s settings\n<streamer> - The name of the streamer to edit \n<discord-channel> - The discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline',
           },
           {
-            name: '/twitch remove <streamer>',
+            name: '</twitch remove:1227872472049782919> <streamer>',
             value: 'Remove a Twitch streamer from receiving notifications for going online or offline\n<streamer> - The name of the streamer to remove',
           },
           {
-            name: '/twitch list',
+            name: '</twitch list:1227872472049782919>',
             value: 'List the twitch streamers that you are subscribed to',
           },
           {
-            name: '/twitch test <streamer> <global>',
+            name: '</twitch test:1227872472049782919> <streamer> <global>',
             value: 'Test the notification for a streamer \n<streamer> - The name of the streamer to test \n<global> - Whether to send the message to everyone or not',
           },
           {
-            name: '/twitch details <streamer>',
+            name: '</twitch details:1227872472049782919> <streamer>',
             value: 'Show the details for a streamer you are subscribed to\n<streamer> - The name of the streamer to show',
           },
           {
-            name: '/twitch help',
+            name: '</twitch help:1227872472049782919>',
             value: 'Get this help message',
           },
           {
@@ -453,6 +455,30 @@ async function handleEmoteCommand(interaction: DiscordInteraction, env: Env) {
           }
         }
       }
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+    }
+    case 'help': {
+      const embed = {
+        title: '🥳 Emote Command Help',
+        description: 'All commands and related information for the emote command',
+        color: 0xFFF200,
+        fields: [
+          {
+            name: '</emote add:1348421861339304067>',
+            value: 'Add an emote from another discord server or 7tv',
+          },
+          {
+            name: '</emote help:1348421861339304067>',
+            value: 'Show this help message',
+          },
+          {
+            name: 'Context Menu -> Apps -> Steal Emote',
+            value: 'Use this option to take an emote directly from someone else\'s message and add it to your server',
+          },
+        ],
+
+      } satisfies DiscordEmbed
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
     }
   }
 
@@ -569,7 +595,7 @@ async function handleTwitchClipsCommand(interaction: DiscordInteraction, env: En
     }
     case 'help': {
       const embed = {
-        title: 'Available Commands for Clip Notifications',
+        title: '<a:CLIPPERS:1357111588644982997> Available Commands for Clip Notifications',
         description: '',
         color: 0x00EA5E9,
         fields: [
@@ -886,36 +912,36 @@ async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
     }
     case 'help': {
       const embed = {
-        title: 'Available commands',
+        title: '<:kick:1404661261030916246> Available commands',
         description: '',
-        color: 0x00EA5E9,
+        color: 0x53FC18,
         fields: [
           {
-            name: '/kick add <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
+            name: '</kick add:1398833401888378910> <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
             value: 'Add a Kick streamer to receive notifications for going online or offline\n<streamer> - The name of the streamer to add \n<discord-channel> - The Discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline',
           },
           {
-            name: '/kick edit <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
+            name: '</kick edit:1398833401888378910><streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
             value: 'Edit a Kick streamer\'s settings\n<streamer> - The name of the streamer to edit \n<discord-channel> - The Discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline',
           },
           {
-            name: '/kick remove <streamer>',
+            name: '</kick remove:1398833401888378910> <streamer>',
             value: 'Remove a Kick streamer from receiving notifications for going online or offline\n<streamer> - The name of the streamer to remove',
           },
           {
-            name: '/kick list',
+            name: '</kick list:1398833401888378910>',
             value: 'List the Kick streamers that you are subscribed to',
           },
           {
-            name: '/kick test <streamer> <global>',
+            name: '</kick test:1398833401888378910> <streamer> <global>',
             value: 'Test the notification for a streamer\n<streamer> - The name of the streamer to test\n<global> - Whether to send the message to everyone or not',
           },
           {
-            name: '/kick details <streamer>',
+            name: '</kick details:1398833401888378910> <streamer>',
             value: 'Show the details for a streamer you are subscribed to\n<streamer> - The name of the streamer to show',
           },
           {
-            name: '/kick help',
+            name: '</kick help:1398833401888378910>',
             value: 'Get this help message',
           },
           {
@@ -930,4 +956,45 @@ async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
   }
 
   return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Command not yet implemented' })
+}
+async function handleHelpCommand(interaction: DiscordInteraction, env: Env) {
+  const embed = {
+    title: 'DinkDonk Bot Help',
+    description: 'All commands and related information for DinkDonk Bot',
+    color: 0xFFF200,
+    thumbnail: {
+      url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
+    },
+    fields: [
+      {
+        name: '<:twitch:1404661243373031585> Twitch Stream Alerts',
+        value: 'Use </twitch help:1227872472049782919> to get help for Twitch notifications',
+      },
+      {
+        name: '<:kick:1404661261030916246> Kick Stream Alerts',
+        value: 'Use </kick help:1398833401888378910> to get help for Kick notifications',
+      },
+      {
+        name: '📺 Multistream Alerts',
+        value: 'If you subscribe to a Twitch and Kick streamer of the same name and in the same discord channel, they will be merged into one message to help reduce spam',
+      },
+      {
+        name: '<a:CLIPPERS:1357111588644982997> Twitch Clips',
+        value: 'Use </clips help:1348090120418361426> to get help for Twitch clips notifications',
+      },
+      {
+        name: '🥳 Emote Management',
+        value: 'Use </emote help:1348421861339304067> to get help for emote commands',
+      },
+      {
+        name: '❓ Support',
+        value: 'If you have any issues open a [GitHub issue](https://github.com/svglol/dinkdonkbot/issues/new/choose).',
+      },
+      {
+        name: '🔗 Links',
+        value: '[Website](https://svglol.github.io/dinkdonkbot/) | [GitHub](https://github.com/svglol/dinkdonkbot)',
+      },
+    ],
+  } satisfies DiscordEmbed
+  return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
 }
