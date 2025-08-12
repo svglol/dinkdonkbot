@@ -310,6 +310,11 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
         label: 'Watch Twitch Stream',
         url: `https://twitch.tv/${streamMessage.stream.name}`,
         style: 5,
+        emoji: {
+          name: 'twitch',
+          id: '1404659206170083388',
+          animated: false,
+        },
       })
     }
     else if (streamMessage.twitchVod) {
@@ -318,6 +323,11 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
         label: 'Watch Twitch VOD',
         url: `https://twitch.tv/videos/${streamMessage.twitchVod?.id}`,
         style: 5,
+        emoji: {
+          name: 'twitch',
+          id: '1404659206170083388',
+          animated: false,
+        },
       })
     }
   }
@@ -329,6 +339,11 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
         label: 'Watch Kick Stream',
         url: `https://kick.com/${streamMessage.kickStream.name}`,
         style: 5,
+        emoji: {
+          name: 'kick',
+          id: '1404659170179027015',
+          animated: false,
+        },
       })
     }
     else if (streamMessage.kickVod) {
@@ -337,6 +352,11 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
         label: 'Watch Kick VOD',
         url: `https://kick.com/${streamMessage.kickStream.name}/videos/${streamMessage.kickVod?.video.uuid}`,
         style: 5,
+        emoji: {
+          name: 'kick',
+          id: '1404659170179027015',
+          animated: false,
+        },
       })
     }
   }
