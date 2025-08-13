@@ -19,5 +19,13 @@ export default defineWorkersConfig({
         },
       },
     },
+    deps: {
+      optimizer: {
+        ssr: {
+          enabled: true,
+          include: ['discord-api-types/v10', 'discord-api-types/utils', '@discordjs/rest'],
+        },
+      },
+    },
   },
 })

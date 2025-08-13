@@ -1,5 +1,7 @@
+import type { APIApplicationCommandInteraction, APIEmbed } from 'discord-api-types/v10'
 import type { StreamMessage } from '../database/db'
-import { InteractionResponseFlags, InteractionResponseType, InteractionType } from 'discord-interactions'
+import { isChatInputApplicationCommandInteraction, isContextMenuApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
+import { InteractionResponseFlags, InteractionResponseType } from 'discord-interactions'
 import { and, eq, like } from 'drizzle-orm'
 import { tables, useDB } from '../database/db'
 import { getKickChannel, getKickChannelV2, getKickLivestream, kickSubscribe, kickUnsubscribe } from '../kick/kick'
@@ -23,50 +25,48 @@ import { bodyBuilder, checkChannelPermission, sendMessage, updateInteraction, up
  *
  * @returns A response to Discord, or a promise that resolves to one.
  */
-export async function discordInteractionHandler(interaction: DiscordInteraction, env: Env, ctx: ExecutionContext) {
-  if (interaction.type === InteractionType.APPLICATION_COMMAND) {
-    if (!interaction.data) {
-      ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid interaction' }))
+export async function discordInteractionHandler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
+  if (!interaction.data) {
+    ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid interaction' }))
+    return interactionEphemeralLoading()
+  }
+
+  switch (interaction.data.name.toLowerCase()) {
+    case commands.EMOTE_COMMAND.name.toLowerCase(): {
+      ctx.waitUntil(handleEmoteCommand(interaction, env))
       return interactionEphemeralLoading()
     }
-
-    switch (interaction.data.name.toLowerCase()) {
-      case commands.EMOTE_COMMAND.name.toLowerCase(): {
-        ctx.waitUntil(handleEmoteCommand(interaction, env))
-        return interactionEphemeralLoading()
-      }
-      case commands.TWITCH_CLIPS_COMMAND.name.toLowerCase(): {
-        ctx.waitUntil(handleTwitchClipsCommand(interaction, env))
-        return interactionEphemeralLoading()
-      }
-      case commands.INVITE_COMMAND.name.toLowerCase(): {
-        ctx.waitUntil(handleInviteCommand(env, interaction))
-        return interactionEphemeralLoading()
-      }
-      case commands.TWITCH_COMMAND.name.toLowerCase(): {
-        ctx.waitUntil(handleTwitchCommand(interaction, env))
-        return interactionEphemeralLoading()
-      }
-      case commands.DINKDONK_COMMAND.name.toLowerCase(): {
-        ctx.waitUntil(handleDinkdonkCommand(env, interaction))
-        return interactionLoading()
-      }
-      case commands.STEAL_EMOTE_COMMAND.name.toLowerCase(): {
-        ctx.waitUntil(handleStealEmoteCommand(interaction, env))
-        return interactionEphemeralLoading()
-      }
-      case commands.KICK_COMMAND.name.toLowerCase(): {
-        ctx.waitUntil(handleKickCommand(interaction, env))
-        return interactionEphemeralLoading()
-      }
-      case commands.HELP_COMMAND.name.toLowerCase(): {
-        ctx.waitUntil(handleHelpCommand(interaction, env))
-        return interactionEphemeralLoading()
-      }
-      default: {
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid command' }))
-        return interactionEphemeralLoading()
-      }
+    case commands.TWITCH_CLIPS_COMMAND.name.toLowerCase(): {
+      ctx.waitUntil(handleTwitchClipsCommand(interaction, env))
+      return interactionEphemeralLoading()
+    }
+    case commands.INVITE_COMMAND.name.toLowerCase(): {
+      ctx.waitUntil(handleInviteCommand(env, interaction))
+      return interactionEphemeralLoading()
+    }
+    case commands.TWITCH_COMMAND.name.toLowerCase(): {
+      ctx.waitUntil(handleTwitchCommand(interaction, env))
+      return interactionEphemeralLoading()
+    }
+    case commands.DINKDONK_COMMAND.name.toLowerCase(): {
+      ctx.waitUntil(handleDinkdonkCommand(env, interaction))
+      return interactionLoading()
+    }
+    case commands.STEAL_EMOTE_COMMAND.name.toLowerCase(): {
+      ctx.waitUntil(handleStealEmoteCommand(interaction, env))
+      return interactionEphemeralLoading()
+    }
+    case commands.KICK_COMMAND.name.toLowerCase(): {
+      ctx.waitUntil(handleKickCommand(interaction, env))
+      return interactionEphemeralLoading()
+    }
+    case commands.HELP_COMMAND.name.toLowerCase(): {
+      ctx.waitUntil(handleHelpCommand(interaction, env))
+      return interactionEphemeralLoading()
+    }
+    default: {
+      ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid command' }))
+      return interactionEphemeralLoading()
     }
   }
 }
@@ -115,23 +115,32 @@ function interactionLoading() {
  * @param env The environment object as provided by the caller.
  * @returns A promise that resolves to nothing.
  */
-async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
-  if (!interaction.data)
+async function handleTwitchCommand(interaction: APIApplicationCommandInteraction, env: Env) {
+  if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction))
     return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid interaction' })
   if (!interaction.data.options)
     return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+  if (!isGuildInteraction(interaction))
+    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'This command can only be used in a server' })
+
   const option = interaction.data.options[0].name
   switch (option) {
     case 'add': {
       const server = interaction.guild_id
-      const add = interaction.data.options.find(option => option.name === 'add') as DiscordSubCommand
-      if (!add || !add.options)
+      const add = interaction.data.options.find(option => option.name === 'add')
+      if (!add || !('options' in add) || !add.options)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
-      const streamer = add.options.find(option => option.name === 'streamer')?.value as string
-      const channel = add.options.find(option => option.name === 'discord-channel')?.value as string
-      const role = add.options.find(option => option.name === 'ping-role')
-      const message = add.options.find(option => option.name === 'live-message')
-      const offlineMessage = add.options.find(option => option.name === 'offline-message')
+
+      const streamerOption = add.options.find(option => option.name === 'streamer')
+      const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
+      const channelOption = add.options.find(option => option.name === 'discord-channel')
+      const channel = channelOption && 'value' in channelOption ? channelOption.value as string : undefined
+      const roleOption = add.options.find(option => option.name === 'ping-role')
+      const role = roleOption && 'value' in roleOption ? roleOption.value as string : undefined
+      const messageOption = add.options.find(option => option.name === 'live-message')
+      const liveMessage = messageOption && 'value' in messageOption ? messageOption.value as string : undefined
+      const offlineMessageOption = add.options.find(option => option.name === 'offline-message')
+      const offlineMessage = offlineMessageOption && 'value' in offlineMessageOption ? offlineMessageOption.value as string : undefined
       // make sure we have all arguments
       if (!server || !streamer || !channel)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
@@ -149,7 +158,7 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find twitch channel' })
 
       // check if we have permission to post in this discord channel
-      const hasPermission = await checkChannelPermission(channel, env.DISCORD_TOKEN, env)
+      const hasPermission = await checkChannelPermission(channel, env.DISCORD_TOKEN)
       if (!hasPermission)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'This bot does not have permission to post in this channel' })
 
@@ -159,14 +168,14 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not subscribe to this twitch channel' })
 
       let roleId: string | undefined
-      if (role) {
-        roleId = role.value as string
+      if (roleOption) {
+        roleId = role
         if (roleId === server)
           roleId = undefined
       }
 
-      const liveText = message ? message.value as string : undefined
-      const offlineText = offlineMessage ? offlineMessage.value as string : undefined
+      const liveText = liveMessage
+      const offlineText = offlineMessage
 
       const streamerDetails = await getStreamerDetails(streamer, env)
 
@@ -184,10 +193,13 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully subscribed to notifications for **${streamer}** in <#${channel}>` })
     }
     case 'remove': {
-      const remove = interaction.data.options.find(option => option.name === 'remove') as DiscordSubCommand
-      if (!remove || !remove.options)
+      const remove = interaction.data.options.find(option => option.name === 'remove')
+      if (!remove || !('options' in remove) || !remove.options)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
-      const streamer = remove.options.find(option => option.name === 'streamer')?.value as string
+      const streamerOption = remove.options.find(option => option.name === 'streamer')
+      const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
+      if (!streamer)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
       const stream = await useDB(env).query.streams.findFirst({
         where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
       })
@@ -205,10 +217,13 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
     }
     case 'edit':{
       const server = interaction.guild_id
-      const edit = interaction.data.options.find(option => option.name === 'edit') as DiscordSubCommand
-      if (!edit || !edit.options)
+      const edit = interaction.data.options.find(option => option.name === 'edit')
+      if (!edit || !('options' in edit) || !edit.options)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
-      const streamer = edit.options.find(option => option.name === 'streamer')?.value as string
+      const streamerOption = edit.options.find(option => option.name === 'streamer')
+      const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
+      if (!streamer)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
       const dbStream = await useDB(env).query.streams.findFirst({
         where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
       })
@@ -217,11 +232,11 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
 
       const channel = edit.options.find(option => option.name === 'discord-channel')
       if (channel)
-        await useDB(env).update(tables.streams).set({ channelId: String(channel.value) }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+        await useDB(env).update(tables.streams).set({ channelId: String('value' in channel ? channel.value : '') }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
       const role = edit.options.find(option => option.name === 'ping-role')
       let roleId: string | undefined
       if (role) {
-        roleId = role.value as string
+        roleId = 'value' in role ? String(role.value) : undefined
         if (roleId === server)
           roleId = undefined
       }
@@ -230,11 +245,11 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
 
       const message = edit.options.find(option => option.name === 'live-message')
       if (message)
-        await useDB(env).update(tables.streams).set({ liveMessage: message.value as string }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+        await useDB(env).update(tables.streams).set({ liveMessage: 'value' in message ? message.value as string : '' }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
 
       const offlineMessage = edit.options.find(option => option.name === 'offline-message')
       if (offlineMessage)
-        await useDB(env).update(tables.streams).set({ offlineMessage: offlineMessage.value as string }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+        await useDB(env).update(tables.streams).set({ offlineMessage: 'value' in offlineMessage ? offlineMessage.value as string : '' }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
 
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully edited notifications for **${streamer}**` })
     }
@@ -249,13 +264,13 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: streamList })
     }
     case 'test':{
-      const test = interaction.data.options.find(option => option.name === 'test') as DiscordSubCommand
-      if (!test || !test.options)
+      const test = interaction.data.options.find(option => option.name === 'test')
+      if (!test || !('options' in test) || !test.options)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
-      const streamer = test.options.find(option => option.name === 'streamer')?.value as string
+      const streamer = test.options.find(option => option.name === 'streamer')
       const global = test.options.find(option => option.name === 'global')
       const stream = await useDB(env).query.streams.findFirst({
-        where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
+        where: (streams, { and, eq, like }) => and(like(streams.name, streamer && 'value' in streamer ? streamer.value as string : ''), eq(streams.guildId, interaction.guild_id)),
       })
       if (!stream)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find subscription' })
@@ -290,7 +305,7 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
 
       const body = bodyBuilder(streamMessage, env)
       if (global) {
-        if (global.value as boolean) {
+        if ('value' in global && global.value === true) {
           await sendMessage(stream.channelId, env.DISCORD_TOKEN, body, env)
           return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully sent test message for **${streamer}**` })
         }
@@ -303,12 +318,12 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
       }
     }
     case 'details': {
-      const details = interaction.data.options.find(option => option.name === 'details') as DiscordSubCommand
-      if (!details || !details.options)
+      const details = interaction.data.options.find(option => option.name === 'details')
+      if (!details || !('options' in details) || !details.options)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
-      const streamer = details.options.find(option => option.name === 'streamer')?.value as string
+      const streamer = details.options.find(option => option.name === 'streamer')
       const stream = await useDB(env).query.streams.findFirst({
-        where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
+        where: (streams, { and, eq, like }) => and(like(streams.name, streamer && 'value' in streamer ? streamer.value as string : ''), eq(streams.guildId, interaction.guild_id)),
       })
       if (!stream)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find subscription' })
@@ -372,7 +387,7 @@ async function handleTwitchCommand(interaction: DiscordInteraction, env: Env) {
  * @param interaction The interaction object from Discord
  * @returns A promise that resolves to nothing
  */
-async function handleInviteCommand(env: Env, interaction: DiscordInteraction) {
+async function handleInviteCommand(env: Env, interaction: APIApplicationCommandInteraction) {
   const applicationId = env.DISCORD_APPLICATION_ID
   const INVITE_URL = `https://discord.com/oauth2/authorize?client_id=${applicationId}&permissions=8797166895104&scope=applications.commands+bot`
   const inviteMessage = `[Click here to invite the bot to your server!](${INVITE_URL})`
@@ -391,18 +406,23 @@ async function handleInviteCommand(env: Env, interaction: DiscordInteraction) {
  * to the server.  If the user provides a raw emoji, the bot will fetch the
  * emoji from Discord and upload it to Discord and add it to the server.
  */
-async function handleEmoteCommand(interaction: DiscordInteraction, env: Env) {
-  if (!interaction.data)
+async function handleEmoteCommand(interaction: APIApplicationCommandInteraction, env: Env) {
+  if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction))
     return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid interaction' })
   if (!interaction.data.options)
     return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+  if (!isGuildInteraction(interaction))
+    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'This command can only be used in a server' })
   const option = interaction.data.options[0].name
   switch (option) {
     case 'add': {
-      const add = interaction.data.options.find(option => option.name === 'add') as DiscordSubCommand
-      if (!add || !add.options)
+      const add = interaction.data.options.find(option => option.name === 'add')
+      if (!add || !('options' in add) || !add.options)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
-      const emote = add.options.find(option => option.name === 'url_or_emoji')?.value as string
+      const emoteOption = add.options.find(option => option.name === 'url_or_emoji')
+      if (!emoteOption)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+      const emote = 'value' in emoteOption ? emoteOption.value as string : ''
 
       const is7tvLink = /^https?:\/\/7tv\.app\/emotes\/[a-zA-Z0-9]+$/.test(emote)
 
@@ -477,7 +497,7 @@ async function handleEmoteCommand(interaction: DiscordInteraction, env: Env) {
           },
         ],
 
-      } satisfies DiscordEmbed
+      } satisfies APIEmbed
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
     }
   }
@@ -500,29 +520,34 @@ async function handleEmoteCommand(interaction: DiscordInteraction, env: Env) {
  * list: Lists all the Twitch streamers you are subscribed to for clip notifications.
  * help: Shows this help message for clip notifications commands.
  */
-async function handleTwitchClipsCommand(interaction: DiscordInteraction, env: Env) {
-  if (!interaction.data)
+async function handleTwitchClipsCommand(interaction: APIApplicationCommandInteraction, env: Env) {
+  if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction))
     return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid interaction' })
 
   if (!interaction.data.options)
     return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
 
+  if (!isGuildInteraction(interaction))
+    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'This command can only be used in a server' })
+
   const option = interaction.data.options[0].name
   switch (option) {
     case 'add': {
       const server = interaction.guild_id
-      const add = interaction.data.options.find(option => option.name === 'add') as DiscordSubCommand
-      if (!add || !add.options)
+      const add = interaction.data.options.find(option => option.name === 'add')
+      if (!add || !('options' in add) || !add.options)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
 
-      const streamer = add.options.find(option => option.name === 'streamer')?.value as string
-      const channel = add.options.find(option => option.name === 'discord-channel')?.value as string
+      const streamerOption = add.options.find(option => option.name === 'streamer')
+      const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
+      const channelOption = add.options.find(option => option.name === 'discord-channel')
+      const channel = channelOption && 'value' in channelOption ? channelOption.value as string : undefined
 
       if (!streamer || !channel)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
 
       // check if we have permission to post in this discord channel
-      const hasPermission = await checkChannelPermission(channel, env.DISCORD_TOKEN, env)
+      const hasPermission = await checkChannelPermission(channel, env.DISCORD_TOKEN)
       if (!hasPermission)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'This bot does not have permission to post in this channel' })
 
@@ -551,10 +576,14 @@ async function handleTwitchClipsCommand(interaction: DiscordInteraction, env: En
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully subscribed to \`${streamerDetails ? streamerDetails.display_name : streamer}\` for clip notifications in <#${channel}>` })
     }
     case 'remove': {
-      const remove = interaction.data.options.find(option => option.name === 'remove') as DiscordSubCommand
-      if (!remove || !remove.options)
+      const remove = interaction.data.options.find(option => option.name === 'remove')
+      if (!remove || !('options' in remove) || !remove.options)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
-      const streamer = remove.options.find(option => option.name === 'streamer')?.value as string
+      const streamerOption = remove.options.find(option => option.name === 'streamer')
+      const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
+      if (!streamer)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+
       const stream = await useDB(env).query.clips.findFirst({
         where: (clips, { and, eq, like }) => and(like(clips.streamer, streamer), eq(clips.guildId, interaction.guild_id)),
       })
@@ -567,10 +596,13 @@ async function handleTwitchClipsCommand(interaction: DiscordInteraction, env: En
     }
     case 'edit': {
       const server = interaction.guild_id
-      const edit = interaction.data.options.find(option => option.name === 'edit') as DiscordSubCommand
-      if (!edit || !edit.options)
+      const edit = interaction.data.options.find(option => option.name === 'edit')
+      if (!edit || !('options' in edit) || !edit.options)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
-      const streamer = edit.options.find(option => option.name === 'streamer')?.value as string
+      const streamerOption = edit.options.find(option => option.name === 'streamer')
+      const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
+      if (!streamer)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
       const dbClip = await useDB(env).query.clips.findFirst({
         where: (clips, { and, eq, like }) => and(like(clips.streamer, streamer), eq(clips.guildId, interaction.guild_id)),
       })
@@ -579,7 +611,7 @@ async function handleTwitchClipsCommand(interaction: DiscordInteraction, env: En
 
       const channel = edit.options.find(option => option.name === 'discord-channel')
       if (channel)
-        await useDB(env).update(tables.clips).set({ channelId: String(channel.value) }).where(and(like(tables.clips.streamer, streamer), eq(tables.clips.guildId, server)))
+        await useDB(env).update(tables.clips).set({ channelId: String('value' in channel ? channel.value : '') }).where(and(like(tables.clips.streamer, streamer), eq(tables.clips.guildId, server)))
 
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully edited notifications for **${streamer}**` })
     }
@@ -631,7 +663,7 @@ async function handleTwitchClipsCommand(interaction: DiscordInteraction, env: En
  * @param interaction The interaction object from Discord
  * @returns A promise that resolves to nothing
  */
-function handleDinkdonkCommand(env: Env, interaction: DiscordInteraction) {
+function handleDinkdonkCommand(env: Env, interaction: APIApplicationCommandInteraction) {
   return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: '<a:DinkDonk:1357111617787002962>' })
 }
 
@@ -647,14 +679,21 @@ function handleDinkdonkCommand(env: Env, interaction: DiscordInteraction) {
  * @returns A promise that resolves to nothing. Updates the interaction with a success or error message.
  */
 
-async function handleStealEmoteCommand(interaction: DiscordInteraction, env: Env) {
-  if (!interaction.data)
+async function handleStealEmoteCommand(interaction: APIApplicationCommandInteraction, env: Env) {
+  if (!interaction.data || !isContextMenuApplicationCommandInteraction(interaction))
     return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid interaction' })
 
-  if (!interaction.data.resolved || !interaction.data.resolved.messages)
+  if (!isGuildInteraction(interaction))
+    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'This command can only be used in a server' })
+
+  if (!interaction.data.resolved || !interaction.data.target_id)
     return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid interaction' })
 
-  const messageId = Object.keys(interaction.data.resolved?.messages || {})[0]
+  if (!('messages' in interaction.data.resolved)) {
+    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'This command can only be used on messages' })
+  }
+
+  const messageId = interaction.data.target_id
   const message = interaction.data.resolved?.messages[messageId]
   if (!message) {
     return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find the message to steal an emote from' })
@@ -704,20 +743,24 @@ async function handleStealEmoteCommand(interaction: DiscordInteraction, env: Env
  * @param env The environment object containing configuration and authentication details.
  * @returns A promise that resolves to nothing. Updates the interaction with a success or error message.
  */
-async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
-  if (!interaction.data)
+async function handleKickCommand(interaction: APIApplicationCommandInteraction, env: Env) {
+  if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction))
     return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid interaction' })
   if (!interaction.data.options)
     return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
+  if (!isGuildInteraction(interaction))
+    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'This command is only available in guilds' })
   const option = interaction.data.options[0].name
   switch (option) {
     case 'add': {
       const server = interaction.guild_id
-      const add = interaction.data.options.find(option => option.name === 'add') as DiscordSubCommand
-      if (!add || !add.options)
+      const add = interaction.data.options.find(option => option.name === 'add')
+      if (!add || !('options' in add) || !add.options)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
-      const streamer = add.options.find(option => option.name === 'streamer')?.value as string
-      const channel = add.options.find(option => option.name === 'discord-channel')?.value as string
+      const streamerOption = add.options.find(option => option.name === 'streamer')
+      const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
+      const channelOption = add.options.find(option => option.name === 'discord-channel')
+      const channel = channelOption && 'value' in channelOption ? channelOption.value as string : undefined
       const role = add.options.find(option => option.name === 'ping-role')
       const message = add.options.find(option => option.name === 'live-message')
       const offlineMessage = add.options.find(option => option.name === 'offline-message')
@@ -738,7 +781,7 @@ async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Could not find kick channel, make sure you have the correct name' })
 
       // check if we have permission to post in this discord channel
-      const hasPermission = await checkChannelPermission(channel, env.DISCORD_TOKEN, env)
+      const hasPermission = await checkChannelPermission(channel, env.DISCORD_TOKEN)
       if (!hasPermission)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'This bot does not have permission to post in this channel' })
 
@@ -749,13 +792,13 @@ async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
 
       let roleId: string | undefined
       if (role) {
-        roleId = role.value as string
+        roleId = 'value' in role ? role.value as string : undefined
         if (roleId === server)
           roleId = undefined
       }
 
-      const liveText = message ? message.value as string : undefined
-      const offlineText = offlineMessage ? offlineMessage.value as string : undefined
+      const liveText = message && 'value' in message ? message.value as string : undefined
+      const offlineText = offlineMessage && 'value' in offlineMessage ? offlineMessage.value as string : undefined
 
       // add to database
       await useDB(env).insert(tables.kickStreams).values({
@@ -771,10 +814,13 @@ async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully subscribed to kick notifications for **${streamer}** in <#${channel}>` })
     }
     case 'remove': {
-      const remove = interaction.data.options.find(option => option.name === 'remove') as DiscordSubCommand
-      if (!remove || !remove.options)
+      const remove = interaction.data.options.find(option => option.name === 'remove')
+      if (!remove || !('options' in remove) || !remove.options)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
-      const streamer = remove.options.find(option => option.name === 'streamer')?.value as string
+      const streamerOption = remove.options.find(option => option.name === 'streamer')
+      const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
+      if (!streamer)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
       const stream = await useDB(env).query.kickStreams.findFirst({
         where: (kickStreams, { eq, and, like }) => and(eq(kickStreams.guildId, interaction.guild_id), like(kickStreams.name, streamer)),
       })
@@ -793,10 +839,13 @@ async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
     }
     case 'edit':{
       const server = interaction.guild_id
-      const edit = interaction.data.options.find(option => option.name === 'edit') as DiscordSubCommand
-      if (!edit || !edit.options)
+      const edit = interaction.data.options.find(option => option.name === 'edit')
+      if (!edit || !('options' in edit) || !edit.options)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
-      const streamer = edit.options.find(option => option.name === 'streamer')?.value as string
+      const streamerOption = edit.options.find(option => option.name === 'streamer')
+      const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
+      if (!streamer)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
       const dbStream = await useDB(env).query.kickStreams.findFirst({
         where: (kickStreams, { and, eq, like }) => and(like(kickStreams.name, streamer), eq(kickStreams.guildId, interaction.guild_id)),
       })
@@ -805,11 +854,11 @@ async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
 
       const channel = edit.options.find(option => option.name === 'discord-channel')
       if (channel)
-        await useDB(env).update(tables.kickStreams).set({ channelId: String(channel.value) }).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
+        await useDB(env).update(tables.kickStreams).set({ channelId: String('value' in channel ? channel.value as string : '') }).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
       const role = edit.options.find(option => option.name === 'ping-role')
       let roleId: string | undefined
       if (role) {
-        roleId = role.value as string
+        roleId = 'value' in role ? role.value as string : undefined
         if (roleId === server)
           roleId = undefined
       }
@@ -818,11 +867,11 @@ async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
 
       const message = edit.options.find(option => option.name === 'live-message')
       if (message)
-        await useDB(env).update(tables.kickStreams).set({ liveMessage: message.value as string }).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
+        await useDB(env).update(tables.kickStreams).set({ liveMessage: 'value' in message ? message.value as string : '' }).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
 
       const offlineMessage = edit.options.find(option => option.name === 'offline-message')
       if (offlineMessage)
-        await useDB(env).update(tables.kickStreams).set({ offlineMessage: offlineMessage.value as string }).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
+        await useDB(env).update(tables.kickStreams).set({ offlineMessage: 'value' in offlineMessage ? offlineMessage.value as string : '' }).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
 
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully edited notifications for **${streamer}**` })
     }
@@ -837,10 +886,13 @@ async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: streamList })
     }
     case 'test':{
-      const test = interaction.data.options.find(option => option.name === 'test') as DiscordSubCommand
-      if (!test || !test.options)
+      const test = interaction.data.options.find(option => option.name === 'test')
+      if (!test || !('options' in test) || !test.options)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
-      const streamer = test.options.find(option => option.name === 'streamer')?.value as string
+      const streamerOption = test.options.find(option => option.name === 'streamer')
+      const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
+      if (!streamer)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
       const global = test.options.find(option => option.name === 'global')
       const stream = await useDB(env).query.kickStreams.findFirst({
         where: (kickStreams, { and, eq, like }) => and(like(kickStreams.name, streamer), eq(kickStreams.guildId, interaction.guild_id)),
@@ -879,7 +931,7 @@ async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
 
       const body = bodyBuilder(streamMessage, env)
       if (global) {
-        if (global.value as boolean) {
+        if ('value' in global && global.value === 'true') {
           await sendMessage(stream.channelId, env.DISCORD_TOKEN, body, env)
           return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully sent test message for **${streamer}**` })
         }
@@ -892,10 +944,13 @@ async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
       }
     }
     case 'details': {
-      const details = interaction.data.options.find(option => option.name === 'details') as DiscordSubCommand
-      if (!details || !details.options)
+      const details = interaction.data.options.find(option => option.name === 'details')
+      if (!details || !('options' in details) || !details.options)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
-      const streamer = details.options.find(option => option.name === 'streamer')?.value as string
+      const streamerOption = details.options.find(option => option.name === 'streamer')
+      const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
+      if (!streamer)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
       const stream = await useDB(env).query.kickStreams.findFirst({
         where: (kickStreams, { and, eq, like }) => and(like(kickStreams.name, streamer), eq(kickStreams.guildId, interaction.guild_id)),
       })
@@ -957,7 +1012,7 @@ async function handleKickCommand(interaction: DiscordInteraction, env: Env) {
 
   return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Command not yet implemented' })
 }
-async function handleHelpCommand(interaction: DiscordInteraction, env: Env) {
+async function handleHelpCommand(interaction: APIApplicationCommandInteraction, env: Env) {
   const embed = {
     title: 'DinkDonk Bot Help',
     description: 'All commands and related information for DinkDonk Bot',
@@ -995,6 +1050,6 @@ async function handleHelpCommand(interaction: DiscordInteraction, env: Env) {
         value: '[Website](https://svglol.github.io/dinkdonkbot/) | [GitHub](https://github.com/svglol/dinkdonkbot)',
       },
     ],
-  } satisfies DiscordEmbed
+  } satisfies APIEmbed
   return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
 }

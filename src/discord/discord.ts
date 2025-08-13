@@ -1,4 +1,8 @@
+import type { APIButtonComponent, APIEmbed, APIInteraction, APIMessage, APIMessageTopLevelComponent, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult } from 'discord-api-types/v10'
 import type { StreamMessage } from '../database/db'
+import { DiscordAPIError, REST } from '@discordjs/rest'
+import { Routes } from 'discord-api-types/v10'
+
 import { eq, tables, useDB } from '../database/db'
 import { formatDuration } from '../util/formatDuration'
 
@@ -12,40 +16,26 @@ import { formatDuration } from '../util/formatDuration'
  *
  * @throws If there is an error sending the message.
  */
-export async function sendMessage(channelId: string, discordToken: string, body: DiscordBody, env: Env) {
-  const url = `https://discord.com/api/channels/${channelId}/messages`
-
+export async function sendMessage(channelId: string, discordToken: string, body: RESTPostAPIChannelMessageJSONBody, env: Env) {
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bot ${discordToken}`,
-      },
-      body: JSON.stringify(body),
-    })
+    const rest = new REST({ version: '10' }).setToken(discordToken)
+    const message = await rest.post(Routes.channelMessages(channelId), {
+      body,
+    }) as RESTPostAPIChannelMessageResult
 
-    if (await handleRateLimit(response)) {
-      return sendMessage(channelId, discordToken, body, env)
-    }
-    // channel not found or no permissions
-    else if (response.status === 404 || response.status === 403) {
-      await useDB(env).delete(tables.streams).where(eq(tables.streams.channelId, channelId))
-      await useDB(env).delete(tables.clips).where(eq(tables.clips.channelId, channelId))
-      await useDB(env).delete(tables.kickStreams).where(eq(tables.kickStreams.channelId, channelId))
-      return null
-    }
-
-    if (!response.ok) {
-      throw new Error(`Failed to send message: ${await response.text()}`)
-    }
-
-    const data = await response.json() as { id: string }
-    return data.id
+    return message.id
   }
-  catch (error) {
+  catch (error: DiscordAPIError | unknown) {
     console.error('Error sending message:', error)
-    throw error
+    if (error instanceof DiscordAPIError) {
+      // If the channel isnt found or the bot doesn't have permission to post in the channel
+      if (error.status === 404 || error.status === 403) {
+        await useDB(env).delete(tables.streams).where(eq(tables.streams.channelId, channelId))
+        await useDB(env).delete(tables.clips).where(eq(tables.clips.channelId, channelId))
+        await useDB(env).delete(tables.kickStreams).where(eq(tables.kickStreams.channelId, channelId))
+        return null
+      }
+    }
   }
 }
 
@@ -60,32 +50,17 @@ export async function sendMessage(channelId: string, discordToken: string, body:
  *
  * @throws If there is an error updating the message.
  */
-
-export async function updateMessage(channelId: string, messageId: string, discordToken: string, body: DiscordBody) {
-  const url = `https://discord.com/api/channels/${channelId}/messages/${messageId}`
-
+export async function updateMessage(channelId: string, messageId: string, discordToken: string, body: RESTPatchAPIChannelMessageJSONBody) {
   try {
-    const message = await fetch(url, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bot ${discordToken}`,
-      },
-      body: JSON.stringify(body),
-    })
+    const rest = new REST({ version: '10' }).setToken(discordToken)
+    const message = await rest.patch(Routes.channelMessage(channelId, messageId), {
+      body,
+    }) as RESTPatchAPIChannelMessageResult
 
-    if (await handleRateLimit(message)) {
-      return updateMessage(channelId, messageId, discordToken, body)
-    }
-
-    if (!message.ok)
-      throw new Error(`Failed to update message: ${await message.text()}`)
-
-    const data = await message.json() as { id: string }
-    return data.id
+    return message.id
   }
-  catch (error) {
-    console.error('Error sending message:', error)
+  catch (error: unknown) {
+    console.error('Failed to update message:', error)
   }
 }
 
@@ -98,24 +73,17 @@ export async function updateMessage(channelId: string, messageId: string, discor
  * @throws If there is an error updating the interaction.
  */
 
-export async function updateInteraction(interaction: DiscordInteraction, dicordApplicationId: string, body: DiscordBody) {
+export async function updateInteraction(interaction: APIInteraction, dicordApplicationId: string, body: RESTPatchAPIChannelMessageJSONBody) {
   try {
-    const defer = await fetch(`https://discord.com/api/v10/webhooks/${dicordApplicationId}/${interaction.token}/messages/@original`, {
-      method: 'PATCH',
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-    if (await handleRateLimit(defer)) {
-      return updateInteraction(interaction, dicordApplicationId, body)
-    }
+    const rest = new REST({ version: '10' }).setToken(interaction.token)
+    const updatedInteraction = await rest.patch(Routes.webhookMessage(dicordApplicationId, interaction.token, '@original'), {
+      body,
+    }) as APIMessage
 
-    if (!defer.ok)
-      throw new Error(`Failed to update interaction: ${await defer.text()}`)
+    return updatedInteraction
   }
-  catch (error) {
-    console.error('Error updating interaction:', error)
+  catch (error: unknown) {
+    console.error('Failed to update interaction:', error)
   }
 }
 
@@ -132,37 +100,25 @@ export async function updateInteraction(interaction: DiscordInteraction, dicordA
  */
 // eslint-disable-next-line node/prefer-global/buffer
 export async function uploadEmoji(guildId: string, discordToken: string, emojiName: string, imageBuffer: Buffer) {
-  const url = `https://discord.com/api/guilds/${guildId}/emojis`
+  try {
+    const rest = new REST({ version: '10' }).setToken(discordToken)
+    const emoji = await rest.post(Routes.guildEmojis(guildId), {
+      body: {
+        name: emojiName,
+        image: `data:image/png;base64,${imageBuffer.toString('base64')}`,
+      },
+    }) as RESTPostAPIGuildEmojiResult
 
-  const base64Image = `data:image/png;base64,${imageBuffer.toString('base64')}`
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bot ${discordToken}`,
-    },
-    body: JSON.stringify({
-      name: emojiName,
-      image: base64Image,
-    }),
-  })
-
-  if (!response.ok) {
-    if (response.status === 403) {
-      throw new Error(`The bot does not have permission to upload emojis to this server.`)
-    }
-    else if (response.status === 429) {
-      const retryAfter = response.headers.get('Retry-After') || '1'
-      const resetTimestamp = Number.parseInt(retryAfter, 10)
-      const resetDate = new Date(Date.now() + resetTimestamp * 1000)
-      throw new Error(`Rate limit exceeded. Please try again after ${resetDate.toUTCString()} (${resetTimestamp} seconds).`)
-    }
-    throw new Error(`Failed to upload emoji - ${await response.text()}`)
+    return emoji
   }
-
-  const data = await response.json() as { id: string }
-  return data
+  catch (error: unknown | DiscordAPIError) {
+    if (error instanceof DiscordAPIError) {
+      if (error.status === 403) {
+        throw new Error(`The bot does not have permission to upload emojis to this server.`)
+      }
+    }
+    throw new Error(`Failed to upload emoji- ${error}`)
+  }
 }
 
 /**
@@ -213,51 +169,21 @@ export function messageBuilder(message: string, streamName: string, game?: strin
 }
 
 /**
- * Handles a rate limit response by waiting the specified amount of time before retrying.
- *
- * If the response is a 429 status code, this function will wait the specified amount of time
- * before returning true. If the response is not a 429 status code, this function will return
- * false.
- *
- * @param response The response to check for rate limiting.
- * @returns True if the response was a 429 and the function waited, false otherwise.
- */
-async function handleRateLimit(response: Response) {
-  if (response.status === 429) {
-    const rateLimitData = await response.json() as { retry_after: number }
-    await new Promise(resolve => setTimeout(resolve, rateLimitData.retry_after * 1000 + 100))
-    return true
-  }
-  return false
-}
-
-/**
  * Checks if the bot has permission to post in the specified channel.
  *
  * @param channelId - The ID of the channel to check.
  * @param discordToken - The bot token for authorization.
- * @param env - The environment object.
  * @returns True if the bot has permission to post in the channel, false otherwise.
  */
-export async function checkChannelPermission(channelId: string, discordToken: string, env: Env) {
-  const url = `https://discord.com/api/channels/${channelId}`
-
+export async function checkChannelPermission(channelId: string, discordToken: string) {
   try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bot ${discordToken}`,
-      },
-    })
-
-    if (await handleRateLimit(response)) {
-      return checkChannelPermission(channelId, discordToken, env)
-    }
-
-    return response.ok
+    const rest = new REST({ version: '10' }).setToken(discordToken)
+    const channel = await rest.get(Routes.channel(channelId)) as RESTGetAPIChannelResult
+    if (channel)
+      return true
   }
-  catch (error) {
-    console.error('Error checking channel permission:', error)
+  catch (error: unknown) {
+    console.error('Error checking send message permission:', error)
     return false
   }
 }
@@ -272,18 +198,15 @@ export async function checkChannelPermission(channelId: string, discordToken: st
  * @throws If there is an error fetching the emojis.
  */
 export async function fetchGuildEmojis(guildId: string, discordToken: string) {
-  const url = `https://discord.com/api/v10/guilds/${guildId}/emojis`
-
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bot ${discordToken}`,
-    },
-  })
-  if (!response.ok) {
-    throw new Error(`Failed to fetch guild emojis: ${await response.text()}`)
+  try {
+    const rest = new REST({ version: '10' }).setToken(discordToken)
+    const emojis = await rest.get(Routes.guildEmojis(guildId)) as RESTGetAPIGuildEmojisResult
+    return emojis
   }
-
-  return await response.json() as DiscordEmoji[]
+  catch (error: unknown) {
+    console.error('Error fetching guild emojis:', error)
+    throw new Error('Failed to fetch guild emojis')
+  }
 }
 
 /**
@@ -297,12 +220,12 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
   if (!streamMessage)
     return { content: '', embeds: [], components: [] }
 
-  const components: DiscordComponent[] = []
-  const embeds: DiscordEmbed[] = []
+  const components: APIMessageTopLevelComponent[] = []
+  const embeds: APIEmbed[] = []
   let content = ''
 
   // build components
-  const buttons: DiscordComponentData[] = []
+  const buttons: APIButtonComponent[] = []
   if (streamMessage?.stream) {
     if (streamMessage.twitchOnline) {
       buttons.push({

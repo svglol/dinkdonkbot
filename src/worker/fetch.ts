@@ -1,15 +1,16 @@
+import type { APIInteraction } from 'discord-api-types/v10'
 import { Buffer } from 'node:buffer'
 import crypto from 'node:crypto'
+import { InteractionType } from 'discord-api-types/v10'
 import {
   InteractionResponseType,
-  InteractionType,
   verifyKey,
 } from 'discord-interactions'
 import { Router } from 'itty-router'
 import { discordInteractionHandler } from '../discord/interactionHandler'
 import { kickEventHandler } from '../kick/eventHandler'
-import { getKickChannelV2 } from '../kick/kick'
 
+import { getKickChannelV2 } from '../kick/kick'
 import { twitchEventHandler } from '../twitch/eventHandler'
 import { JsonResponse } from '../util/jsonResponse'
 
@@ -40,18 +41,15 @@ router.post('/', async (request, env: Env, ctx: ExecutionContext) => {
   if (!isValid || !interaction)
     return new Response('Bad request signature.', { status: 401 })
 
-  if (interaction.type === InteractionType.PING) {
+  if (interaction.type === InteractionType.Ping) {
     // The `PING` message is used during the initial webhook handshake, and is
     // required to configure the webhook in the developer portal.
     return new JsonResponse({
       type: InteractionResponseType.PONG,
     })
   }
-
-  const response = await discordInteractionHandler(interaction, env, ctx)
-
-  if (response) {
-    return response
+  else if (interaction.type === InteractionType.ApplicationCommand) {
+    return await discordInteractionHandler(interaction, env, ctx)
   }
 
   console.error('Unknown Type')
@@ -184,7 +182,7 @@ async function verifyDiscordRequest(request: Request, env: Env) {
   if (!isValidRequest)
     return { isValid: false }
 
-  return { interaction: JSON.parse(body) as DiscordInteraction, isValid: true }
+  return { interaction: JSON.parse(body) as APIInteraction, isValid: true }
 }
 
 /**
