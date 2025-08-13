@@ -1,4 +1,4 @@
-import type { APIApplicationCommandInteraction, APIEmbed } from 'discord-api-types/v10'
+import type { APIApplicationCommandInteraction, APIEmbed, APIMessageTopLevelComponent } from 'discord-api-types/v10'
 import type { StreamMessage } from '../database/db'
 import { isChatInputApplicationCommandInteraction, isContextMenuApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
 import { InteractionResponseFlags, InteractionResponseType } from 'discord-interactions'
@@ -383,6 +383,10 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
             value: '```{{name}} = the name of the streamer\n{{url}} = the url for the stream\n{{everyone}} = @everyone\n{{here}} = @here\n{{game}} or {{category}} = the game or category of the stream - only works on live message\n{{timestamp}} = the time the stream started/ended\n```',
           },
         ],
+        footer: {
+          text: 'DinkDonk Bot',
+          icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
+        },
       }
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
     }
@@ -504,7 +508,10 @@ async function handleEmoteCommand(interaction: APIApplicationCommandInteraction,
             value: 'Use this option to take an emote directly from someone else\'s message and add it to your server',
           },
         ],
-
+        footer: {
+          text: 'DinkDonk Bot',
+          icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
+        },
       } satisfies APIEmbed
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
     }
@@ -660,6 +667,10 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
             value: 'Get this help message for clip notifications commands.',
           },
         ],
+        footer: {
+          text: 'DinkDonk Bot',
+          icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
+        },
       }
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
     }
@@ -1024,6 +1035,10 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
           },
 
         ],
+        footer: {
+          text: 'DinkDonk Bot',
+          icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
+        },
       }
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
     }
@@ -1069,6 +1084,36 @@ async function handleHelpCommand(interaction: APIApplicationCommandInteraction, 
         value: '[Website](https://svglol.github.io/dinkdonkbot/) | [GitHub](https://github.com/svglol/dinkdonkbot)',
       },
     ],
+    footer: {
+      text: 'DinkDonk Bot',
+      icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
+    },
   } satisfies APIEmbed
-  return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
+
+  const components: APIMessageTopLevelComponent[] = [
+    {
+      type: 1,
+      components: [
+        {
+          type: 2,
+          label: 'Documentation',
+          url: 'https://svglol.github.io/dinkdonkbot/',
+          style: 5,
+          emoji: {
+            name: '🌐',
+          },
+        },
+        {
+          type: 2,
+          label: 'GitHub',
+          url: 'https://github.com/svglol/dinkdonkbot',
+          style: 5,
+          emoji: {
+            name: '🐙',
+          },
+        },
+      ],
+    },
+  ]
+  return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed], components })
 }
