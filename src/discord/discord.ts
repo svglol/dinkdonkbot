@@ -135,7 +135,10 @@ export async function uploadEmoji(guildId: string, discordToken: string, emojiNa
       switch (error.status) {
         case 400:
           if (error.code === 30008) {
-            throw new Error(`This server already has the maximum number of emojis.`)
+            throw new Error(`Maximum number of emojis reached.`)
+          }
+          if (error.code === 30018) {
+            throw new Error(`Maximum number of animated emojis reached.`)
           }
           break
         case 403:
