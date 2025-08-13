@@ -237,8 +237,7 @@ export async function fetchGuildEmojis(guildId: string, discordToken: string) {
     return emojis
   }
   catch (error: unknown) {
-    console.error('Error fetching guild emojis:', error)
-    throw new Error('Failed to fetch guild emojis')
+    throw new Error(`Failed to fetch guild emojis ${error}`)
   }
 }
 

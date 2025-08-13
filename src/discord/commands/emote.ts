@@ -1,7 +1,7 @@
 import type { APIApplicationCommandInteraction, APIEmbed } from 'discord-api-types/v10'
 import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
 import { fetch7tvEmoteImageBuffer, fetchEmoteImageBuffer, fetchSingular7tvEmote } from '../../util/emote'
-import { buildErrorEmbed, buildSuccessEmbed, updateInteraction, uploadEmoji } from '../discord'
+import { buildErrorEmbed, buildSuccessEmbed, fetchGuildEmojis, updateInteraction, uploadEmoji } from '../discord'
 import { interactionEphemeralLoading } from '../interactionHandler'
 import { COMMAND_PERMISSIONS } from './permissions'
 
@@ -78,16 +78,16 @@ async function handleEmoteCommand(interaction: APIApplicationCommandInteraction,
         const extension = isAnimated ? 'gif' : 'png'
         const emoteUrl = `https://cdn.discordapp.com/emojis/${id}.${extension}`
 
-        // // Check if the emote already exists in the guild
-        // try {
-        //   const emojis = await fetchGuildEmojis(interaction.guild_id, env.DISCORD_TOKEN)
-        //   if (emojis.some(emoji => emoji.id === id)) {
-        //     return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `That emote is already from this server.` })
-        //   }
-        // }
-        // catch (error) {
-        //   console.error('Error checking if emote already exists:', error)
-        // }
+        // Check if the emote already exists in the guild
+        try {
+          const emojis = await fetchGuildEmojis(interaction.guild_id, env.DISCORD_TOKEN)
+          if (emojis.some(emoji => emoji.id === id)) {
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`Emote already exists on this server: <${isAnimated ? 'a' : ''}:${cleanName}:${id}>`, env)] })
+          }
+        }
+        catch (error) {
+          console.error('Error checking if emote already exists:', error)
+        }
 
         try {
           const imageBuffer = await fetchEmoteImageBuffer(emoteUrl)
