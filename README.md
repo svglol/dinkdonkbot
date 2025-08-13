@@ -16,7 +16,6 @@ A powerful Discord bot for Twitch & Kick notifications and emote management, run
 [![Documentation](https://img.shields.io/badge/Read-Documentation-blue?style=for-the-badge&logo=gitbook&logoColor=white)](https://svglol.github.io/dinkdonkbot/)
 [![Ko-fi](https://img.shields.io/badge/Support%20us-fc4c58?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/svglol)
 
-
 ## Commands
 
 ### 🟪 Twitch Stream Alerts
