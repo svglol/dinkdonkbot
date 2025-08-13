@@ -44,7 +44,7 @@ const TWITCH_COMMAND = {
     }, {
       type: 5,
       name: 'cleanup',
-      description: 'If true, remove all notifications for the streamer when the streamer goes offline',
+      description: 'Remove notification after the streamer goes offline',
     }],
   }, {
     type: 1,
@@ -87,7 +87,7 @@ const TWITCH_COMMAND = {
     }, {
       type: 5,
       name: 'cleanup',
-      description: 'If true, remove all notifications for the streamer when the streamer goes offline',
+      description: 'Remove notification after the streamer goes offline',
     }],
   }, {
     type: 1,

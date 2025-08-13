@@ -45,7 +45,7 @@ const KICK_COMMAND = {
       }, {
         type: 5,
         name: 'cleanup',
-        description: 'Delete the notification when the streamer goes offline',
+        description: 'Remove notification after the streamer goes offline',
       }],
     },
     {
@@ -114,7 +114,7 @@ const KICK_COMMAND = {
       }, {
         type: 5,
         name: 'cleanup',
-        description: 'Delete the notification when the streamer goes offline',
+        description: 'Remove notification after the streamer goes offline',
       }],
     },
     {
