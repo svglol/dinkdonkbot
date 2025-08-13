@@ -431,7 +431,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
     }
     else if (!streamMessage.kickStream.cleanup) {
       // offline embed
-      const duration = streamMessage.kickVod
+      const duration = streamMessage.kickVod && !Number.isNaN(streamMessage.kickVod.duration) && streamMessage.kickVod.duration > 0
         ? formatDuration(streamMessage.kickVod.duration)
         : streamMessage.kickStreamEndedAt && streamMessage.kickStreamStartedAt
           ? formatDuration(streamMessage.kickStreamEndedAt.getTime() - streamMessage.kickStreamStartedAt.getTime())

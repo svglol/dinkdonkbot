@@ -7,8 +7,10 @@
  *          hours, minutes, and seconds respectively. Parts with zero values
  *          are omitted.
  */
-
 export function formatDuration(durationInMilliseconds: number) {
+  if (durationInMilliseconds <= 0 || Number.isNaN(durationInMilliseconds)) {
+    return '0s'
+  }
   const seconds = Math.floor(durationInMilliseconds / 1000)
   const hours = Math.floor(seconds / 3600)
   const minutes = Math.floor((seconds % 3600) / 60)
@@ -18,5 +20,5 @@ export function formatDuration(durationInMilliseconds: number) {
   const formattedMinutes = minutes > 0 ? `${minutes}m` : ''
   const formattedSeconds = remainingSeconds > 0 ? `${remainingSeconds}s` : ''
 
-  return `${formattedHours}${formattedMinutes}${formattedSeconds}`
+  return `${formattedHours}${formattedMinutes}${formattedSeconds}` || '0s'
 }
