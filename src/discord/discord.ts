@@ -132,8 +132,19 @@ export async function uploadEmoji(guildId: string, discordToken: string, emojiNa
   }
   catch (error: unknown | DiscordAPIError) {
     if (error instanceof DiscordAPIError) {
-      if (error.status === 403) {
-        throw new Error(`The bot does not have permission to upload emojis to this server.`)
+      switch (error.status) {
+        case 400:
+          if (error.code === 30008) {
+            throw new Error(`This server already has the maximum number of emojis.`)
+          }
+          break
+        case 403:
+          if (error.code === 50013) {
+            throw new Error(`The bot does not have permission to upload emojis to this server.`)
+          }
+          break
+        case 429:
+          throw new Error(`You have reached the rate limit for uploading emojis, Discord only allows 50 emote uploads per hour.`)
       }
     }
     throw new Error(`Failed to upload emoji- ${error}`)
@@ -529,4 +540,32 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
     embeds,
     components,
   }
+}
+
+export function buildErrorEmbed(error: string, env: Env, embed?: APIEmbed) {
+  return {
+    color: 0xFF0000,
+    title: '❌ Oops! Something went wrong',
+    description: `${error}`,
+    footer: {
+      text: 'DinkDonk Bot',
+      icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
+    },
+    timestamp: new Date().toISOString(),
+    ...embed,
+  } satisfies APIEmbed
+}
+
+export function buildSuccessEmbed(message: string, env: Env, embed?: APIEmbed) {
+  return {
+    color: 0x00FF00,
+    title: '✅ Success',
+    description: `${message}`,
+    footer: {
+      text: 'DinkDonk Bot',
+      icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
+    },
+    timestamp: new Date().toISOString(),
+    ...embed,
+  } satisfies APIEmbed
 }
