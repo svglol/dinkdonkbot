@@ -1112,6 +1112,15 @@ async function handleHelpCommand(interaction: APIApplicationCommandInteraction, 
             name: '🐙',
           },
         },
+        {
+          type: 2,
+          label: 'Support Me',
+          url: 'https://ko-fi.com/svglol',
+          style: 5,
+          emoji: {
+            name: '💖',
+          },
+        },
       ],
     },
   ]
