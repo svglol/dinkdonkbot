@@ -450,6 +450,11 @@ declare global {
     video: KickVideo
     categories: KickCategory[]
   }
+
+  export interface DiscordAPIApplicationCommand {
+    command: APIApplicationCommand
+    handler: (interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) => Promise<Response> | Response
+  }
 }
 
 declare module 'cloudflare:test' {

@@ -2,7 +2,7 @@
 /* eslint-disable no-console */
 import process from 'node:process'
 import dotenv from 'dotenv'
-import * as commands from './commands'
+import { COMMAND_DEFINITIONS } from './commands'
 
 /**
  * This file is meant to be run from the command line, and is not used by the
@@ -36,7 +36,7 @@ const response = await fetch(url, {
     'Authorization': `Bot ${token}`,
   },
   method: 'PUT',
-  body: JSON.stringify(Object.values(commands)),
+  body: JSON.stringify(COMMAND_DEFINITIONS),
 })
 
 if (response.ok) {

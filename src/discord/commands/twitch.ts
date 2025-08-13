@@ -1,0 +1,463 @@
+import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
+import type { StreamMessage } from '../../database/db'
+import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
+import { and, eq, like } from 'drizzle-orm'
+import { tables, useDB } from '../../database/db'
+import { getChannelId, getStreamDetails, getStreamerDetails, removeSubscription, subscribe } from '../../twitch/twitch'
+import { bodyBuilder, buildErrorEmbed, buildSuccessEmbed, checkChannelPermission, sendMessage, updateInteraction } from '../discord'
+import { interactionEphemeralLoading } from '../interactionHandler'
+import { COMMAND_PERMISSIONS } from './permissions'
+
+const TWITCH_COMMAND = {
+  name: 'twitch',
+  description: 'Twitch stream notifications',
+  default_member_permissions: COMMAND_PERMISSIONS.ADMINISTRATOR,
+  dm_permission: false,
+  options: [{
+    type: 1,
+    name: 'add',
+    description: 'Add a Twitch streamer to receive notifications for going online',
+    dm_permission: false,
+    options: [{
+      type: 3,
+      name: 'streamer',
+      description: 'The name of the streamer to add',
+      required: true,
+    }, {
+      type: 7,
+      name: 'discord-channel',
+      description: 'The discord channel to post to when the streamer goes live',
+      required: true,
+      channel_types: [0],
+    }, {
+      type: 8,
+      name: 'ping-role',
+      description: 'What role to @ when the streamer goes live',
+    }, {
+      type: 3,
+      name: 'live-message',
+      description: 'The message to post when the streamer goes live',
+    }, {
+      type: 3,
+      name: 'offline-message',
+      description: 'The message to post when the streamer goes offline',
+    }, {
+      type: 5,
+      name: 'cleanup',
+      description: 'If true, remove all notifications for the streamer when the streamer goes offline',
+    }],
+  }, {
+    type: 1,
+    name: 'remove',
+    description: 'Remove a Twitch streamer from receiving notifications for going online or offline',
+    dm_permission: false,
+    options: [{
+      type: 3,
+      name: 'streamer',
+      description: 'The name of the streamer to remove',
+      required: true,
+    }],
+  }, {
+    type: 1,
+    name: 'edit',
+    description: 'Edit a Twitch streamer\'s settings',
+    dm_permission: false,
+    options: [{
+      type: 3,
+      name: 'streamer',
+      description: 'The name of the streamer to edit',
+      required: true,
+    }, {
+      type: 7,
+      name: 'discord-channel',
+      description: 'The discord channel to post to when the streamer goes live',
+      channel_types: [0],
+    }, {
+      type: 8,
+      name: 'ping-role',
+      description: 'What role/who to @ when the streamer goes live',
+    }, {
+      type: 3,
+      name: 'live-message',
+      description: 'The message to post when the streamer goes live',
+    }, {
+      type: 3,
+      name: 'offline-message',
+      description: 'The message to post when the streamer goes offline',
+    }, {
+      type: 5,
+      name: 'cleanup',
+      description: 'If true, remove all notifications for the streamer when the streamer goes offline',
+    }],
+  }, {
+    type: 1,
+    name: 'list',
+    description: 'List the twitch streamers that you are subscribed to',
+    dm_permission: false,
+  }, {
+    type: 1,
+    name: 'test',
+    description: 'Test the notification for a streamer',
+    dm_permission: false,
+    options: [{
+      type: 3,
+      name: 'streamer',
+      description: 'The name of the streamer to test',
+      required: true,
+    }, {
+      type: 5,
+      name: 'global',
+      description: 'Show the notification for everyone in the server',
+    }],
+  }, {
+    type: 1,
+    name: 'details',
+    description: 'Show the details for a streamer you are subscribed to',
+    dm_permission: false,
+    options: [{
+      type: 3,
+      name: 'streamer',
+      description: 'The name of the streamer to show',
+      required: true,
+    }],
+  }, {
+    type: 1,
+    name: 'help',
+    description: 'Show help for the twitch command and its subcommands',
+    dm_permission: false,
+  }],
+}
+
+function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
+  ctx.waitUntil(handleTwitchCommand(interaction, env))
+  return interactionEphemeralLoading()
+}
+
+/**
+ * This function is called when a user interacts with the /twitch command.
+ * It will add a streamer to the list of streamers that will be notified
+ * when they go live or offline.
+ * @param interaction The interaction object as provided by Discord.
+ * @param env The environment object as provided by the caller.
+ * @returns A promise that resolves to nothing.
+ */
+async function handleTwitchCommand(interaction: APIApplicationCommandInteraction, env: Env) {
+  if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction))
+    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+  if (!interaction.data.options)
+    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+  if (!isGuildInteraction(interaction))
+    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
+
+  const option = interaction.data.options[0].name
+  switch (option) {
+    case 'add': {
+      const server = interaction.guild_id
+      const add = interaction.data.options.find(option => option.name === 'add')
+      if (!add || !('options' in add) || !add.options)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+
+      const streamerOption = add.options.find(option => option.name === 'streamer')
+      const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
+      const channelOption = add.options.find(option => option.name === 'discord-channel')
+      const channel = channelOption && 'value' in channelOption ? channelOption.value as string : undefined
+      const roleOption = add.options.find(option => option.name === 'ping-role')
+      const role = roleOption && 'value' in roleOption ? roleOption.value as string : undefined
+      const messageOption = add.options.find(option => option.name === 'live-message')
+      const liveMessage = messageOption && 'value' in messageOption ? messageOption.value as string : undefined
+      const offlineMessageOption = add.options.find(option => option.name === 'offline-message')
+      const offlineMessage = offlineMessageOption && 'value' in offlineMessageOption ? offlineMessageOption.value as string : undefined
+      const cleanupOption = add.options.find(option => option.name === 'cleanup')
+      const cleanup = cleanupOption && 'value' in cleanupOption ? cleanupOption.value as boolean : undefined
+      // make sure we have all arguments
+      if (!server || !streamer || !channel)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+
+      // check if already subscribed to this channel
+      const subscriptions = await useDB(env).query.streams.findMany({
+        where: (streams, { eq, and, like }) => and(eq(streams.guildId, server), like(streams.name, streamer)),
+      })
+      if (subscriptions.length > 0)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You're already subscribed to notifications for \`${streamer}\` on this server`, env)] })
+
+      // check if twitch channel exists
+      const channelId = await getChannelId(streamer, env)
+      if (!channelId)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`Twitch channel with name:\`${streamer}\` could not be found`, env)] })
+
+      // check if we have permission to post in this discord channel
+      const hasPermission = await checkChannelPermission(channel, env.DISCORD_TOKEN)
+      if (!hasPermission)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`Dinkdonk Bot does not have the required permissions to post in <#${channel}>`, env)] })
+
+      // subscribe to event sub for this channel
+      const subscribed = await subscribe(channelId, env)
+      if (!subscribed)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Dinkdonk Bot failed to subscribe to Twitch event sub', env)] })
+
+      let roleId: string | undefined
+      if (roleOption) {
+        roleId = role
+        if (roleId === server)
+          roleId = undefined
+      }
+
+      const liveText = liveMessage
+      const offlineText = offlineMessage
+
+      const streamerDetails = await getStreamerDetails(streamer, env)
+
+      // add to database
+      const subscription = await useDB(env).insert(tables.streams).values({
+        name: streamerDetails ? streamerDetails.display_name : streamer,
+        broadcasterId: channelId,
+        guildId: server,
+        channelId: channel,
+        roleId,
+        liveMessage: liveText,
+        offlineMessage: offlineText,
+        cleanup,
+      }).returning().get()
+
+      if (!subscription)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Failed to add subscription to database', env)] })
+
+      let details = `Streamer: \`${subscription.name}\`\n`
+      details += `Channel: <#${subscription.channelId}>\n`
+      details += `Live Message: \`${subscription.liveMessage}\`\n`
+      details += `Offline Message: \`${subscription.offlineMessage}\`\n`
+      details += `Cleanup: \`${subscription.cleanup}\`\n`
+      if (subscription.roleId)
+        details += `\n Role: <@&${subscription.roleId}>`
+
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`${details}`, env, {
+        title: `<:twitch:1404661243373031585> Subscribed to notifications for \`${subscription.name}\``,
+        ...(streamerDetails?.profile_image_url && {
+          thumbnail: { url: streamerDetails.profile_image_url },
+        }),
+      })] })
+    }
+    case 'remove': {
+      const remove = interaction.data.options.find(option => option.name === 'remove')
+      if (!remove || !('options' in remove) || !remove.options)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+      const streamerOption = remove.options.find(option => option.name === 'streamer')
+      const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
+      if (!streamer)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+      const stream = await useDB(env).query.streams.findFirst({
+        where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
+      })
+      if (!stream)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
+
+      await useDB(env).delete(tables.streams).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+      const subscriptions = await useDB(env).query.streams.findMany({
+        where: (streams, { like }) => like(streams.name, streamer),
+      })
+      if (subscriptions.length === 0 && stream)
+        await removeSubscription(stream.broadcasterId, env)
+
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`Unsubscribed from notifications for **${streamer}**`, env)] })
+    }
+    case 'edit':{
+      const server = interaction.guild_id
+      const edit = interaction.data.options.find(option => option.name === 'edit')
+      if (!edit || !('options' in edit) || !edit.options)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+      const streamerOption = edit.options.find(option => option.name === 'streamer')
+      const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
+      if (!streamer)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+      const dbStream = await useDB(env).query.streams.findFirst({
+        where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
+      })
+      if (!dbStream)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
+
+      const channel = edit.options.find(option => option.name === 'discord-channel')
+      if (channel)
+        await useDB(env).update(tables.streams).set({ channelId: String('value' in channel ? channel.value : '') }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+      const role = edit.options.find(option => option.name === 'ping-role')
+      let roleId: string | undefined
+      if (role) {
+        roleId = 'value' in role ? String(role.value) : undefined
+        if (roleId === server)
+          roleId = undefined
+      }
+      if (roleId)
+        await useDB(env).update(tables.streams).set({ roleId }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+
+      const message = edit.options.find(option => option.name === 'live-message')
+      if (message)
+        await useDB(env).update(tables.streams).set({ liveMessage: 'value' in message ? message.value as string : '' }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+
+      const offlineMessage = edit.options.find(option => option.name === 'offline-message')
+      if (offlineMessage)
+        await useDB(env).update(tables.streams).set({ offlineMessage: 'value' in offlineMessage ? offlineMessage.value as string : '' }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+
+      const cleanup = edit.options.find(option => option.name === 'cleanup')
+      if (cleanup)
+        await useDB(env).update(tables.streams).set({ cleanup: 'value' in cleanup ? Boolean(cleanup.value) : false }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+
+      // get up to date sub
+      const subscription = await useDB(env).query.streams.findFirst({
+        where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
+      })
+      if (!subscription)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
+
+      let details = `Streamer: \`${subscription.name}\`\n`
+      details += `Channel: <#${subscription.channelId}>\n`
+      details += `Live Message: \`${subscription.liveMessage}\`\n`
+      details += `Offline Message: \`${subscription.offlineMessage}\`\n`
+      details += `Cleanup: \`${subscription.cleanup}\`\n`
+      if (subscription.roleId)
+        details += `\n Role: <@&${subscription.roleId}>`
+
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`${details}`, env, { title: `<:twitch:1404661243373031585> Edited notifications for \`${streamer}\`` })] })
+    }
+    case 'list': {
+      const streams = await useDB(env).query.streams.findMany({
+        where: (streams, { eq }) => eq(streams.guildId, interaction.guild_id),
+      })
+      let streamList = 'Not subscribed to any streams'
+      if (streams.length > 0) {
+        streamList = streams.map(stream => `**${stream.name}** - <#${stream.channelId}>`).join('\n')
+      }
+      else {
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Not subscribed to any Twitch streams', env)] })
+      }
+
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(streamList, env, { title: '<:twitch:1404661243373031585> Twitch Streams' })] })
+    }
+    case 'test':{
+      const test = interaction.data.options.find(option => option.name === 'test')
+      if (!test || !('options' in test) || !test.options)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+      const streamer = test.options.find(option => option.name === 'streamer')
+      const global = test.options.find(option => option.name === 'global')
+      const stream = await useDB(env).query.streams.findFirst({
+        where: (streams, { and, eq, like }) => and(like(streams.name, streamer && 'value' in streamer ? streamer.value as string : ''), eq(streams.guildId, interaction.guild_id)),
+      })
+      if (!stream)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer && 'value' in streamer ? streamer.value as string : ''}\``, env)] })
+
+      const [streamerData, streamData] = await Promise.all([
+        getStreamerDetails(stream.name, env),
+        getStreamDetails(stream.name, env),
+      ])
+      // build a fake stream message object
+      const streamMessage = {
+        id: 0,
+        streamId: stream.id,
+        stream,
+        kickStreamId: null,
+        kickStreamStartedAt: null,
+        kickStreamEndedAt: null,
+        twitchStreamStartedAt: new Date(),
+        twitchStreamEndedAt: null,
+        discordChannelId: stream.channelId,
+        discordMessageId: null,
+        twitchStreamId: null,
+        twitchOnline: true,
+        twitchStreamData: streamData,
+        twitchStreamerData: streamerData,
+        twitchVod: null,
+        kickStreamData: null,
+        kickStreamerData: null,
+        kickVod: null,
+        kickOnline: false,
+        createdAt: new Date().toISOString(),
+      } satisfies StreamMessage
+
+      const body = bodyBuilder(streamMessage, env)
+      if (global) {
+        if ('value' in global && global.value === true) {
+          await sendMessage(stream.channelId, env.DISCORD_TOKEN, body, env)
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed('Sent test message', env)] })
+        }
+        else {
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, body)
+        }
+      }
+      else {
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, body)
+      }
+    }
+    case 'details': {
+      const details = interaction.data.options.find(option => option.name === 'details')
+      if (!details || !('options' in details) || !details.options)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+      const streamerOption = details.options.find(option => option.name === 'streamer')
+      const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
+      if (!streamer)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+      const stream = await useDB(env).query.streams.findFirst({
+        where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
+      })
+      if (!stream)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
+      let message = `Streamer: \`${stream.name}\`\n`
+      message += `Channel: <#${stream.channelId}>\n`
+      message += `Live Message: \`${stream.liveMessage}\`\n`
+      message += `Offline Message: \`${stream.offlineMessage}\`\n`
+      message += `Cleanup: \`${stream.cleanup}\`\n`
+      if (stream.roleId)
+        message += `\n Role: <@&${stream.roleId}>`
+
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(message, env, { title: '<:twitch:1404661243373031585> Twitch Stream Notification Details' })] })
+    }
+    case 'help': {
+      const embed = {
+        title: '<:twitch:1404661243373031585> Available commands',
+        description: '',
+        color: 0x6441A4,
+        fields: [
+          {
+            name: '</twitch add:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>',
+            value: 'Add a Twitch streamer to receive notifications for going online or offline\n<streamer> - The name of the streamer to add \n<discord-channel> - The discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline\n<cleanup> - Delete notifications once the streamer goes offline',
+          },
+          {
+            name: '</twitch edit:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>',
+            value: 'Edit a Twitch streamer\'s settings\n<streamer> - The name of the streamer to edit \n<discord-channel> - The discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline\n<cleanup> - Delete notifications once the streamer goes offline',
+          },
+          {
+            name: '</twitch remove:1227872472049782919> <streamer>',
+            value: 'Remove a Twitch streamer from receiving notifications for going online or offline\n<streamer> - The name of the streamer to remove',
+          },
+          {
+            name: '</twitch list:1227872472049782919>',
+            value: 'List the twitch streamers that you are subscribed to',
+          },
+          {
+            name: '</twitch test:1227872472049782919> <streamer> <global>',
+            value: 'Test the notification for a streamer \n<streamer> - The name of the streamer to test \n<global> - Whether to send the message to everyone or not',
+          },
+          {
+            name: '</twitch details:1227872472049782919> <streamer>',
+            value: 'Show the details for a streamer you are subscribed to\n<streamer> - The name of the streamer to show',
+          },
+          {
+            name: '</twitch help:1227872472049782919>',
+            value: 'Get this help message',
+          },
+          {
+            name: 'Message variables',
+            value: '```{{name}} = the name of the streamer\n{{url}} = the url for the stream\n{{everyone}} = @everyone\n{{here}} = @here\n{{game}} or {{category}} = the game or category of the stream - only works on live message\n{{timestamp}} = the time the stream started/ended\n```',
+          },
+        ],
+        footer: {
+          text: 'DinkDonk Bot',
+          icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
+        },
+      }
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
+    }
+  }
+}
+
+export default {
+  command: TWITCH_COMMAND,
+  handler,
+} satisfies DiscordAPIApplicationCommand
