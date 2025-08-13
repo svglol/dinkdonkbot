@@ -1,6 +1,6 @@
 import type { ChannelState } from '../durable/ChannelState'
 import { and, eq, tables, useDB } from '../database/db'
-import { bodyBuilder, updateMessage } from '../discord/discord'
+import { bodyBuilder, deleteMessage, updateMessage } from '../discord/discord'
 import { getLatestVOD } from './twitch'
 
 /**
@@ -78,7 +78,12 @@ async function streamOffline(payload: SubscriptionEventResponseData<Subscription
       }
 
       const discordMessage = await bodyBuilder(updatedMessageWithStreams, env)
-      await updateMessage(message.discordChannelId, message?.discordMessageId ?? '', env.DISCORD_TOKEN, discordMessage)
+      if (discordMessage.embeds.length > 0) {
+        return await updateMessage(message.discordChannelId, message?.discordMessageId ?? '', env.DISCORD_TOKEN, discordMessage)
+      }
+      else if (message?.stream?.cleanup) {
+        return await deleteMessage(message.discordChannelId, message?.discordMessageId ?? '', env.DISCORD_TOKEN)
+      }
     })
     await Promise.allSettled(updatePromises)
     // delete all messages from db for this stream

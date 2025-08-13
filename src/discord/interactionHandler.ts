@@ -141,6 +141,8 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
       const liveMessage = messageOption && 'value' in messageOption ? messageOption.value as string : undefined
       const offlineMessageOption = add.options.find(option => option.name === 'offline-message')
       const offlineMessage = offlineMessageOption && 'value' in offlineMessageOption ? offlineMessageOption.value as string : undefined
+      const cleanupOption = add.options.find(option => option.name === 'cleanup')
+      const cleanup = cleanupOption && 'value' in cleanupOption ? cleanupOption.value as boolean : undefined
       // make sure we have all arguments
       if (!server || !streamer || !channel)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
@@ -188,6 +190,7 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
         roleId,
         liveMessage: liveText,
         offlineMessage: offlineText,
+        cleanup,
       })
 
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully subscribed to notifications for **${streamer}** in <#${channel}>` })
@@ -250,6 +253,10 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
       const offlineMessage = edit.options.find(option => option.name === 'offline-message')
       if (offlineMessage)
         await useDB(env).update(tables.streams).set({ offlineMessage: 'value' in offlineMessage ? offlineMessage.value as string : '' }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+
+      const cleanup = edit.options.find(option => option.name === 'cleanup')
+      if (cleanup)
+        await useDB(env).update(tables.streams).set({ cleanup: 'value' in cleanup ? Boolean(cleanup.value) : false }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
 
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully edited notifications for **${streamer}**` })
     }
@@ -331,6 +338,7 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
       message += `Channel: <#${stream.channelId}>\n`
       message += `Live Message: \`${stream.liveMessage}\`\n`
       message += `Offline Message: \`${stream.offlineMessage}\`\n`
+      message += `Cleanup: \`${stream.cleanup}\`\n`
       if (stream.roleId)
         message += `\n Role: <@&${stream.roleId}>`
 
@@ -343,12 +351,12 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
         color: 0x6441A4,
         fields: [
           {
-            name: '</twitch add:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
-            value: 'Add a Twitch streamer to receive notifications for going online or offline\n<streamer> - The name of the streamer to add \n<discord-channel> - The discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline',
+            name: '</twitch add:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>',
+            value: 'Add a Twitch streamer to receive notifications for going online or offline\n<streamer> - The name of the streamer to add \n<discord-channel> - The discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline\n<cleanup> - Delete notifications once the streamer goes offline',
           },
           {
-            name: '</twitch edit:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
-            value: 'Edit a Twitch streamer\'s settings\n<streamer> - The name of the streamer to edit \n<discord-channel> - The discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline',
+            name: '</twitch edit:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>',
+            value: 'Edit a Twitch streamer\'s settings\n<streamer> - The name of the streamer to edit \n<discord-channel> - The discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline\n<cleanup> - Delete notifications once the streamer goes offline',
           },
           {
             name: '</twitch remove:1227872472049782919> <streamer>',
@@ -764,6 +772,9 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
       const role = add.options.find(option => option.name === 'ping-role')
       const message = add.options.find(option => option.name === 'live-message')
       const offlineMessage = add.options.find(option => option.name === 'offline-message')
+
+      const cleanupOption = add.options.find(option => option.name === 'cleanup')
+      const cleanup = cleanupOption && 'value' in cleanupOption ? cleanupOption.value as boolean : false
       // make sure we have all arguments
       if (!server || !streamer || !channel)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: 'Invalid arguments' })
@@ -809,6 +820,7 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
         roleId,
         liveMessage: liveText,
         offlineMessage: offlineText,
+        cleanup,
       })
 
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully subscribed to kick notifications for **${streamer}** in <#${channel}>` })
@@ -872,6 +884,12 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
       const offlineMessage = edit.options.find(option => option.name === 'offline-message')
       if (offlineMessage)
         await useDB(env).update(tables.kickStreams).set({ offlineMessage: 'value' in offlineMessage ? offlineMessage.value as string : '' }).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
+
+      const cleanup = edit.options.find(option => option.name === 'cleanup')
+      if (cleanup) {
+        const cleanupValue = 'value' in cleanup ? Boolean(cleanup.value) : false
+        await useDB(env).update(tables.kickStreams).set({ cleanup: cleanupValue }).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
+      }
 
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `Successfully edited notifications for **${streamer}**` })
     }
@@ -960,6 +978,7 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
       message += `Channel: <#${stream.channelId}>\n`
       message += `Live Message: \`${stream.liveMessage}\`\n`
       message += `Offline Message: \`${stream.offlineMessage}\`\n`
+      message += `Cleanup: \`${stream.cleanup}\`\n`
       if (stream.roleId)
         message += `\n Role: <@&${stream.roleId}>`
 
@@ -972,12 +991,12 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
         color: 0x53FC18,
         fields: [
           {
-            name: '</kick add:1398833401888378910> <streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
-            value: 'Add a Kick streamer to receive notifications for going online or offline\n<streamer> - The name of the streamer to add \n<discord-channel> - The Discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline',
+            name: '</kick add:1398833401888378910> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>',
+            value: 'Add a Kick streamer to receive notifications for going online or offline\n<streamer> - The name of the streamer to add \n<discord-channel> - The Discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline\n<cleanup> - Delete notification once the streamer goes offline',
           },
           {
-            name: '</kick edit:1398833401888378910><streamer> <discord-channel> <ping-role> <live-message> <offline-message>',
-            value: 'Edit a Kick streamer\'s settings\n<streamer> - The name of the streamer to edit \n<discord-channel> - The Discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline',
+            name: '</kick edit:1398833401888378910><streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>',
+            value: 'Edit a Kick streamer\'s settings\n<streamer> - The name of the streamer to edit \n<discord-channel> - The Discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline\n<cleanup> - Delete notification once the streamer goes offline',
           },
           {
             name: '</kick remove:1398833401888378910> <streamer>',

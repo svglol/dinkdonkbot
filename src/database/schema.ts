@@ -10,6 +10,7 @@ export const streams = sqliteTable('streams', {
   roleId: text('roleId'),
   liveMessage: text('message').default('@everyone {{name}} is now live @ {{url}}'),
   offlineMessage: text('offlineMessage').default('{{name}} is now offline'),
+  cleanup: integer('cleanup', { mode: 'boolean' }).default(false),
 }, streams => [
   uniqueIndex('idIdx').on(streams.id),
   index('nameIdx').on(streams.name),
@@ -39,6 +40,7 @@ export const kickStreams = sqliteTable('kick-streams', {
   roleId: text('roleId'),
   liveMessage: text('message').default('@everyone {{name}} is now live @ {{url}}'),
   offlineMessage: text('offlineMessage').default('{{name}} is now offline'),
+  cleanup: integer('cleanup', { mode: 'boolean' }).default(false),
 }, streams => [
   uniqueIndex('kick_idIdx').on(streams.id),
   index('kick_nameIdx').on(streams.name),

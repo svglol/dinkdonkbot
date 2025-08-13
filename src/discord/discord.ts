@@ -65,6 +65,25 @@ export async function updateMessage(channelId: string, messageId: string, discor
 }
 
 /**
+ * Deletes a message in a specified channel.
+ *
+ * @param channelId The ID of the channel where the message is located.
+ * @param messageId The ID of the message to be deleted.
+ * @param discordToken The Discord bot token for authorization.
+ *
+ * @throws If there is an error deleting the message.
+ */
+export async function deleteMessage(channelId: string, messageId: string, discordToken: string) {
+  try {
+    const rest = new REST({ version: '10' }).setToken(discordToken)
+    await rest.delete(Routes.channelMessage(channelId, messageId))
+  }
+  catch (error: unknown) {
+    console.error('Failed to delete message:', error)
+  }
+}
+
+/**
  * Updates the original response message for a Discord interaction.
  *
  * @param interaction The interaction object containing the token to identify the interaction.
@@ -240,7 +259,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
         },
       })
     }
-    else if (streamMessage.twitchVod) {
+    else if (streamMessage.twitchVod && !streamMessage.stream.cleanup) {
       buttons.push({
         type: 2,
         label: 'Watch Twitch VOD',
@@ -269,7 +288,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
         },
       })
     }
-    else if (streamMessage.kickVod) {
+    else if (streamMessage.kickVod && !streamMessage.kickStream.cleanup) {
       buttons.push({
         type: 2,
         label: 'Watch Kick VOD',
@@ -334,7 +353,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
 
       embeds.push(embed)
     }
-    else {
+    else if (!streamMessage.stream.cleanup) {
       // offline embed
       const duration = streamMessage.twitchVod
         ? streamMessage.twitchVod.duration
@@ -410,7 +429,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
       }
       embeds.push(embed)
     }
-    else {
+    else if (!streamMessage.kickStream.cleanup) {
       // offline embed
       const duration = streamMessage.kickVod
         ? formatDuration(streamMessage.kickVod.duration)
@@ -453,7 +472,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
       const message = `${roleMention}${messageBuilder(streamMessage.stream.liveMessage ? streamMessage.stream.liveMessage : '{{name}} is live!', streamMessage.stream.name, streamMessage.twitchStreamData?.game_name, streamMessage.twitchStreamData?.started_at)}`
       content = message
     }
-    else {
+    else if (!streamMessage.stream.cleanup) {
       const offlineMessage = messageBuilder(streamMessage.stream.offlineMessage ? streamMessage.stream.offlineMessage : '{{name}} is now offline.', streamMessage.stream.name)
       content = offlineMessage
     }
@@ -468,7 +487,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
       }
       content += message
     }
-    else {
+    else if (!streamMessage.kickStream.cleanup) {
       const offlineMessage = messageBuilder(streamMessage.kickStream?.offlineMessage ? streamMessage.kickStream?.offlineMessage : '{{name}} is now offline.', streamMessage.kickStream.name)
 
       if (content && content !== offlineMessage) {

@@ -1,6 +1,6 @@
 import type { ChannelState } from '../durable/ChannelState'
 import { and, eq, tables, useDB } from '../database/db'
-import { bodyBuilder, updateMessage } from '../discord/discord'
+import { bodyBuilder, deleteMessage, updateMessage } from '../discord/discord'
 import { getKickLatestVod } from './kick'
 
 /**
@@ -83,8 +83,13 @@ async function streamOffline(payload: KickLivestreamStatusUpdatedEvent, env: Env
         return
       }
 
-      const discordMessage = await bodyBuilder(updatedMessageWithStreams, env)
-      await updateMessage(message.discordChannelId, message?.discordMessageId ?? '', env.DISCORD_TOKEN, discordMessage)
+      const discordMessage = bodyBuilder(updatedMessageWithStreams, env)
+      if (discordMessage.embeds.length > 0) {
+        return await updateMessage(message.discordChannelId, message?.discordMessageId ?? '', env.DISCORD_TOKEN, discordMessage)
+      }
+      else if (message?.kickStream?.cleanup) {
+        return await deleteMessage(message.discordChannelId, message?.discordMessageId ?? '', env.DISCORD_TOKEN)
+      }
     })
     await Promise.allSettled(promises)
 

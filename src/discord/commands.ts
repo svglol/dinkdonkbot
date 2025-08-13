@@ -97,6 +97,10 @@ export const TWITCH_COMMAND = {
       type: 3,
       name: 'offline-message',
       description: 'The message to post when the streamer goes offline',
+    }, {
+      type: 5,
+      name: 'cleanup',
+      description: 'If true, remove all notifications for the streamer when the streamer goes offline',
     }],
   }, {
     type: 1,
@@ -136,6 +140,10 @@ export const TWITCH_COMMAND = {
       type: 3,
       name: 'offline-message',
       description: 'The message to post when the streamer goes offline',
+    }, {
+      type: 5,
+      name: 'cleanup',
+      description: 'If true, remove all notifications for the streamer when the streamer goes offline',
     }],
   }, {
     type: 1,
@@ -307,6 +315,10 @@ export const KICK_COMMAND = {
         type: 3,
         name: 'offline-message',
         description: 'The message to post when the streamer goes offline',
+      }, {
+        type: 5,
+        name: 'cleanup',
+        description: 'Delete the notification when the streamer goes offline',
       }],
     },
     {
@@ -372,6 +384,10 @@ export const KICK_COMMAND = {
         type: 3,
         name: 'offline-message',
         description: 'The message to post when the streamer goes offline',
+      }, {
+        type: 5,
+        name: 'cleanup',
+        description: 'Delete the notification when the streamer goes offline',
       }],
     },
     {

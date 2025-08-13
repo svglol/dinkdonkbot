@@ -70,9 +70,9 @@ Bot Commands
 🟪 Twitch Stream Alerts
 
 #subtitle
-`/twitch add <streamer> <discord-channel> [ping-role] [live-message] [offline-message]` - Add streamer notifications
+`/twitch add <streamer> <discord-channel> [ping-role] [live-message] [offline-message] [cleanup]` - Add streamer notifications
 `/twitch remove <streamer>` - Stop notifications for a streamer
-`/twitch edit <streamer> [discord-channel] [ping-role] [live-message] [offline-message]` - Update settings
+`/twitch edit <streamer> [discord-channel] [ping-role] [live-message] [offline-message] [cleanup]` - Update settings
 `/twitch list` - View all subscribed streamers
 `/twitch test <streamer> [global]` - Preview notification appearance
 `/twitch details <streamer>` - See detailed streamer settings
@@ -85,9 +85,9 @@ Bot Commands
 🟩 Kick Stream Alerts
 
 #subtitle
-`/kick add <streamer> <discord-channel> [ping-role] [live-message] [offline-message]` - Add streamer notifications
+`/kick add <streamer> <discord-channel> [ping-role] [live-message] [offline-message] [cleanup]` - Add streamer notifications
 `/kick remove <streamer>` - Stop notifications for a streamer
-`/kick edit <streamer> [discord-channel] [ping-role] [live-message] [offline-message]` - Update settings
+`/kick edit <streamer> [discord-channel] [ping-role] [live-message] [offline-message] [cleanup]` - Update settings
 `/kick list` - View all subscribed streamers
 `/kick test <streamer> [global]` - Preview notification appearance
 `/kick details <streamer>` - See detailed streamer settings
