@@ -12,7 +12,7 @@ importers:
         specifier: 2.5.1
         version: 2.5.1
       date-fns-tz:
-        specifier: ^3.2.0
+        specifier: 3.2.0
         version: 3.2.0(date-fns@4.1.0)
       discord-api-types:
         specifier: 0.38.19
@@ -27,7 +27,7 @@ importers:
         specifier: 5.0.21
         version: 5.0.21
       tz-lookup:
-        specifier: ^6.1.25
+        specifier: 6.1.25
         version: 6.1.25
     devDependencies:
       '@antfu/eslint-config':
@@ -40,7 +40,7 @@ importers:
         specifier: 4.20250810.0
         version: 4.20250810.0
       '@types/tz-lookup':
-        specifier: ^6.1.2
+        specifier: 6.1.2
         version: 6.1.2
       dotenv:
         specifier: 17.2.1
