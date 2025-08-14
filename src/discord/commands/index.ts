@@ -5,6 +5,7 @@ import * as invite from './invite'
 import * as kick from './kick'
 import * as stealEmote from './stealEmote'
 import * as time from './time'
+import * as timestamp from './timestamp'
 import * as twitch from './twitch'
 import * as twitchClips from './twitchClips'
 import * as weather from './weather'
@@ -20,6 +21,7 @@ export const COMMANDS = [
   stealEmote,
   time,
   weather,
+  timestamp,
 ]
 
 // Registration
