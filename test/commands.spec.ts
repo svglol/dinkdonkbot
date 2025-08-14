@@ -33,6 +33,14 @@ describe('commands all have handlers defined', () => {
   it('stealEmote', async () => {
     expect(findHandlerByName('steal emote')).toBeDefined()
   })
+
+  it('time', async () => {
+    expect(findHandlerByName('time')).toBeDefined()
+  })
+
+  it('weather', async () => {
+    expect(findHandlerByName('weather')).toBeDefined()
+  })
 })
 
 describe('commands all have definitions', () => {
@@ -66,5 +74,13 @@ describe('commands all have definitions', () => {
 
   it('stealEmote', async () => {
     expect(COMMAND_DEFINITIONS.find(c => c.name === 'Steal Emote')).toBeDefined()
+  })
+
+  it('time', async () => {
+    expect(COMMAND_DEFINITIONS.find(c => c.name === 'time')).toBeDefined()
+  })
+
+  it('weather', async () => {
+    expect(COMMAND_DEFINITIONS.find(c => c.name === 'weather')).toBeDefined()
   })
 })

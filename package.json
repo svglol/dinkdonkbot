@@ -26,15 +26,18 @@
   },
   "dependencies": {
     "@discordjs/rest": "2.5.1",
+    "date-fns-tz": "^3.2.0",
     "discord-api-types": "0.38.19",
     "discord-interactions": "4.3.0",
     "drizzle-orm": "0.44.4",
-    "itty-router": "5.0.21"
+    "itty-router": "5.0.21",
+    "tz-lookup": "^6.1.25"
   },
   "devDependencies": {
     "@antfu/eslint-config": "5.2.0",
     "@cloudflare/vitest-pool-workers": "0.8.61",
     "@cloudflare/workers-types": "4.20250810.0",
+    "@types/tz-lookup": "^6.1.2",
     "dotenv": "17.2.1",
     "drizzle-kit": "0.31.4",
     "eslint": "9.33.0",
