@@ -30,7 +30,7 @@
     "discord-api-types": "0.38.19",
     "discord-interactions": "4.3.0",
     "drizzle-orm": "0.44.4",
-    "itty-router": "5.0.21",
+    "itty-router": "5.0.22",
     "tz-lookup": "6.1.25"
   },
   "devDependencies": {
