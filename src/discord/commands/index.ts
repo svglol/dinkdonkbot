@@ -3,6 +3,7 @@ import * as emote from './emote'
 import * as help from './help'
 import * as invite from './invite'
 import * as kick from './kick'
+import * as randomemote from './randomemote'
 import * as stealEmote from './stealEmote'
 import * as time from './time'
 import * as timestamp from './timestamp'
@@ -22,6 +23,7 @@ export const COMMANDS = [
   time,
   weather,
   timestamp,
+  randomemote,
 ]
 
 // Registration

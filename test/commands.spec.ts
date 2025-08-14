@@ -45,6 +45,10 @@ describe('commands all have handlers defined', () => {
   it('timestamp', async () => {
     expect(findHandlerByName('timestamp')).toBeDefined()
   })
+
+  it('randomemote', async () => {
+    expect(findHandlerByName('randomemote')).toBeDefined()
+  })
 })
 
 describe('commands all have definitions', () => {
@@ -90,5 +94,9 @@ describe('commands all have definitions', () => {
 
   it('timestamp', async () => {
     expect(COMMAND_DEFINITIONS.find(c => c.name === 'timestamp')).toBeDefined()
+  })
+
+  it('randomemote', async () => {
+    expect(COMMAND_DEFINITIONS.find(c => c.name === 'randomemote')).toBeDefined()
   })
 })
