@@ -42,7 +42,7 @@
     "drizzle-kit": "0.31.4",
     "eslint": "9.33.0",
     "ngrok": "5.0.0-beta.2",
-    "tsx": "4.20.3",
+    "tsx": "4.20.4",
     "typescript": "5.9.2",
     "vitest": "3.2.4",
     "wrangler": "4.28.1"
