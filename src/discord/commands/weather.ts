@@ -78,7 +78,8 @@ async function handleWeatherCommand(interaction: APIApplicationCommandInteractio
       )
       weatherData = await weatherRes.json()
       if (!weatherData.current_weather)
-        throw new Error('Weather data not available')
+        throw new Error(`Unable to fetch weather data from external API for location: \`${displayName}\`\nThis could be an issue with the API, or the location may not be valid.\nPlease try again later.`)
+
       await env.KV.put(weatherCacheKey, JSON.stringify(weatherData), { expirationTtl: 3600 }) // 1 hour
     }
 
@@ -119,9 +120,12 @@ async function handleWeatherCommand(interaction: APIApplicationCommandInteractio
       ],
     })
   }
-  // eslint-disable-next-line unused-imports/no-unused-vars
+
   catch (error: unknown) {
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`Unable to fetch weather for: \`${location}\``, env)] })
+    if (error instanceof Error) {
+      return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(error.message, env)] })
+    }
+    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`Unable to fetch weather for: \`${displayName}\``, env)] })
   }
 }
 
