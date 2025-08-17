@@ -1,4 +1,6 @@
+import { lt, sql } from 'drizzle-orm'
 import { eq, tables, useDB } from '../database/db'
+import { streamMessages } from '../database/schema'
 import { sendMessage } from '../discord/discord'
 import { getKickSubscriptions, getKickUser, kickSubscribe, kickUnsubscribe } from '../kick/kick'
 import { getClipsLastHour, getSubscriptions, getUserbyID, removeFailedSubscriptions, removeSubscription, subscribe } from '../twitch/twitch'
@@ -179,7 +181,7 @@ async function scheduledCheck(env: Env) {
 
     // Clean up any discord messages for kick/twitch that are older than 48h
     const streamMesagesToDelete = await useDB(env).query.streamMessages.findMany({
-      where: (twitchStreamMessages, { sql }) => sql`created_at < ${sql`datetime('now', '-48 hours')`}`,
+      where: lt(streamMessages.createdAt, sql`datetime('now', '-48 hours')`),
     })
 
     useDB(env).transaction(async (tx) => {
