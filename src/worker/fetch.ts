@@ -39,7 +39,6 @@ router.post('/', async (request, env: Env, ctx: ExecutionContext) => {
   )
   if (!isValid || (!interaction && !webhookEvent))
     return new Response('Bad request signature.', { status: 401 })
-
   if (interaction) {
     if (interaction.type === InteractionType.Ping) {
     // The `PING` message is used during the initial webhook handshake, and is
@@ -204,7 +203,7 @@ async function verifyDiscordRequest(request: Request, env: Env) {
 
   const data = JSON.parse(body) as APIInteraction | APIWebhookEvent
 
-  const isWebhookEvent = 'event' in data && !('token' in data)
+  const isWebhookEvent = 'event' in data || ('version' in data && !('token' in data))
   if (isWebhookEvent) {
     const webhookEvent = data as APIWebhookEvent
     return { webhookEvent, isValid: true }
