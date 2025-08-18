@@ -20,15 +20,18 @@ import { buildErrorEmbed, updateInteraction } from './discord'
  */
 export async function discordInteractionHandler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
   if (!interaction.data) {
+    env.ANALYTICS.writeDataPoint({ blobs: ['invalid_interaction'], doubles: [Date.now()] })
     ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] }))
     return interactionEphemeralLoading()
   }
 
   const handler = commands.findHandlerByName(interaction.data.name.toLowerCase())
   if (handler) {
+    env.ANALYTICS.writeDataPoint({ blobs: ['command_used', interaction.data.name], doubles: [Date.now()] })
     return handler(interaction, env, ctx)
   }
   else {
+    env.ANALYTICS.writeDataPoint({ blobs: ['command_not_found', interaction.data.name], doubles: [Date.now()] })
     ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Command not found', env)] }))
     return interactionEphemeralLoading()
   }

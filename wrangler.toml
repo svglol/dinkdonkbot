@@ -34,6 +34,10 @@ class_name = "ChannelState"
 tag = "v1"
 new_classes = [ "ChannelState" ]
 
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "dinkdonk_bot_events"
+
 # [secrets]
 # DISCORD_TOKEN
 # DISCORD_PUBLIC_KEY

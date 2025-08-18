@@ -16,6 +16,7 @@ declare global {
     KICK_CLIENT_SECRET: string
     ACCESS_KEY: string
     CHANNELSTATE: DurableObjectNamespace<ChannelState>
+    ANALYTICS: AnalyticsEngineDataset
   }
 
   interface TwitchToken {
