@@ -1,15 +1,12 @@
-import type { APIInteraction } from 'discord-api-types/v10'
+import type { APIInteraction, APIWebhookEvent } from 'discord-api-types/v10'
 import { Buffer } from 'node:buffer'
 import crypto from 'node:crypto'
-import { InteractionType } from 'discord-api-types/v10'
-import {
-  InteractionResponseType,
-  verifyKey,
-} from 'discord-interactions'
+import { ApplicationIntegrationType, ApplicationWebhookEventType, ApplicationWebhookType, InteractionType } from 'discord-api-types/v10'
+import { InteractionResponseType, verifyKey } from 'discord-interactions'
 import { Router } from 'itty-router'
 import { discordInteractionHandler } from '../discord/interactionHandler'
-import { kickEventHandler } from '../kick/eventHandler'
 
+import { kickEventHandler } from '../kick/eventHandler'
 import { getKickChannelV2 } from '../kick/kick'
 import { twitchEventHandler } from '../twitch/eventHandler'
 import { JsonResponse } from '../util/jsonResponse'
@@ -32,26 +29,51 @@ router.get('/', (request, env: Env) => {
  * Main route for all requests sent from Discord.  All incoming messages will
  * include a JSON payload described here:
  * https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object
+ *
+ * Also processes all discord webhook events
  */
 router.post('/', async (request, env: Env, ctx: ExecutionContext) => {
-  const { isValid, interaction } = await verifyDiscordRequest(
+  const { isValid, interaction, webhookEvent } = await verifyDiscordRequest(
     request,
     env,
   )
-  if (!isValid || !interaction)
+  if (!isValid || (!interaction && !webhookEvent))
     return new Response('Bad request signature.', { status: 401 })
 
-  if (interaction.type === InteractionType.Ping) {
+  if (interaction) {
+    if (interaction.type === InteractionType.Ping) {
     // The `PING` message is used during the initial webhook handshake, and is
     // required to configure the webhook in the developer portal.
-    return new JsonResponse({
-      type: InteractionResponseType.PONG,
-    })
+      return new JsonResponse({
+        type: InteractionResponseType.PONG,
+      })
+    }
+    else if (interaction.type === InteractionType.ApplicationCommand) {
+      return await discordInteractionHandler(interaction, env, ctx)
+    }
   }
-  else if (interaction.type === InteractionType.ApplicationCommand) {
-    return await discordInteractionHandler(interaction, env, ctx)
+  else if (webhookEvent) {
+    if (webhookEvent.type === ApplicationWebhookType.Ping) {
+      return new Response('OK', { status: 200 })
+    }
+    else if (webhookEvent.type === ApplicationWebhookType.Event) {
+      if (webhookEvent.event.type === ApplicationWebhookEventType.ApplicationAuthorized) {
+        if (webhookEvent.event.data.integration_type === ApplicationIntegrationType.GuildInstall) {
+          // added to guild
+          if (webhookEvent.event.data.guild)
+            env.ANALYTICS.writeDataPoint({ blobs: ['guild_install', webhookEvent.event.data.guild.name], doubles: [1], indexes: [webhookEvent.event.data.guild.id] })
+        }
+        else if (webhookEvent.event.data.integration_type === ApplicationIntegrationType.UserInstall) {
+          env.ANALYTICS.writeDataPoint({ blobs: ['user_install', webhookEvent.event.data.user.username], doubles: [1], indexes: [webhookEvent.event.data.user.id] })
+        }
+        return new Response('OK', { status: 200 })
+      }
+      else if (webhookEvent.event.type === ApplicationWebhookEventType.ApplicationDeauthorized) {
+        env.ANALYTICS.writeDataPoint({ blobs: ['user_uninstall', webhookEvent.event.data.user.username], doubles: [1], indexes: [webhookEvent.event.data.user.id] })
+        return new Response('OK', { status: 200 })
+      }
+    }
   }
-
   console.error('Unknown Type')
   return new JsonResponse({ error: 'Unknown Type' }, { status: 400 })
 })
@@ -167,12 +189,10 @@ async function verifyTwitchRequest(request: Request, env: Env) {
 }
 
 /**
- * Verify a request came from Discord, and that it's not a replay attack.
+ * Verifies a request is from Discord by checking the X-Signature-Ed25519 and X-Signature-Timestamp headers.
  * @param request The request to verify
  * @param env The environment variables to use
- * @returns An object with 2 properties: `isValid` and `interaction`
- * - `isValid` will be `true` if the request is valid, and `false` otherwise.
- * - `interaction` will be the parsed JSON payload of the request, or `undefined` if the request is invalid.
+ * @returns An object with two properties: `isValid`, which is `true` if the request is valid, and `interaction` or `webhookEvent`, which is the parsed JSON payload of the request.
  */
 async function verifyDiscordRequest(request: Request, env: Env) {
   const signature = request.headers.get('X-Signature-Ed25519') ?? ''
@@ -182,7 +202,17 @@ async function verifyDiscordRequest(request: Request, env: Env) {
   if (!isValidRequest)
     return { isValid: false }
 
-  return { interaction: JSON.parse(body) as APIInteraction, isValid: true }
+  const data = JSON.parse(body) as APIInteraction | APIWebhookEvent
+
+  const isWebhookEvent = 'event' in data && !('token' in data)
+  if (isWebhookEvent) {
+    const webhookEvent = data as APIWebhookEvent
+    return { webhookEvent, isValid: true }
+  }
+  else {
+    const interaction = data as APIInteraction
+    return { interaction, isValid: true }
+  }
 }
 
 /**
