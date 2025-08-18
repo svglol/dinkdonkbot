@@ -76,16 +76,9 @@ export async function getChannelId(broadcasterLoginName: string, env: Env) {
 
 export async function subscribe(broadcasterUserId: string, env: Env) {
   try {
-    const subscriptionsRes = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
-      headers: {
-        'Client-ID': env.TWITCH_CLIENT_ID,
-        'Authorization': `Bearer ${await getToken(env)}`,
-      },
-    })
-    if (!subscriptionsRes.ok)
-      throw new Error(`Failed to fetch subscriptions: ${JSON.stringify(await subscriptionsRes.json())}`)
-    // check if subscription already exists for stream.online and stream.offline
-    const subscriptions = await subscriptionsRes.json() as SubscriptionResponse
+    const subscriptions = await getSubscriptions(env)
+    if (!subscriptions)
+      throw new Error('Failed to fetch subscriptions')
     const onlineSubscription = subscriptions.data.find(sub => sub.type === 'stream.online' && sub.condition.broadcaster_user_id === broadcasterUserId)
     const offlineSubscription = subscriptions.data.find(sub => sub.type === 'stream.offline' && sub.condition.broadcaster_user_id === broadcasterUserId)
     if (onlineSubscription && offlineSubscription)
