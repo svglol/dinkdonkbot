@@ -1,6 +1,6 @@
 import type { RESTGetAPICurrentUserGuildsResult } from 'discord-api-types/rest'
 import { REST } from '@discordjs/rest'
-import { Routes } from 'discord-api-types/rest'
+import { Routes } from 'discord-api-types/v10'
 import { eq, tables, useDB } from '../database/db'
 import { sendMessage } from '../discord/discord'
 import { getKickSubscriptions, getKickUser, kickSubscribe, kickUnsubscribe } from '../kick/kick'
