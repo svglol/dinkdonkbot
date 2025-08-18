@@ -1,4 +1,4 @@
-import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
+import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIMessageComponentInteraction, APIModalSubmitInteraction } from 'discord-api-types/v10'
 import { InteractionResponseFlags, InteractionResponseType } from 'discord-interactions'
 import { JsonResponse } from '../util/jsonResponse'
 import * as commands from './commands'
@@ -37,6 +37,36 @@ export async function discordInteractionHandler(interaction: APIApplicationComma
   }
 }
 
+export async function discordInteractionAutoCompleteHandler(interaction: APIApplicationCommandAutocompleteInteraction, env: Env, ctx: ExecutionContext) {
+  const handler = commands.findAutoCompleteHandlerByName(interaction.data.name.toLowerCase())
+  if (handler) {
+    return handler(interaction, env, ctx)
+  }
+  else {
+    return new JsonResponse({ error: 'AutoComplete not implemented' }, { status: 400 })
+  }
+}
+
+export async function discordInteractionModalHandler(interaction: APIModalSubmitInteraction, env: Env, ctx: ExecutionContext) {
+  const handler = commands.findModalSubmitHandlerByName(interaction.data.custom_id.toLowerCase())
+  if (handler) {
+    return handler(interaction, env, ctx)
+  }
+  else {
+    return new JsonResponse({ error: 'ModalSubmit not implemented' }, { status: 400 })
+  }
+}
+
+export async function discordInteractionMessageComponentHandler(interaction: APIMessageComponentInteraction, env: Env, ctx: ExecutionContext) {
+  const handler = commands.findMessageComponentHandlerByName(interaction.data.custom_id.toLowerCase())
+  if (handler) {
+    return handler(interaction, env, ctx)
+  }
+  else {
+    return new JsonResponse({ error: 'MessageComponent not implemented' }, { status: 400 })
+  }
+}
+
 /**
  * Returns a deferred interaction response that is ephemeral.
  *
@@ -70,5 +100,11 @@ export function interactionEphemeralLoading() {
 export function interactionLoading() {
   return new JsonResponse({
     type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+  })
+}
+
+export function deferedUpdate() {
+  return new JsonResponse({
+    type: InteractionResponseType.DEFERRED_UPDATE_MESSAGE,
   })
 }

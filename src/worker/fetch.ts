@@ -4,7 +4,7 @@ import crypto from 'node:crypto'
 import { ApplicationIntegrationType, ApplicationWebhookEventType, ApplicationWebhookType, InteractionType } from 'discord-api-types/v10'
 import { InteractionResponseType, verifyKey } from 'discord-interactions'
 import { Router } from 'itty-router'
-import { discordInteractionHandler } from '../discord/interactionHandler'
+import { discordInteractionAutoCompleteHandler, discordInteractionHandler, discordInteractionMessageComponentHandler, discordInteractionModalHandler } from '../discord/interactionHandler'
 
 import { kickEventHandler } from '../kick/eventHandler'
 import { getKickChannelV2 } from '../kick/kick'
@@ -48,7 +48,16 @@ router.post('/', async (request, env: Env, ctx: ExecutionContext) => {
       })
     }
     else if (interaction.type === InteractionType.ApplicationCommand) {
-      return await discordInteractionHandler(interaction, env, ctx)
+      return discordInteractionHandler(interaction, env, ctx)
+    }
+    else if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
+      return discordInteractionAutoCompleteHandler(interaction, env, ctx)
+    }
+    else if (interaction.type === InteractionType.ModalSubmit) {
+      return discordInteractionModalHandler(interaction, env, ctx)
+    }
+    else if (interaction.type === InteractionType.MessageComponent) {
+      return discordInteractionMessageComponentHandler(interaction, env, ctx)
     }
   }
   else if (webhookEvent) {

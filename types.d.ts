@@ -1,3 +1,4 @@
+import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIMessageComponentInteraction, APIModalSubmitInteraction, RESTPostAPIApplicationCommandsJSONBody } from 'discord-api-types/v10'
 import type { ChannelState } from './durable/ChannelState'
 
 declare global {
@@ -453,8 +454,11 @@ declare global {
   }
 
   export interface DiscordAPIApplicationCommand {
-    command: APIApplicationCommand
+    command: RESTPostAPIApplicationCommandsJSONBody
     handler: (interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) => Promise<Response> | Response
+    autoCompleteHandler?: (interaction: APIApplicationCommandAutocompleteInteraction, env: Env, ctx: ExecutionContext) => Promise<Response>
+    modalSubmitHandlers?: Record<string, (interaction: APIModalSubmitInteraction, env: Env, ctx: ExecutionContext) => Promise<Response>>
+    messageComponentHandlers?: Record<string, (interaction: APIMessageComponentInteraction, env: Env, ctx: ExecutionContext) => Promise<Response>>
   }
 }
 

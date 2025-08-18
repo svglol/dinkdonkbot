@@ -1,4 +1,4 @@
-import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
+import type { APIApplicationCommandInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
 import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
 import { and, eq, like } from 'drizzle-orm'
 import { tables, useDB } from '../../database/db'
@@ -69,6 +69,27 @@ const TWITCH_CLIPS_COMMAND = {
     dm_permission: false,
   }],
 }
+
+export const CLIPS_HELP_MESSAGE = `</clips add:1348090120418361426> <streamer> <discord-channel>  
+Add a Twitch streamer to receive clip notifications when they go live or offline.  
+\`<streamer>\` – The name of the streamer to add  
+\`<discord-channel>\` – The Discord channel to post to when the streamer goes live  
+
+</clips remove:1348090120418361426> <streamer>  
+Remove a Twitch streamer from receiving clip notifications.  
+\`<streamer>\` – The name of the streamer to remove  
+
+</clips edit:1348090120418361426><streamer> <discord-channel>  
+Edit the notification channel for a Twitch streamer.  
+\`<streamer>\` – The name of the streamer to edit  
+\`<discord-channel>\` – The new Discord channel to post notifications for the streamer  
+
+</clips list:1348090120418361426>
+List all the Twitch streamers you are subscribed to for clip notifications.  
+
+</clips help:1348090120418361426>
+Get this help message for clip notifications commands.
+`
 
 function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
   ctx.waitUntil(handleTwitchClipsCommand(interaction, env))
@@ -207,38 +228,32 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(clipsList, env, { title: `<:twitch:1404661243373031585> Clip Notifications` })] })
     }
     case 'help': {
-      const embed = {
-        title: '<a:CLIPPERS:1357111588644982997> Available Commands for Clip Notifications',
-        description: '',
-        color: 0x00EA5E9,
-        fields: [
+      const helpCard = {
+        type: 17,
+        accent_color: 0xFFF200,
+        components: [
           {
-            name: '/clips add <streamer> <discord-channel>',
-            value: 'Add a Twitch streamer to receive clip notifications when they go live or offline.\n<streamer> - The name of the streamer to add\n<discord-channel> - The Discord channel to post to when the streamer goes live',
-          },
-          {
-            name: '/clips remove <streamer>',
-            value: 'Remove a Twitch streamer from receiving clip notifications.\n<streamer> - The name of the streamer to remove',
-          },
-          {
-            name: '/clips edit <streamer> <discord-channel>',
-            value: 'Edit the notification channel for a Twitch streamer.\n<streamer> - The name of the streamer to edit\n<discord-channel> - The new Discord channel to post notifications for the streamer',
-          },
-          {
-            name: '/clips list',
-            value: 'List all the Twitch streamers you are subscribed to for clip notifications.',
-          },
-          {
-            name: '/clips help',
-            value: 'Get this help message for clip notifications commands.',
+            type: 9,
+            components: [
+              {
+                type: 10,
+                content: '# <a:CLIPPERS:1357111588644982997> Available Commands for Clip Notifications',
+              },
+              {
+                type: 10,
+                content: CLIPS_HELP_MESSAGE,
+              },
+            ],
+            accessory: {
+              type: 11,
+              media: {
+                url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
+              },
+            },
           },
         ],
-        footer: {
-          text: 'DinkDonk Bot',
-          icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
-        },
-      }
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
+      } satisfies APIMessageTopLevelComponent
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { components: [helpCard], flags: 1 << 15 })
     }
   }
 }

@@ -1,4 +1,4 @@
-import type { APIApplicationCommandInteraction, APIEmbed } from 'discord-api-types/v10'
+import type { APIApplicationCommandInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
 import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
 import { fetch7tvEmoteImageBuffer, fetchEmoteImageBuffer, fetchSingular7tvEmote } from '../../util/emote'
 import { buildErrorEmbed, buildSuccessEmbed, fetchGuildEmojis, updateInteraction, uploadEmoji } from '../discord'
@@ -31,6 +31,16 @@ const EMOTE_COMMAND = {
     },
   ],
 }
+
+export const EMOTE_HELP_MESSAGE = `</emote add:1348421861339304067>  
+Add an emote from another Discord server or 7tv  
+
+</emote help:1348421861339304067>  
+Show this help message  
+
+**Context Menu -> Apps -> Steal Emote**  
+Use this option to take an emote directly from someone else's message and add it to your server
+`
 
 function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
   ctx.waitUntil(handleEmoteCommand(interaction, env))
@@ -121,30 +131,32 @@ async function handleEmoteCommand(interaction: APIApplicationCommandInteraction,
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
     }
     case 'help': {
-      const embed = {
-        title: '🥳 Emote Command Help',
-        description: 'All commands and related information for the emote command',
-        color: 0xFFF200,
-        fields: [
+      const helpCard = {
+        type: 17,
+        accent_color: 0xFFF200,
+        components: [
           {
-            name: '</emote add:1348421861339304067>',
-            value: 'Add an emote from another discord server or 7tv',
-          },
-          {
-            name: '</emote help:1348421861339304067>',
-            value: 'Show this help message',
-          },
-          {
-            name: 'Context Menu -> Apps -> Steal Emote',
-            value: 'Use this option to take an emote directly from someone else\'s message and add it to your server',
+            type: 9,
+            components: [
+              {
+                type: 10,
+                content: '# 🥳 Emote Command Help',
+              },
+              {
+                type: 10,
+                content: EMOTE_HELP_MESSAGE,
+              },
+            ],
+            accessory: {
+              type: 11,
+              media: {
+                url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
+              },
+            },
           },
         ],
-        footer: {
-          text: 'DinkDonk Bot',
-          icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
-        },
-      } satisfies APIEmbed
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
+      } satisfies APIMessageTopLevelComponent
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { components: [helpCard], flags: 1 << 15 })
     }
   }
 

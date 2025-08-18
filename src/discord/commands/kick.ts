@@ -1,4 +1,4 @@
-import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
+import type { APIApplicationCommandInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
 import type { StreamMessage } from '../../database/db'
 import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
 import { and, eq, like } from 'drizzle-orm'
@@ -135,6 +135,45 @@ const KICK_COMMAND = {
     },
   ],
 }
+
+export const KICK_HELP_MESSAGE = `</kick add:1398833401888378910> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>  
+Add a Kick streamer to receive notifications for going online or offline  
+\`<streamer>\` – The name of the streamer to add  
+\`<discord-channel>\` – The Discord channel to post to when the streamer goes live  
+\`<ping-role>\` – What role to @ when the streamer goes live  
+\`<live-message>\` – The message to post when the streamer goes live  
+\`<offline-message>\` – The message to post when the streamer goes offline  
+\`<cleanup>\` – Delete notification once the streamer goes offline  
+
+</kick edit:1398833401888378910> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>  
+Edit a Kick streamer’s settings  
+
+</kick remove:1398833401888378910> <streamer>  
+Remove a Kick streamer from receiving notifications for going online or offline  
+
+</kick list:1398833401888378910>  
+List the Kick streamers that you are subscribed to  
+
+</kick test:1398833401888378910> <streamer> <global>  
+Test the notification for a streamer  
+\`<global>\` – Whether to send the message to everyone or not  
+
+</kick details:1398833401888378910> <streamer>  
+Show the details for a streamer you are subscribed to  
+
+</kick help:1398833401888378910>  
+Get this help message  
+
+**Message variables**  
+\`\`\`
+{{name}}       = the name of the streamer
+{{url}}        = the url for the stream
+{{everyone}}   = @everyone
+{{here}}       = @here
+{{game}}/{{category}} = the game or category of the stream (live only)
+{{timestamp}}  = the time the stream started/ended
+\`\`\`
+`
 
 function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
   ctx.waitUntil(handleKickCommand(interaction, env))
@@ -414,55 +453,35 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(message, env, { title: `<:kick:1404661261030916246> Kick streamer details` })] })
     }
     case 'help': {
-      const embed = {
-        title: '<:kick:1404661261030916246> Available commands',
-        description: '',
-        color: 0x53FC18,
-        fields: [
+      const helpCard = {
+        type: 17,
+        accent_color: 0xFFF200,
+        components: [
           {
-            name: '</kick add:1398833401888378910> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>',
-            value: 'Add a Kick streamer to receive notifications for going online or offline\n<streamer> - The name of the streamer to add \n<discord-channel> - The Discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline\n<cleanup> - Delete notification once the streamer goes offline',
+            type: 9,
+            components: [
+              {
+                type: 10,
+                content: '# <:kick:1404661261030916246> Available commands',
+              },
+              {
+                type: 10,
+                content: KICK_HELP_MESSAGE,
+              },
+            ],
+            accessory: {
+              type: 11,
+              media: {
+                url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
+              },
+            },
           },
-          {
-            name: '</kick edit:1398833401888378910><streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>',
-            value: 'Edit a Kick streamer\'s settings\n<streamer> - The name of the streamer to edit \n<discord-channel> - The Discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline\n<cleanup> - Delete notification once the streamer goes offline',
-          },
-          {
-            name: '</kick remove:1398833401888378910> <streamer>',
-            value: 'Remove a Kick streamer from receiving notifications for going online or offline\n<streamer> - The name of the streamer to remove',
-          },
-          {
-            name: '</kick list:1398833401888378910>',
-            value: 'List the Kick streamers that you are subscribed to',
-          },
-          {
-            name: '</kick test:1398833401888378910> <streamer> <global>',
-            value: 'Test the notification for a streamer\n<streamer> - The name of the streamer to test\n<global> - Whether to send the message to everyone or not',
-          },
-          {
-            name: '</kick details:1398833401888378910> <streamer>',
-            value: 'Show the details for a streamer you are subscribed to\n<streamer> - The name of the streamer to show',
-          },
-          {
-            name: '</kick help:1398833401888378910>',
-            value: 'Get this help message',
-          },
-          {
-            name: 'Message variables',
-            value: '```{{name}} = the name of the streamer\n{{url}} = the url for the stream\n{{everyone}} = @everyone\n{{here}} = @here\n{{game}} or {{category}} = the game or category of the stream - only works on live message\n{{timestamp}} = the time the stream started/ended\n```',
-          },
-
         ],
-        footer: {
-          text: 'DinkDonk Bot',
-          icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
-        },
-      }
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
+      } satisfies APIMessageTopLevelComponent
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { components: [helpCard], flags: 1 << 15 })
     }
   }
-
-  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Unknown command', env)] })
+  return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid command', env)] })
 }
 
 export default {

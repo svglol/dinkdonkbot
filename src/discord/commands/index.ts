@@ -11,7 +11,7 @@ import * as twitch from './twitch'
 import * as twitchClips from './twitchClips'
 import * as weather from './weather'
 
-export const COMMANDS = [
+export const COMMANDS: Array<{ default: DiscordAPIApplicationCommand }> = [
   dinkdonk,
   invite,
   help,
@@ -32,4 +32,16 @@ export const COMMAND_DEFINITIONS = COMMANDS.map(c => c.default.command)
 // Handler lookup
 export function findHandlerByName(name: string) {
   return COMMANDS.find(c => c.default.command.name.toLowerCase() === name.toLowerCase())?.default.handler
+}
+
+export function findModalSubmitHandlerByName(name: string) {
+  return COMMANDS.map(c => c.default.modalSubmitHandlers?.[name.toLowerCase()]).find(Boolean)
+}
+
+export function findAutoCompleteHandlerByName(name: string) {
+  return COMMANDS.find(c => c.default.command.name.toLowerCase() === name.toLowerCase())?.default.autoCompleteHandler
+}
+
+export function findMessageComponentHandlerByName(name: string) {
+  return COMMANDS.map(c => c.default.messageComponentHandlers?.[name.toLowerCase()]).find(Boolean)
 }

@@ -1,4 +1,4 @@
-import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
+import type { APIApplicationCommandInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
 import type { StreamMessage } from '../../database/db'
 import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
 import { and, eq, like } from 'drizzle-orm'
@@ -127,6 +127,45 @@ const TWITCH_COMMAND = {
     dm_permission: false,
   }],
 }
+
+export const TWITCH_HELP_MESSAGE = `</twitch add:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>  
+Add a Twitch streamer to receive notifications for going online or offline  
+\`<streamer>\` – The name of the streamer to add  
+\`<discord-channel>\` – The Discord channel to post to when the streamer goes live  
+\`<ping-role>\` – What role to @ when the streamer goes live  
+\`<live-message>\` – The message to post when the streamer goes live  
+\`<offline-message>\` – The message to post when the streamer goes offline  
+\`<cleanup>\` – Delete notifications once the streamer goes offline  
+
+</twitch edit:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>  
+Edit a Twitch streamer’s settings  
+
+</twitch remove:1227872472049782919> <streamer>  
+Remove a Twitch streamer from receiving notifications for going online or offline  
+
+</twitch list:1227872472049782919>  
+List the Twitch streamers that you are subscribed to  
+
+</twitch test:1227872472049782919> <streamer> <global>  
+Test the notification for a streamer  
+\`<global>\` – Whether to send the message to everyone or not  
+
+</twitch details:1227872472049782919> <streamer>  
+Show the details for a streamer you are subscribed to  
+
+</twitch help:1227872472049782919>  
+Get this help message  
+
+**Message variables**  
+\`\`\`
+{{name}}       = the name of the streamer
+{{url}}        = the url for the stream
+{{everyone}}   = @everyone
+{{here}}       = @here
+{{game}}/{{category}} = the game or category of the stream (live only)
+{{timestamp}}  = the time the stream started/ended
+\`\`\`
+`
 
 function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
   ctx.waitUntil(handleTwitchCommand(interaction, env))
@@ -409,52 +448,35 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(message, env, { title: '<:twitch:1404661243373031585> Twitch Stream Notification Details' })] })
     }
     case 'help': {
-      const embed = {
-        title: '<:twitch:1404661243373031585> Available commands',
-        description: '',
-        color: 0x6441A4,
-        fields: [
+      const helpCard = {
+        type: 17,
+        accent_color: 0xFFF200,
+        components: [
           {
-            name: '</twitch add:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>',
-            value: 'Add a Twitch streamer to receive notifications for going online or offline\n<streamer> - The name of the streamer to add \n<discord-channel> - The discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline\n<cleanup> - Delete notifications once the streamer goes offline',
-          },
-          {
-            name: '</twitch edit:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>',
-            value: 'Edit a Twitch streamer\'s settings\n<streamer> - The name of the streamer to edit \n<discord-channel> - The discord channel to post to when the streamer goes live\n<ping-role> - What role to @ when the streamer goes live\n<live-message> - The message to post when the streamer goes live\n<offline-message> - The message to post when the streamer goes offline\n<cleanup> - Delete notifications once the streamer goes offline',
-          },
-          {
-            name: '</twitch remove:1227872472049782919> <streamer>',
-            value: 'Remove a Twitch streamer from receiving notifications for going online or offline\n<streamer> - The name of the streamer to remove',
-          },
-          {
-            name: '</twitch list:1227872472049782919>',
-            value: 'List the twitch streamers that you are subscribed to',
-          },
-          {
-            name: '</twitch test:1227872472049782919> <streamer> <global>',
-            value: 'Test the notification for a streamer \n<streamer> - The name of the streamer to test \n<global> - Whether to send the message to everyone or not',
-          },
-          {
-            name: '</twitch details:1227872472049782919> <streamer>',
-            value: 'Show the details for a streamer you are subscribed to\n<streamer> - The name of the streamer to show',
-          },
-          {
-            name: '</twitch help:1227872472049782919>',
-            value: 'Get this help message',
-          },
-          {
-            name: 'Message variables',
-            value: '```{{name}} = the name of the streamer\n{{url}} = the url for the stream\n{{everyone}} = @everyone\n{{here}} = @here\n{{game}} or {{category}} = the game or category of the stream - only works on live message\n{{timestamp}} = the time the stream started/ended\n```',
+            type: 9,
+            components: [
+              {
+                type: 10,
+                content: '# <:twitch:1404661243373031585> Available commands',
+              },
+              {
+                type: 10,
+                content: TWITCH_HELP_MESSAGE,
+              },
+            ],
+            accessory: {
+              type: 11,
+              media: {
+                url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
+              },
+            },
           },
         ],
-        footer: {
-          text: 'DinkDonk Bot',
-          icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
-        },
-      }
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [embed] })
+      } satisfies APIMessageTopLevelComponent
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { components: [helpCard], flags: 1 << 15 })
     }
   }
+  return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid command', env)] })
 }
 
 export default {
