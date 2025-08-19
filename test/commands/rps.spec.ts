@@ -13,6 +13,7 @@ describe('rps', () => {
   })
   it('should have a message component handler defined', () => {
     expect(findMessageComponentHandlerByName('rps_move_select')).toBeDefined()
+    expect(findMessageComponentHandlerByName('rps_rematch')).toBeDefined()
   })
   it('should not have a autocomplete handler defined', () => {
     expect(findAutoCompleteHandlerByName('rps')).toBeUndefined()
