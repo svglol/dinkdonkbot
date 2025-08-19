@@ -1,12 +1,13 @@
 import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
 import { isContextMenuApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
+import { StickerFormatType } from 'discord-api-types/v10'
 import { fetchEmoteImageBuffer } from '../../util/emote'
-import { buildErrorEmbed, buildSuccessEmbed, fetchGuildEmojis, updateInteraction, uploadEmoji } from '../discord'
+import { buildErrorEmbed, buildSuccessEmbed, fetchGuildEmojis, updateInteraction, uploadEmoji, uploadSticker } from '../discord'
 import { interactionEphemeralLoading } from '../interactionHandler'
 import { COMMAND_PERMISSIONS } from './permissions'
 
 const STEAL_EMOTE_COMMAND = {
-  name: 'Steal Emote',
+  name: 'Steal Emote/Sticker',
   type: 3,
   default_member_permissions: COMMAND_PERMISSIONS.MANAGE_EMOJIS_AND_STICKERS,
   dm_permission: false,
@@ -49,12 +50,12 @@ async function handleStealEmoteCommand(interaction: APIApplicationCommandInterac
     return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Could not find the message to steal an emote from', env)] })
   }
   const emote = message.content.match(/<a?:\w+:\d+>/)?.[0]
-
-  if (!emote) {
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Could not find an emote to steal in the provided message', env)] })
+  const sticker = message.sticker_items && message.sticker_items.length > 0 ? message.sticker_items[0] : undefined
+  if (!emote && !sticker) {
+    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Could not find an emote or sticker in the message to steal', env)] })
   }
 
-  if (emote.startsWith('<a:') || emote.startsWith('<:')) {
+  if (emote && (emote.startsWith('<a:') || emote.startsWith('<:'))) {
     const isAnimated = emote.startsWith('<a:')
     const content = isAnimated ? emote.slice(3, -1) : emote.slice(2, -1)
     const [name, id] = content.split(':')
@@ -78,6 +79,36 @@ async function handleStealEmoteCommand(interaction: APIApplicationCommandInterac
       const imageBuffer = await fetchEmoteImageBuffer(emoteUrl)
       const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, cleanName, imageBuffer)
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`Emote added: <${isAnimated ? 'a' : ''}:${cleanName}:${discordEmote.id}>`, env)] })
+    }
+    catch (error) {
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`${error}`, env)] })
+    }
+  }
+  else if (sticker) {
+    try {
+      let extension: string
+      switch (sticker.format_type) {
+        case StickerFormatType.PNG:
+          extension = 'png'
+          break
+        case StickerFormatType.APNG:
+          extension = 'png'
+          break
+        case StickerFormatType.GIF:
+          extension = 'gif'
+          break
+        case StickerFormatType.Lottie:
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+            embeds: [buildErrorEmbed(`Lottie stickers cannot be stolen or re-uploaded.`, env)],
+          })
+        default:
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+            embeds: [buildErrorEmbed(`Unsupported sticker format.`, env)],
+          })
+      }
+      const imageBuffer = await fetchEmoteImageBuffer(`https://media.discordapp.net/stickers/${sticker.id}.${extension}`)
+      const discordSticker = await uploadSticker(interaction.guild_id, env.DISCORD_TOKEN, sticker.name, imageBuffer, extension, sticker.name, sticker.name)
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`Sticker added: \`${discordSticker.name}\``, env)] })
     }
     catch (error) {
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`${error}`, env)] })

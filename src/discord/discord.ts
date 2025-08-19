@@ -1,6 +1,7 @@
-import type { APIButtonComponent, APIEmbed, APIInteraction, APIMessage, APIMessageTopLevelComponent, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult } from 'discord-api-types/v10'
+import type { APIButtonComponent, APIEmbed, APIInteraction, APIMessage, APIMessageTopLevelComponent, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
 import type { StreamMessage } from '../database/db'
 import { DiscordAPIError, REST } from '@discordjs/rest'
+
 import { Routes } from 'discord-api-types/v10'
 
 import { eq, tables, useDB } from '../database/db'
@@ -151,6 +152,47 @@ export async function uploadEmoji(guildId: string, discordToken: string, emojiNa
       }
     }
     throw new Error(`Failed to upload emoji- ${error}`)
+  }
+}
+
+// eslint-disable-next-line node/prefer-global/buffer
+export async function uploadSticker(guildId: string, discordToken: string, stickerName: string, imageBuffer: Buffer<ArrayBufferLike>, imageExtension: string, description = 'stolen sticker', tags = 'stolen') {
+  try {
+    const form = new FormData()
+    form.append('name', stickerName)
+    form.append('description', description)
+    form.append('tags', tags)
+    const file = new File([imageBuffer], `${stickerName}.${imageExtension}`, {
+      type: `image/${imageExtension}`,
+    })
+    form.append('file', file)
+
+    const rest = new REST({ version: '10' }).setToken(discordToken)
+    const sticker = await rest.post(Routes.guildStickers(guildId), {
+      body: form,
+      passThroughBody: true,
+    }) as RESTPostAPIGuildStickerResult
+
+    return sticker
+  }
+  catch (error: any | DiscordAPIError) {
+    if (error instanceof DiscordAPIError) {
+      switch (error.status) {
+        case 400:
+          if (error.code === 30039) {
+            throw new Error(`Maximum number of stickers reached on this server.`)
+          }
+          break
+        case 403:
+          if (error.code === 50013) {
+            throw new Error(`The bot does not have permission to upload stickers to this server.`)
+          }
+          break
+        case 429:
+          throw new Error(`You have reached the rate limit for uploading stickers, Discord only allows 50 sticker uploads per hour.`)
+      }
+    }
+    throw new Error(`Failed to upload sticker - ${error}`)
   }
 }
 
