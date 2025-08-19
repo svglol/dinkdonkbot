@@ -70,26 +70,16 @@ const TWITCH_CLIPS_COMMAND = {
   }],
 }
 
-export const CLIPS_HELP_MESSAGE = `</clips add:1348090120418361426> <streamer> <discord-channel>  
-Add a Twitch streamer to receive clip notifications when they go live or offline.  
-\`<streamer>\` – The name of the streamer to add  
-\`<discord-channel>\` – The Discord channel to post to when the streamer goes live  
-
-</clips remove:1348090120418361426> <streamer>  
-Remove a Twitch streamer from receiving clip notifications.  
-\`<streamer>\` – The name of the streamer to remove  
-
-</clips edit:1348090120418361426><streamer> <discord-channel>  
-Edit the notification channel for a Twitch streamer.  
-\`<streamer>\` – The name of the streamer to edit  
-\`<discord-channel>\` – The new Discord channel to post notifications for the streamer  
-
-</clips list:1348090120418361426>
-List all the Twitch streamers you are subscribed to for clip notifications.  
-
-</clips help:1348090120418361426>
-Get this help message for clip notifications commands.
-`
+export const CLIPS_HELP_MESSAGE = `- </clips add:1348090120418361426> <streamer> <discord-channel> - Add a Twitch streamer to receive clip notifications when they go live or offline.  
+- </clips remove:1348090120418361426> <streamer> - Remove a Twitch streamer from receiving clip notifications.
+- </clips edit:1348090120418361426><streamer> <discord-channel> - Edit the notification channel for a Twitch streamer.
+- </clips list:1348090120418361426> - List all the Twitch streamers you are subscribed to for clip notifications.  
+- </clips help:1348090120418361426> - Get this help message for clip notifications commands.
+**Command variables**
+\`\`\`
+<streamer> – The name of the streamer to add  
+<discord-channel> – The Discord channel to post to when the streamer goes live  
+\`\`\``
 
 function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
   ctx.waitUntil(handleTwitchClipsCommand(interaction, env))

@@ -136,34 +136,22 @@ const KICK_COMMAND = {
   ],
 }
 
-export const KICK_HELP_MESSAGE = `</kick add:1398833401888378910> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>  
-Add a Kick streamer to receive notifications for going online or offline  
-\`<streamer>\` – The name of the streamer to add  
-\`<discord-channel>\` – The Discord channel to post to when the streamer goes live  
-\`<ping-role>\` – What role to @ when the streamer goes live  
-\`<live-message>\` – The message to post when the streamer goes live  
-\`<offline-message>\` – The message to post when the streamer goes offline  
-\`<cleanup>\` – Delete notification once the streamer goes offline  
-
-</kick edit:1398833401888378910> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>  
-Edit a Kick streamer’s settings  
-
-</kick remove:1398833401888378910> <streamer>  
-Remove a Kick streamer from receiving notifications for going online or offline  
-
-</kick list:1398833401888378910>  
-List the Kick streamers that you are subscribed to  
-
-</kick test:1398833401888378910> <streamer> <global>  
-Test the notification for a streamer  
-\`<global>\` – Whether to send the message to everyone or not  
-
-</kick details:1398833401888378910> <streamer>  
-Show the details for a streamer you are subscribed to  
-
-</kick help:1398833401888378910>  
-Get this help message  
-
+export const KICK_HELP_MESSAGE = `- </kick add:1398833401888378910> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Add a Kick streamer to receive notifications for going online or offline
+- </kick edit:1398833401888378910> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Edit a Kick streamer’s settings  
+- </kick remove:1398833401888378910> <streamer> - Remove a Kick streamer from receiving notifications for going online or offline  
+- </kick list:1398833401888378910> - List the Kick streamers that you are subscribed to  
+- </kick test:1398833401888378910> <streamer> <global> - Test the notification for a streamer
+- </kick details:1398833401888378910> <streamer> - Show the details for a streamer you are subscribed to  
+- </kick help:1398833401888378910> - Get this help message  
+**Command variables**
+\`\`\`
+<streamer> – The name of the streamer to add  
+<discord-channel> – The Discord channel to post to when the streamer goes live  
+<ping-role> – What role to @ when the streamer goes live  
+<live-message> – The message to post when the streamer goes live  
+<offline-message> – The message to post when the streamer goes offline  
+<cleanup> – Delete notifications once the streamer goes offline  
+\`\`\`
 **Message variables**  
 \`\`\`
 {{name}}       = the name of the streamer

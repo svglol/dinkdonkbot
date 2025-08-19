@@ -32,14 +32,9 @@ const EMOTE_COMMAND = {
   ],
 }
 
-export const EMOTE_HELP_MESSAGE = `</emote add:1348421861339304067>  
-Add an emote from another Discord server or 7tv  
-
-</emote help:1348421861339304067>  
-Show this help message  
-
-**Context Menu -> Apps -> Steal Emote**  
-Use this option to take an emote directly from someone else's message and add it to your server
+export const EMOTE_HELP_MESSAGE = `- </emote add:1348421861339304067> - Add an emote from another Discord server or 7tv  
+- </emote help:1348421861339304067> - Show this help message  
+- \`Context Menu -> Apps -> Steal Emote\` - Use this option to take an emote directly from someone else's message and add it to your server
 `
 
 function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {

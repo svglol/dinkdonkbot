@@ -37,12 +37,12 @@ ${CLIPS_HELP_MESSAGE}`,
   page_emotes: `## 🥳 **Emote Management**
 ${EMOTE_HELP_MESSAGE}`,
   page_misc: `## 🎉 **Misc Commands**
-</help:1404682388671430707> - Show this help message
-</invite:1227872472049782918> - Generate an invite link to add DinkDonk Bot to another Discord server
-</time:1405377555464196206> - Get the current time for a location
-</weather:1405377555464196207> - Get the current weather for a location
-</timestamp:1405390830742671433> - Create a Discord timestamp for a specific date/time and UTC offset
-</dinkdonk:1348444759286353951> - Get DinkDonked`,
+- </help:1404682388671430707> - Show this help message
+- </invite:1227872472049782918> - Generate an invite link to add DinkDonk Bot to another Discord server
+- </time:1405377555464196206> - Get the current time for a location
+- </weather:1405377555464196207> - Get the current weather for a location
+- </timestamp:1405390830742671433> - Create a Discord timestamp for a specific date/time and UTC offset
+- </dinkdonk:1348444759286353951> - Get DinkDonked`,
   page_support:
 `## ❓ **Support**
 If you have any issues, open a [GitHub issue](https://github.com/svglol/dinkdonkbot/issues/new/choose).

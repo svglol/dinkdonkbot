@@ -128,34 +128,23 @@ const TWITCH_COMMAND = {
   }],
 }
 
-export const TWITCH_HELP_MESSAGE = `</twitch add:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>  
-Add a Twitch streamer to receive notifications for going online or offline  
-\`<streamer>\` – The name of the streamer to add  
-\`<discord-channel>\` – The Discord channel to post to when the streamer goes live  
-\`<ping-role>\` – What role to @ when the streamer goes live  
-\`<live-message>\` – The message to post when the streamer goes live  
-\`<offline-message>\` – The message to post when the streamer goes offline  
-\`<cleanup>\` – Delete notifications once the streamer goes offline  
-
-</twitch edit:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup>  
-Edit a Twitch streamer’s settings  
-
-</twitch remove:1227872472049782919> <streamer>  
-Remove a Twitch streamer from receiving notifications for going online or offline  
-
-</twitch list:1227872472049782919>  
-List the Twitch streamers that you are subscribed to  
-
-</twitch test:1227872472049782919> <streamer> <global>  
-Test the notification for a streamer  
+export const TWITCH_HELP_MESSAGE = `- </twitch add:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Add a Twitch streamer to receive notifications for going online or offline
+- </twitch edit:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Edit a Twitch streamer’s settings  
+- </twitch remove:1227872472049782919> <streamer> - Remove a Twitch streamer from receiving notifications for going online or offline  
+- </twitch list:1227872472049782919> - List the Twitch streamers that you are subscribed to  
+- </twitch test:1227872472049782919> <streamer> <global> - Test the notification for a streamer  
 \`<global>\` – Whether to send the message to everyone or not  
-
-</twitch details:1227872472049782919> <streamer>  
-Show the details for a streamer you are subscribed to  
-
-</twitch help:1227872472049782919>  
-Get this help message  
-
+- </twitch details:1227872472049782919> <streamer> - Show the details for a streamer you are subscribed to  
+- </twitch help:1227872472049782919> - Get this help message  
+**Command variables**
+\`\`\`
+<streamer> – The name of the streamer to add  
+<discord-channel> – The Discord channel to post to when the streamer goes live  
+<ping-role> – What role to @ when the streamer goes live  
+<live-message> – The message to post when the streamer goes live  
+<offline-message> – The message to post when the streamer goes offline  
+<cleanup> – Delete notifications once the streamer goes offline  
+\`\`\`
 **Message variables**  
 \`\`\`
 {{name}}       = the name of the streamer
