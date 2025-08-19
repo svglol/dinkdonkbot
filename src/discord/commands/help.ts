@@ -19,7 +19,7 @@ Get notifications when Twitch streamers go live or offline. Includes add, edit, 
 ### <:kick:1404661261030916246> Kick Stream Alerts
 Get notifications when Kick streamers go live or offline. Includes add, edit, remove, list, test, details, and help commands.
 ### 📺 Multistream Alerts
-If you subscribe to a Twitch and Kick streamer of the same name and in the same discord channel, they will be merged into one message to help reduce spam
+If you subscribe to a Twitch and Kick streamer of the same name and in the same discord channel, they will be merged into one message to help reduce spam.
 ### <a:CLIPPERS:1357111588644982997> Twitch Clip Alerts
 Get notifications for Twitch clips from your favorite streamers. Includes add, remove, edit, list, and help commands.
 ### 🥳 Emote Management
