@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { COMMAND_DEFINITIONS, findHandlerByName } from '../src/discord/commands'
+import { COMMAND_DEFINITIONS, findAutoCompleteHandlerByName, findHandlerByName, findMessageComponentHandlerByName } from '../src/discord/commands'
 
 describe('commands all have handlers defined', () => {
   it('dinkdonk', async () => {
@@ -31,7 +31,7 @@ describe('commands all have handlers defined', () => {
   })
 
   it('stealEmote', async () => {
-    expect(findHandlerByName('steal emote')).toBeDefined()
+    expect(findHandlerByName('steal emote/sticker')).toBeDefined()
   })
 
   it('time', async () => {
@@ -81,7 +81,7 @@ describe('commands all have definitions', () => {
   })
 
   it('stealEmote', async () => {
-    expect(COMMAND_DEFINITIONS.find(c => c.name === 'Steal Emote')).toBeDefined()
+    expect(COMMAND_DEFINITIONS.find(c => c.name === 'Steal Emote/Sticker')).toBeDefined()
   })
 
   it('time', async () => {
@@ -98,5 +98,35 @@ describe('commands all have definitions', () => {
 
   it('randomemote', async () => {
     expect(COMMAND_DEFINITIONS.find(c => c.name === 'randomemote')).toBeDefined()
+  })
+})
+
+describe('commands have autocomplete handlers', () => {
+  it('twitch', async () => {
+    expect(findAutoCompleteHandlerByName('twitch')).toBeDefined()
+  })
+
+  it('kick', async () => {
+    expect(findAutoCompleteHandlerByName('kick')).toBeDefined()
+  })
+
+  it('clips', async () => {
+    expect(findAutoCompleteHandlerByName('clips')).toBeDefined()
+  })
+
+  it('timestamp', async () => {
+    expect(findAutoCompleteHandlerByName('timestamp')).toBeDefined()
+  })
+})
+
+describe('commands have message component handlers', () => {
+  it('help', async () => {
+    expect(findMessageComponentHandlerByName('help_page_select')).toBeDefined()
+  })
+})
+
+describe('commands have modal submit handlers', () => {
+  it('should have no tests defined', () => {
+    expect(true).toBe(true)
   })
 })
