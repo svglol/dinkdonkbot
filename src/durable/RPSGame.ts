@@ -330,7 +330,7 @@ export class RPSGame extends DurableObject {
           {
             type: 2,
             custom_id: 'rps_rematch',
-            label: 'Rematch',
+            label: 'Keep Playing?',
             style: 1,
             emoji: { name: '🔁' },
           },
