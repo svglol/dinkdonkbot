@@ -8,10 +8,18 @@ import { Buffer } from 'node:buffer'
  * @throws If the image could not be fetched.
  */
 export async function fetchEmoteImageBuffer(url: string): Promise<Buffer> {
-  const response = await fetch(url)
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+          + '(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+      'Accept': 'application/json',
+    },
+  })
 
   if (!response.ok)
-    throw new Error(`Failed to fetch emote from discord: ${response.status}`)
+    throw new Error(`Failed to fetch emote/sticker from discord: ${response.status}`)
 
   const arrayBuffer = await response.arrayBuffer()
 
