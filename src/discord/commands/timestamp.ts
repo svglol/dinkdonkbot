@@ -1,8 +1,8 @@
-import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
+import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction } from 'discord-api-types/v10'
 import { fromZonedTime } from 'date-fns-tz'
 import { isChatInputApplicationCommandInteraction } from 'discord-api-types/utils'
 import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '../discord'
-import { interactionEphemeralLoading } from '../interactionHandler'
+import { autoCompleteResponse, interactionEphemeralLoading } from '../interactionHandler'
 
 const TIMESTAMP_COMMAND = {
   name: 'timestamp',
@@ -25,6 +25,7 @@ const TIMESTAMP_COMMAND = {
       name: 'utc_offset',
       description: 'UTC offset (e.g., UTC+0, UTC+5, UTC-5)',
       required: true,
+      autocomplete: true,
     },
     {
       type: 3,
@@ -106,7 +107,53 @@ async function handleTimestampCommand(interaction: APIApplicationCommandInteract
   })
 }
 
+async function autoCompleteHandler(interaction: APIApplicationCommandAutocompleteInteraction, _env: Env, _ctx: ExecutionContext) {
+  const utcOptions = [
+    { name: 'UTC-12', value: 'UTC-12' },
+    { name: 'UTC-11', value: 'UTC-11' },
+    { name: 'UTC-10', value: 'UTC-10' },
+    { name: 'UTC-9', value: 'UTC-9' },
+    { name: 'UTC-8', value: 'UTC-8' },
+    { name: 'UTC-7', value: 'UTC-7' },
+    { name: 'UTC-6', value: 'UTC-6' },
+    { name: 'UTC-5', value: 'UTC-5' },
+    { name: 'UTC-4', value: 'UTC-4' },
+    { name: 'UTC-3', value: 'UTC-3' },
+    { name: 'UTC-2', value: 'UTC-2' },
+    { name: 'UTC-1', value: 'UTC-1' },
+    { name: 'UTC+0', value: 'UTC+0' },
+    { name: 'UTC+1', value: 'UTC+1' },
+    { name: 'UTC+2', value: 'UTC+2' },
+    { name: 'UTC+3', value: 'UTC+3' },
+    { name: 'UTC+4', value: 'UTC+4' },
+    { name: 'UTC+5', value: 'UTC+5' },
+    { name: 'UTC+6', value: 'UTC+6' },
+    { name: 'UTC+7', value: 'UTC+7' },
+    { name: 'UTC+8', value: 'UTC+8' },
+    { name: 'UTC+9', value: 'UTC+9' },
+    { name: 'UTC+10', value: 'UTC+10' },
+    { name: 'UTC+11', value: 'UTC+11' },
+    { name: 'UTC+12', value: 'UTC+12' },
+  ]
+  if (interaction.data.options.find(option => option.name === 'utc_offset')) {
+    const utcOption = interaction.data.options.find(option => option.name === 'utc_offset')
+    if (!utcOption || !('value' in utcOption) || !('focused' in utcOption)) {
+      return autoCompleteResponse([])
+    }
+
+    if (utcOption.focused) {
+      const query = String(utcOption.value).toLowerCase()
+      const filtered = utcOptions.filter(opt =>
+        opt.name.toLowerCase().includes(query.replace(/^utc/, '')),
+      )
+      return autoCompleteResponse(filtered)
+    }
+  }
+  return autoCompleteResponse([])
+}
+
 export default {
   command: TIMESTAMP_COMMAND,
   handler,
+  autoCompleteHandler,
 } satisfies DiscordAPIApplicationCommand
