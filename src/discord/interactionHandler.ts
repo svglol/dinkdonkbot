@@ -37,6 +37,20 @@ export async function discordInteractionHandler(interaction: APIApplicationComma
   }
 }
 
+/**
+ * Handles an autocomplete interaction from Discord.
+ *
+ * If the interaction is an autocomplete interaction, it checks the command name
+ * and dispatches to the appropriate handler.  If the interaction is not an
+ * autocomplete interaction, or if the command does not have a handler, it
+ * returns a 400 error response.
+ *
+ * @param interaction The interaction object from Discord.
+ * @param env The environment variables from Cloudflare.
+ * @param ctx The context object from Cloudflare.
+ *
+ * @returns A response to Discord, or a promise that resolves to one.
+ */
 export async function discordInteractionAutoCompleteHandler(interaction: APIApplicationCommandAutocompleteInteraction, env: Env, ctx: ExecutionContext) {
   const handler = commands.findAutoCompleteHandlerByName(interaction.data.name.toLowerCase())
   if (handler) {
@@ -47,6 +61,20 @@ export async function discordInteractionAutoCompleteHandler(interaction: APIAppl
   }
 }
 
+/**
+ * Handles a modal submit interaction from Discord.
+ *
+ * If the interaction is a modal submit, it checks the custom ID and
+ * dispatches to the appropriate handler.  If the interaction is not a
+ * modal submit, or if the custom ID does not have a handler, it returns a
+ * 400 error response.
+ *
+ * @param interaction The interaction object from Discord.
+ * @param env The environment variables from Cloudflare.
+ * @param ctx The context object from Cloudflare.
+ *
+ * @returns A response to Discord, or a promise that resolves to one.
+ */
 export async function discordInteractionModalHandler(interaction: APIModalSubmitInteraction, env: Env, ctx: ExecutionContext) {
   const handler = commands.findModalSubmitHandlerByName(interaction.data.custom_id.toLowerCase())
   if (handler) {
@@ -57,6 +85,20 @@ export async function discordInteractionModalHandler(interaction: APIModalSubmit
   }
 }
 
+/**
+ * Handles a message component interaction from Discord.
+ *
+ * If the interaction is a message component, it checks the custom ID and
+ * dispatches to the appropriate handler.  If the interaction is not a message
+ * component, or if the custom ID does not have a handler, it returns a 400
+ * error response.
+ *
+ * @param interaction The interaction object from Discord.
+ * @param env The environment variables from Cloudflare.
+ * @param ctx The context object from Cloudflare.
+ *
+ * @returns A response to Discord, or a promise that resolves to one.
+ */
 export async function discordInteractionMessageComponentHandler(interaction: APIMessageComponentInteraction, env: Env, ctx: ExecutionContext) {
   const handler = commands.findMessageComponentHandlerByName(interaction.data.custom_id.toLowerCase())
   if (handler) {
@@ -103,6 +145,18 @@ export function interactionLoading() {
   })
 }
 
+/**
+ * Returns a deferred interaction response that is a message update.
+ *
+ * A deferred message update is one that will be sent to the channel
+ * that the user invoked the interaction in, but will not be sent immediately.
+ * Instead, the interaction will be acknowledged, and the message will be
+ * updated later.  This is useful for commands that are potentially expensive
+ * or that return a large amount of data, as it allows the user to see the
+ * response without spamming the channel.
+ *
+ * @returns A deferred interaction response that is a message update.
+ */
 export function deferedUpdate() {
   return new JsonResponse({
     type: InteractionResponseType.DEFERRED_UPDATE_MESSAGE,
