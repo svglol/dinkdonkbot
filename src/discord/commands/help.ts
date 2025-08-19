@@ -118,7 +118,7 @@ async function handleHelpCommand(interaction: APIMessageComponentInteraction | A
         components: [
           {
             type: 10,
-            content: '# <a:DinkDonk:1357111617787002962> DinkDonk Bot Help',
+            content: '# DinkDonk Bot Help',
           },
           {
             type: 10,
