@@ -57,6 +57,7 @@ const TWITCH_COMMAND = {
       name: 'streamer',
       description: 'The name of the streamer to remove',
       required: true,
+      autocomplete: true,
     }],
   }, {
     type: 1,
