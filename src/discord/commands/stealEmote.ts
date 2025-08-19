@@ -106,7 +106,7 @@ async function handleStealEmoteCommand(interaction: APIApplicationCommandInterac
             embeds: [buildErrorEmbed(`Unsupported sticker format.`, env)],
           })
       }
-      const imageBuffer = await fetchEmoteImageBuffer(`https://media.discordapp.net/stickers/${sticker.id}.${extension}`)
+      const imageBuffer = await fetchEmoteImageBuffer(`https://cdn.discordapp.com/stickers/${sticker.id}.${extension}`)
       const discordSticker = await uploadSticker(interaction.guild_id, env.DISCORD_TOKEN, sticker.name, imageBuffer, extension, sticker.name, sticker.name)
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`Sticker added: \`${discordSticker.name}\``, env)] })
     }
