@@ -350,13 +350,13 @@ export class RPSGame extends DurableObject {
       else if (!this.playerAChoice) {
         containerComponents.push({
           type: 10,
-          content: `😴 <@${this.playerA} fell asleep at the keyboard!"`,
+          content: `😴 <@${this.playerA}> fell asleep at the keyboard!`,
         })
       }
       else if (!this.playerBChoice) {
         containerComponents.push({
           type: 10,
-          content: `😴 <@${this.playerB} fell asleep at the keyboard!"`,
+          content: `😴 <@${this.playerB}> fell asleep at the keyboard!`,
         })
       }
     }
