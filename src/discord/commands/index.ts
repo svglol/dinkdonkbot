@@ -5,6 +5,7 @@ import * as help from './help'
 import * as invite from './invite'
 import * as kick from './kick'
 import * as randomemote from './randomemote'
+import * as roll from './roll'
 import * as rps from './rps'
 import * as stealEmote from './stealEmote'
 import * as time from './time'
@@ -28,6 +29,7 @@ export const COMMANDS: Array<{ default: DiscordAPIApplicationCommand }> = [
   randomemote,
   coinflip,
   rps,
+  roll,
 ]
 
 // Registration
