@@ -24,6 +24,8 @@ If you subscribe to a Twitch and Kick streamer of the same name and in the same 
 Get notifications for Twitch clips from your favorite streamers. Includes add, remove, edit, list, and help commands.
 ### 🥳 Emote Management
 Manage emotes in your server. Add emotes from other servers or 7tv, and use the context menu to steal emotes.
+### 🎉 Misc Commands
+Various utility commands to help you interact with the bot, including time, weather, invites, fun interactions, and generating timestamps.
 ### ❓ Support
 Links to the website, GitHub repository, and ways to support the bot.`,
   page_twitch: `## <:twitch:1404661243373031585> **Twitch Stream Alerts**
@@ -34,6 +36,13 @@ ${KICK_HELP_MESSAGE}`,
 ${CLIPS_HELP_MESSAGE}`,
   page_emotes: `## 🥳 **Emote Management**
 ${EMOTE_HELP_MESSAGE}`,
+  page_misc: `## 🎉 **Misc Commands**
+\`/help\` - Show this help message
+\`/invite\` - Generate an invite link to add DinkDonk Bot to another Discord server
+\`/time\` - Get the current time for a location
+\`/dinkdonk\` - Get DinkDonked
+\`/weather\` - Get the current weather for a location
+\`/timestamp\` - Create a Discord timestamp for a specific date/time and UTC offset`,
   page_support:
 `## ❓ **Support**
 If you have any issues, open a [GitHub issue](https://github.com/svglol/dinkdonkbot/issues/new/choose).
@@ -60,6 +69,7 @@ async function handleHelpCommand(interaction: APIMessageComponentInteraction | A
           { label: 'Kick Alerts', value: 'page_kick' },
           { label: 'Twitch Clips', value: 'page_clips' },
           { label: 'Emote Management', value: 'page_emotes' },
+          { label: 'Misc Commands', value: 'page_misc' },
           { label: 'Support', value: 'page_support' },
         ],
       },
