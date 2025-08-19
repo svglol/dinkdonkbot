@@ -45,7 +45,7 @@ ${EMOTE_HELP_MESSAGE}`,
 - </dinkdonk:1348444759286353951> - Get DinkDonked
 - </randomemote:1405395336763019335> - Post a random emote from your server
 - </coinflip:1407262584649814066> - Flip a coin
-- </rps:1407262584649814067> - Play a game of rock, paper, scissors against another user`,
+- </rps:1407312970903457903> - Play a game of rock, paper, scissors against another user`,
   page_support:
 `## ❓ **Support**
 If you have any issues, open a [GitHub issue](https://github.com/svglol/dinkdonkbot/issues/new/choose).

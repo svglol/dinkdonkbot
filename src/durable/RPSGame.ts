@@ -193,7 +193,7 @@ export class RPSGame extends DurableObject {
       return deferedUpdate()
 
     if (interaction.member.user.id !== this.playerB && interaction.member.user.id !== this.playerA) {
-      this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This is not your game!\n If you want to challenge someone else, use the </rps:1407262584649814066> command', this.env)] }))
+      this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This is not your game!\n If you want to challenge someone else, use the </rps:1407312970903457903> command', this.env)] }))
       return interactionEphemeralLoading()
     }
 
@@ -241,7 +241,7 @@ export class RPSGame extends DurableObject {
     if (!interaction.data || !isMessageComponentInteraction(interaction))
       return deferedUpdate()
     if (interaction.member.user.id !== this.playerB && interaction.member.user.id !== this.playerA) {
-      this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This is not your game!\n If you want to challenge someone else, use the </rps:1407262584649814066> command', this.env)] }))
+      this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This is not your game!\n If you want to challenge someone else, use the </rps:1407312970903457903> command', this.env)] }))
       return interactionEphemeralLoading()
     }
 
