@@ -1,3 +1,4 @@
+import * as coinflip from './coinflip'
 import * as dinkdonk from './dinkdonk'
 import * as emote from './emote'
 import * as help from './help'
@@ -24,6 +25,7 @@ export const COMMANDS: Array<{ default: DiscordAPIApplicationCommand }> = [
   weather,
   timestamp,
   randomemote,
+  coinflip,
 ]
 
 // Registration
