@@ -465,3 +465,28 @@ export async function getUserbyID(userId: string, env: Env) {
     console.error('Error fetching user by ID:', error)
   }
 }
+
+export async function searchStreamers(query: string, env: Env, limit = 25) {
+  if (!query || query.length === 0)
+    return []
+  try {
+    const res = await fetch(`https://api.twitch.tv/helix/search/channels?query=${encodeURIComponent(query)}&first=${limit}`, {
+      headers: {
+        'Client-ID': env.TWITCH_CLIENT_ID,
+        'Authorization': `Bearer ${await getToken(env)}`,
+      },
+    })
+
+    if (!res.ok) {
+      throw new Error(`Failed to search streamers: ${JSON.stringify(await res.json())}`)
+    }
+
+    const data = await res.json() as { data: Array<{ id: string, display_name: string }> }
+
+    return data.data
+  }
+  catch (error) {
+    console.error('Error searching streamers:', error)
+    return []
+  }
+}

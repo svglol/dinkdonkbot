@@ -57,7 +57,7 @@ export async function discordInteractionAutoCompleteHandler(interaction: APIAppl
     return handler(interaction, env, ctx)
   }
   else {
-    return new JsonResponse({ error: 'AutoComplete not implemented' }, { status: 400 })
+    return autoCompleteResponse([])
   }
 }
 
@@ -160,5 +160,21 @@ export function interactionLoading() {
 export function deferedUpdate() {
   return new JsonResponse({
     type: InteractionResponseType.DEFERRED_UPDATE_MESSAGE,
+  })
+}
+
+/**
+ * Returns an autocomplete response for a Discord interaction.
+ *
+ * @param options The options to include in the response.
+ *
+ * @returns A response to Discord, or a promise that resolves to one.
+ */
+export function autoCompleteResponse(options: { name: string, value: string }[]) {
+  return new JsonResponse({
+    type: InteractionResponseType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT,
+    data: {
+      choices: options.slice(0, 25),
+    },
   })
 }

@@ -1,10 +1,10 @@
-import type { APIApplicationCommandInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
+import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
 import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
 import { and, eq, like } from 'drizzle-orm'
 import { tables, useDB } from '../../database/db'
-import { getChannelId, getStreamerDetails } from '../../twitch/twitch'
+import { getChannelId, getStreamerDetails, searchStreamers } from '../../twitch/twitch'
 import { buildErrorEmbed, buildSuccessEmbed, checkChannelPermission, updateInteraction } from '../discord'
-import { interactionEphemeralLoading } from '../interactionHandler'
+import { autoCompleteResponse, interactionEphemeralLoading } from '../interactionHandler'
 import { COMMAND_PERMISSIONS } from './permissions'
 
 const TWITCH_CLIPS_COMMAND = {
@@ -22,6 +22,7 @@ const TWITCH_CLIPS_COMMAND = {
       name: 'streamer',
       description: 'The name of the Twitch streamer to subscribe to',
       required: true,
+      autocomplete: true,
     }, {
       type: 7,
       name: 'discord-channel',
@@ -39,6 +40,7 @@ const TWITCH_CLIPS_COMMAND = {
       name: 'streamer',
       description: 'The name of the Twitch streamer to unsubscribe from',
       required: true,
+      autocomplete: true,
     }],
   }, {
     type: 1,
@@ -50,6 +52,7 @@ const TWITCH_CLIPS_COMMAND = {
       name: 'streamer',
       description: 'The name of the Twitch streamer to update',
       required: true,
+      autocomplete: true,
     }, {
       type: 7,
       name: 'discord-channel',
@@ -248,7 +251,89 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
   }
 }
 
+async function autoCompleteHandler(interaction: APIApplicationCommandAutocompleteInteraction, env: Env, _ctx: ExecutionContext) {
+  if (!isGuildInteraction(interaction))
+    return autoCompleteResponse([])
+  const guildId = interaction.guild_id
+  if (interaction.data.options.find(option => option.name === 'remove') || interaction.data.options.find(option => option.name === 'edit')) {
+  // auto correct for remove and edit sub commands
+    const subCommand = interaction.data.options.find(option => option.name === 'remove') || interaction.data.options.find(option => option.name === 'edit')
+    if (!subCommand || !('options' in subCommand) || !subCommand.options)
+      return autoCompleteResponse([])
+    const streamerOption = subCommand.options.find(option => option.name === 'streamer')
+    if (!streamerOption || !('value' in streamerOption) || !('focused' in streamerOption))
+      return autoCompleteResponse([])
+
+    if (streamerOption.focused) {
+      // we can auto complete the streamer field
+      const input = streamerOption.value.toLowerCase()
+      const cacheKey = `autocomplete:${guildId}:clips:${subCommand.name}:${input}`
+
+      // Try KV cache
+      const cached = await env.KV.get(cacheKey, { type: 'json' }) as { name: string, value: string }[] | null
+      if (cached)
+        return autoCompleteResponse(cached)
+
+      const streamers = await useDB(env).query.clips.findMany({
+        where: (clips, { and, eq, like }) => and(eq(clips.guildId, guildId), like(clips.streamer, `%${streamerOption.value}%`)),
+      })
+      const choices = streamers
+        .map(stream => ({ name: stream.streamer, value: stream.streamer }))
+        .sort((a, b) => {
+          if (a.name.toLowerCase() === input.toLowerCase() && b.name.toLowerCase() !== input.toLowerCase()) {
+            return -1
+          }
+          if (b.name.toLowerCase() === input.toLowerCase() && a.name.toLowerCase() !== input.toLowerCase()) {
+            return 1
+          }
+          return a.name.localeCompare(b.name)
+        })
+      await env.KV.put(cacheKey, JSON.stringify(choices), { expirationTtl: 60 })
+      return autoCompleteResponse(choices)
+    }
+  }
+  if (interaction.data.options.find(option => option.name === 'add')) {
+    // auto complete for add sub command (this one searches for streamers on twitch)
+    const subCommand = interaction.data.options.find(option => option.name === 'add')
+    if (!subCommand || !('options' in subCommand) || !subCommand.options)
+      return autoCompleteResponse([])
+    const streamerOption = subCommand.options.find(option => option.name === 'streamer')
+    if (!streamerOption || !('value' in streamerOption) || !('focused' in streamerOption))
+      return autoCompleteResponse([])
+
+    if (streamerOption.focused) {
+      // we can auto complete the streamer field
+      const input = streamerOption.value.toLowerCase()
+      const cacheKey = `autocomplete:${guildId}:clips:${subCommand.name}:${input}`
+
+      // Try KV cache
+      const cached = await env.KV.get(cacheKey, { type: 'json' }) as { name: string, value: string }[] | null
+      if (cached)
+        return autoCompleteResponse(cached)
+
+      const streamers = await searchStreamers(input, env)
+
+      const choices = streamers
+        .map(stream => ({ name: stream.display_name, value: stream.display_name }))
+        .sort((a, b) => {
+          if (a.name.toLowerCase() === input.toLowerCase() && b.name.toLowerCase() !== input.toLowerCase()) {
+            return -1
+          }
+          if (b.name.toLowerCase() === input.toLowerCase() && a.name.toLowerCase() !== input.toLowerCase()) {
+            return 1
+          }
+          return a.name.localeCompare(b.name)
+        })
+      await env.KV.put(cacheKey, JSON.stringify(choices), { expirationTtl: 60 })
+
+      return autoCompleteResponse(choices)
+    }
+  }
+  return autoCompleteResponse([])
+}
+
 export default {
   command: TWITCH_CLIPS_COMMAND,
   handler,
+  autoCompleteHandler,
 } satisfies DiscordAPIApplicationCommand
