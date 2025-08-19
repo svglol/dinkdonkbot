@@ -13,7 +13,7 @@ const HELP_COMMAND = {
 }
 
 const helpPages: Record<string, string> = {
-  page_index: `## Help Overview
+  page_index: `## 📖 Help Overview
 ### <:twitch:1404661243373031585> Twitch Stream Alerts
 Get notifications when Twitch streamers go live or offline. Includes add, edit, remove, list, test, details, and help commands.
 ### <:kick:1404661261030916246> Kick Stream Alerts
@@ -64,13 +64,13 @@ async function handleHelpCommand(interaction: APIMessageComponentInteraction | A
         custom_id: 'help_page_select',
         placeholder: 'Select a help page',
         options: [
-          { label: 'Overview', value: 'page_index' },
-          { label: 'Twitch Alerts', value: 'page_twitch' },
-          { label: 'Kick Alerts', value: 'page_kick' },
-          { label: 'Twitch Clips', value: 'page_clips' },
-          { label: 'Emote Management', value: 'page_emotes' },
-          { label: 'Misc Commands', value: 'page_misc' },
-          { label: 'Support', value: 'page_support' },
+          { label: 'Overview', value: 'page_index', emoji: { name: '📖' } },
+          { label: 'Twitch Alerts', value: 'page_twitch', emoji: { id: '1404661243373031585', name: 'twitch' } },
+          { label: 'Kick Alerts', value: 'page_kick', emoji: { id: '1404661261030916246', name: 'kick' } },
+          { label: 'Twitch Clips', value: 'page_clips', emoji: { id: '1357111588644982997', name: 'CLIPPERS' } },
+          { label: 'Emote Management', value: 'page_emotes', emoji: { name: '🥳' } },
+          { label: 'Misc Commands', value: 'page_misc', emoji: { name: '🎉' } },
+          { label: 'Support', value: 'page_support', emoji: { name: '❓' } },
         ],
       },
     ],
@@ -118,7 +118,7 @@ async function handleHelpCommand(interaction: APIMessageComponentInteraction | A
         components: [
           {
             type: 10,
-            content: '# DinkDonk Bot Help',
+            content: '# <a:DinkDonk:1357111617787002962> DinkDonk Bot Help',
           },
           {
             type: 10,
