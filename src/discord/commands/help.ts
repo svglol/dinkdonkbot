@@ -46,7 +46,8 @@ ${EMOTE_HELP_MESSAGE}`,
 - </randomemote:1405395336763019335> - Post a random emote from your server
 - </coinflip:1407262584649814066> - Flip a coin
 - </rps:1407312970903457903> - Play a game of rock, paper, scissors against another user
-- </roll:1407494568366047252> - Roll dice`,
+- </roll:1407494568366047252> - Roll dice
+- </hangman:1407585217257934929> - Play a game of hangman with the community`,
   page_support:
 `## ❓ **Support**
 If you have any issues, open a [GitHub issue](https://github.com/svglol/dinkdonkbot/issues/new/choose).
