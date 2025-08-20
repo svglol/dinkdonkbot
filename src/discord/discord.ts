@@ -19,7 +19,7 @@ import { formatDuration } from '../util/formatDuration'
  */
 export async function sendMessage(channelId: string, discordToken: string, body: RESTPostAPIChannelMessageJSONBody, env: Env) {
   try {
-    const rest = new REST({ version: '10' }).setToken(discordToken)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
     const message = await rest.post(Routes.channelMessages(channelId), {
       body,
     }) as RESTPostAPIChannelMessageResult
@@ -53,7 +53,7 @@ export async function sendMessage(channelId: string, discordToken: string, body:
  */
 export async function updateMessage(channelId: string, messageId: string, discordToken: string, body: RESTPatchAPIChannelMessageJSONBody) {
   try {
-    const rest = new REST({ version: '10' }).setToken(discordToken)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
     const message = await rest.patch(Routes.channelMessage(channelId, messageId), {
       body,
     }) as RESTPatchAPIChannelMessageResult
@@ -76,7 +76,7 @@ export async function updateMessage(channelId: string, messageId: string, discor
  */
 export async function deleteMessage(channelId: string, messageId: string, discordToken: string) {
   try {
-    const rest = new REST({ version: '10' }).setToken(discordToken)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
     await rest.delete(Routes.channelMessage(channelId, messageId))
   }
   catch (error: unknown) {
@@ -88,14 +88,13 @@ export async function deleteMessage(channelId: string, messageId: string, discor
  * Updates the original response message for a Discord interaction.
  *
  * @param interaction The interaction object containing the token to identify the interaction.
- * @param discordApplicationId The ID of the Discord application.
+ * @param dicordApplicationId The ID of the Discord application.
  * @param body The new content of the message as a DiscordBody object.
  * @throws If there is an error updating the interaction.
  */
-
 export async function updateInteraction(interaction: APIInteraction, dicordApplicationId: string, body: RESTPatchAPIChannelMessageJSONBody) {
   try {
-    const rest = new REST({ version: '10' }).setToken(interaction.token)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(interaction.token)
     const updatedInteraction = await rest.patch(Routes.webhookMessage(dicordApplicationId, interaction.token, '@original'), {
       body,
     }) as APIMessage
@@ -121,7 +120,7 @@ export async function updateInteraction(interaction: APIInteraction, dicordAppli
 // eslint-disable-next-line node/prefer-global/buffer
 export async function uploadEmoji(guildId: string, discordToken: string, emojiName: string, imageBuffer: Buffer) {
   try {
-    const rest = new REST({ version: '10' }).setToken(discordToken)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
     const emoji = await rest.post(Routes.guildEmojis(guildId), {
       body: {
         name: emojiName,
@@ -167,7 +166,7 @@ export async function uploadSticker(guildId: string, discordToken: string, stick
     })
     form.append('file', file)
 
-    const rest = new REST({ version: '10' }).setToken(discordToken)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
     const sticker = await rest.post(Routes.guildStickers(guildId), {
       body: form,
       passThroughBody: true,
@@ -252,7 +251,7 @@ export function messageBuilder(message: string, streamName: string, game?: strin
  */
 export async function checkChannelPermission(channelId: string, discordToken: string) {
   try {
-    const rest = new REST({ version: '10' }).setToken(discordToken)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
     const channel = await rest.get(Routes.channel(channelId)) as RESTGetAPIChannelResult
     if (channel)
       return true
@@ -274,7 +273,7 @@ export async function checkChannelPermission(channelId: string, discordToken: st
  */
 export async function fetchGuildEmojis(guildId: string, discordToken: string) {
   try {
-    const rest = new REST({ version: '10' }).setToken(discordToken)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
     const emojis = await rest.get(Routes.guildEmojis(guildId)) as RESTGetAPIGuildEmojisResult
     return emojis
   }
