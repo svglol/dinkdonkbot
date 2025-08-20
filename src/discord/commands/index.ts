@@ -1,12 +1,13 @@
-import * as coinflip from './coinflip'
 import * as dinkdonk from './dinkdonk'
 import * as emote from './emote'
+import * as coinflip from './games/coinflip'
+import * as hangman from './games/hangman'
+import * as roll from './games/roll'
+import * as rps from './games/rps'
 import * as help from './help'
 import * as invite from './invite'
 import * as kick from './kick'
 import * as randomemote from './randomemote'
-import * as roll from './roll'
-import * as rps from './rps'
 import * as stealEmote from './stealEmote'
 import * as time from './time'
 import * as timestamp from './timestamp'
@@ -30,6 +31,7 @@ export const COMMANDS: Array<{ default: DiscordAPIApplicationCommand }> = [
   coinflip,
   rps,
   roll,
+  hangman,
 ]
 
 // Registration

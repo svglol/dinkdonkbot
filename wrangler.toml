@@ -34,6 +34,10 @@ class_name = "ChannelState"
 name = "RPSGAME"
 class_name = "RPSGame"
 
+[[durable_objects.bindings]]
+name = "HANGMANGAME"
+class_name = "HangmanGame"
+
 [[migrations]]
 tag = "v1"
 new_classes = [ "ChannelState" ]
@@ -41,6 +45,10 @@ new_classes = [ "ChannelState" ]
 [[migrations]]
 tag = "v2"
 new_classes = [ "RPSGame" ]
+
+[[migrations]]
+tag = "v3"
+new_classes = [ "HangmanGame" ]
 
 [[analytics_engine_datasets]]
 binding = "ANALYTICS"

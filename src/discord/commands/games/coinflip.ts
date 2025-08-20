@@ -1,6 +1,6 @@
 import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
-import { updateInteraction } from '../discord'
-import { interactionLoading } from '../interactionHandler'
+import { updateInteraction } from '../../discord'
+import { interactionLoading } from '../../interactionHandler'
 
 const COINFLIP_COMMAND = {
   name: 'coinflip',

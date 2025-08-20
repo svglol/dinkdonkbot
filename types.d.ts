@@ -1,5 +1,6 @@
 import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIMessageComponentInteraction, APIModalSubmitInteraction, RESTPostAPIApplicationCommandsJSONBody } from 'discord-api-types/v10'
 import type { ChannelState } from './durable/ChannelState'
+import type { HangmanGame } from './durable/HangmanGame'
 import type { RPSGame } from './durable/RPSGame'
 
 declare global {
@@ -20,6 +21,7 @@ declare global {
     CHANNELSTATE: DurableObjectNamespace<ChannelState>
     ANALYTICS: AnalyticsEngineDataset
     RPSGAME: DurableObjectNamespace<RPSGame>
+    HANGMANGAME: DurableObjectNamespace<HangmanGame>
   }
 
   interface TwitchToken {

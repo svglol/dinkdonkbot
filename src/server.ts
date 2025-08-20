@@ -1,4 +1,5 @@
 import { ChannelState } from './durable/ChannelState'
+import { HangmanGame } from './durable/HangmanGame'
 import { RPSGame } from './durable/RPSGame'
 import fetch from './worker/fetch'
 import scheduled from './worker/scheduled'
@@ -9,4 +10,4 @@ const server = {
 } satisfies ExportedHandler<Env>
 
 export default server
-export { ChannelState, RPSGame }
+export { ChannelState, HangmanGame, RPSGame }
