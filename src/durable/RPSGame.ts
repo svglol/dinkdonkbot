@@ -81,7 +81,7 @@ export class RPSGame extends DurableObject {
         alarmScheduled: this.alarmScheduled,
       }
 
-      await this.state.storage.put('channelState', stateToSave)
+      await this.state.storage.put('RPSGame', stateToSave)
     }
     catch (error) {
       console.error('Failed to save state:', error)
