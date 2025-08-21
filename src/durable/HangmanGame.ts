@@ -314,16 +314,81 @@ export class HangmanGame extends DurableObject {
         return '\\_'
       }).join('')
 
-      if (displayPhrase === this.phrase || this.guesses.some(g => g.guess.toUpperCase() === this.phrase?.toUpperCase())) {
+      const phraseWon = this.guesses.some(g => g.guess.toUpperCase() === this.phrase?.toUpperCase())
+      const lettersWon = displayPhrase === this.phrase
+      const gameWon = phraseWon || lettersWon
+      if (gameWon) {
         // If the user has guessed the phrase correctly, show a success message
+        // Show the revealed phrase
         containerComponents.push({
           type: 10,
           content: `## ${this.phrase}`,
         })
-        containerComponents.push({
-          type: 10,
-          content: '### 🎉 Congratulations! You guessed the phrase!',
-        })
+
+        // Find the winning move
+        let winningMove = null
+        if (phraseWon) {
+        // Someone guessed the whole phrase
+          winningMove = this.guesses.find(g => g.guess.toUpperCase() === this.phrase?.toUpperCase())
+        }
+        else {
+        // Game was won by completing all letters - find the last letter that completed it
+          const requiredLetters = [...new Set(this.phrase.replace(/[^A-Z]/g, '').split(''))]
+          const correctLetterGuesses = this.guesses.filter(g =>
+            g.guess.length === 1 && this.phrase?.includes(g.guess.toUpperCase()),
+          )
+
+          // Find which letter completed the word
+          for (let i = correctLetterGuesses.length - 1; i >= 0; i--) {
+            const guessesUpToThis = correctLetterGuesses.slice(0, i + 1)
+            const guessedLettersUpToThis = guessesUpToThis.map(g => g.guess.toUpperCase())
+
+            if (requiredLetters.every(letter => guessedLettersUpToThis.includes(letter))) {
+              winningMove = correctLetterGuesses[i]
+              break
+            }
+          }
+        }
+
+        // Show winning move
+        if (winningMove) {
+          containerComponents.push({
+            type: 10,
+            content: `### 🎉 <@${winningMove.userId}> won the game with **${winningMove.guess}**!`,
+          })
+        }
+        else {
+          containerComponents.push({
+            type: 10,
+            content: '### 🎉 Congratulations! You guessed the phrase!',
+          })
+        }
+
+        // Show all contributors who helped
+        const correctLetters = this.guesses.filter(g =>
+          g.guess.length === 1 && this.phrase?.includes(g.guess.toUpperCase()),
+        )
+        const correctPhrases = this.guesses.filter(g =>
+          g.guess.length > 1 && g.guess.toUpperCase() === this.phrase?.toUpperCase(),
+        )
+
+        const allContributors = [...correctLetters, ...correctPhrases]
+        const contributorIds = [
+          ...new Set(
+            allContributors
+              .map(g => g.userId)
+              .filter(id => !winningMove || id !== winningMove.userId),
+          ),
+        ]
+
+        if (contributorIds.length > 1) {
+          const contributorList = contributorIds.map(id => `<@${id}>`).join(', ')
+
+          containerComponents.push({
+            type: 10,
+            content: `**🤝 Team Effort!** Thanks to: ${contributorList}`,
+          })
+        }
       }
       else if (this.wrongGuesses >= this.maxWrongGuesses) {
         // If the user has run out of lives, show a failure message
