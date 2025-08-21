@@ -54,7 +54,7 @@ async function roll(interaction: APIApplicationCommandInteraction, env: Env) {
 
   const userID = interaction.member?.user?.id || interaction.user?.id
 
-  const content = `🎲 <@${userID}> rolled ${diceCount}d${sides}: **${rolls.map(r => `${r}/${sides}`).join(' ')}** (total: ${rolls.reduce((a, b) => a + b, 0)})`
+  const content = `🎲 <@${userID}> rolled ${diceCount}d${sides}: **${rolls.map(r => `${r}/${sides}`).join(' ')}**${diceCount > 1 ? ` (total: ${rolls.reduce((a, b) => a + b, 0)})` : ''}`
 
   return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content })
 }
