@@ -1,4 +1,4 @@
-import type { APIButtonComponent, APIEmbed, APIInteraction, APIMessage, APIMessageTopLevelComponent, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
+import type { APIButtonComponent, APIEmbed, APIInteraction, APIMessage, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
 import type { StreamMessage } from '../database/db'
 import { DiscordAPIError, REST } from '@discordjs/rest'
 
@@ -279,6 +279,18 @@ export async function fetchGuildEmojis(guildId: string, discordToken: string) {
   }
   catch (error: unknown) {
     throw new Error(`Failed to fetch guild emojis ${error}`)
+  }
+}
+
+export async function fetchBotCommands(discordToken: string, env: Env) {
+  try {
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
+    const commands = await rest.get(Routes.applicationCommands(env.DISCORD_APPLICATION_ID)) as RESTGetAPIApplicationCommandsResult
+    return commands
+  }
+  catch (error: unknown) {
+    console.error('Failed to fetch bot commands:', error)
+    return []
   }
 }
 

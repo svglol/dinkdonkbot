@@ -1,3 +1,4 @@
+import * as commands from './commands'
 import * as dinkdonk from './dinkdonk'
 import * as emote from './emote'
 import * as coinflip from './games/coinflip'
@@ -32,6 +33,7 @@ export const COMMANDS: Array<{ default: DiscordAPIApplicationCommand }> = [
   rps,
   roll,
   hangman,
+  commands,
 ]
 
 // Registration
