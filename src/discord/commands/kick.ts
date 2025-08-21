@@ -1,17 +1,17 @@
 import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
 import type { StreamMessage } from '../../database/db'
 import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
+import { PermissionFlagsBits } from 'discord-api-types/v10'
 import { and, eq, like } from 'drizzle-orm'
 import { tables, useDB } from '../../database/db'
 import { getKickChannel, getKickChannelV2, getKickLivestream, kickSubscribe, kickUnsubscribe } from '../../kick/kick'
 import { bodyBuilder, buildErrorEmbed, buildSuccessEmbed, checkChannelPermission, sendMessage, updateInteraction } from '../discord'
 import { autoCompleteResponse, interactionEphemeralLoading } from '../interactionHandler'
-import { COMMAND_PERMISSIONS } from './permissions'
 
 const KICK_COMMAND = {
   name: 'kick',
   description: 'Kick Stream Notifications',
-  default_member_permissions: COMMAND_PERMISSIONS.ADMINISTRATOR,
+  default_member_permissions: PermissionFlagsBits.Administrator.toString(),
   dm_permission: false,
   options: [
     {

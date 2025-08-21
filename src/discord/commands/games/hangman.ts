@@ -1,13 +1,13 @@
 import type { APIApplicationCommandInteraction, APIMessageComponentInteraction, APIModalSubmitInteraction } from 'discord-api-types/v10'
 import type { HangmanGame } from '../../../server'
+import { PermissionFlagsBits } from 'discord-api-types/v10'
 import { interactionLoading } from '../../interactionHandler'
-import { COMMAND_PERMISSIONS } from '../permissions'
 
 const HANGMAN_COMMAND = {
   name: 'hangman',
   description: 'Create a community game of hangman',
   dm_permission: false,
-  default_member_permissions: COMMAND_PERMISSIONS.USE_APPLICATION_COMMANDS,
+  default_member_permissions: PermissionFlagsBits.UseApplicationCommands.toString(),
   options: [
     {
       type: 3,

@@ -1,13 +1,13 @@
 import type { APIApplicationCommandInteraction, APIMessageComponentInteraction } from 'discord-api-types/v10'
 import type { RPSGame } from '../../../durable/RPSGame'
+import { PermissionFlagsBits } from 'discord-api-types/v10'
 import { interactionLoading } from '../../interactionHandler'
-import { COMMAND_PERMISSIONS } from '../permissions'
 
 const RPS_COMMAND = {
   name: 'rps',
   description: 'Challenge someone to a game of rock paper scissors',
   dm_permission: false,
-  default_member_permissions: COMMAND_PERMISSIONS.USE_APPLICATION_COMMANDS,
+  default_member_permissions: PermissionFlagsBits.UseApplicationCommands.toString(),
   options: [
     {
       type: 6,

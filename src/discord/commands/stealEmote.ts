@@ -1,15 +1,14 @@
 import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
 import { isContextMenuApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
-import { StickerFormatType } from 'discord-api-types/v10'
+import { PermissionFlagsBits, StickerFormatType } from 'discord-api-types/v10'
 import { fetchEmoteImageBuffer } from '../../util/emote'
 import { buildErrorEmbed, buildSuccessEmbed, fetchGuildEmojis, updateInteraction, uploadEmoji, uploadSticker } from '../discord'
 import { interactionEphemeralLoading } from '../interactionHandler'
-import { COMMAND_PERMISSIONS } from './permissions'
 
 const STEAL_EMOTE_COMMAND = {
   name: 'Steal Emote/Sticker',
   type: 3,
-  default_member_permissions: COMMAND_PERMISSIONS.MANAGE_EMOJIS_AND_STICKERS,
+  default_member_permissions: PermissionFlagsBits.ManageGuildExpressions.toString(),
   dm_permission: false,
 }
 

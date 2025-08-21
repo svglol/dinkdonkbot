@@ -1,13 +1,13 @@
 import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
 import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
+import { PermissionFlagsBits } from 'discord-api-types/v10'
 import { buildErrorEmbed, fetchGuildEmojis, updateInteraction } from '../discord'
 import { interactionLoading } from '../interactionHandler'
-import { COMMAND_PERMISSIONS } from './permissions'
 
 const RANDOM_EMOTE_COMMAND = {
   name: 'randomemote',
   description: 'Post a random emote from the current server',
-  default_member_permissions: COMMAND_PERMISSIONS.USE_APPLICATION_COMMANDS,
+  default_member_permissions: PermissionFlagsBits.UseApplicationCommands.toString(),
   dm_permission: false,
 }
 

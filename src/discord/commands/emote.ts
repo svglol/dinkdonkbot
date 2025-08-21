@@ -1,14 +1,14 @@
 import type { APIApplicationCommandInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
 import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
+import { PermissionFlagsBits } from 'discord-api-types/v10'
 import { fetch7tvEmoteImageBuffer, fetchEmoteImageBuffer, fetchSingular7tvEmote } from '../../util/emote'
 import { buildErrorEmbed, buildSuccessEmbed, fetchGuildEmojis, updateInteraction, uploadEmoji } from '../discord'
 import { interactionEphemeralLoading } from '../interactionHandler'
-import { COMMAND_PERMISSIONS } from './permissions'
 
 const EMOTE_COMMAND = {
   name: 'emote',
   description: 'Manage discord custom emotes',
-  default_member_permissions: COMMAND_PERMISSIONS.MANAGE_EMOJIS_AND_STICKERS,
+  default_member_permissions: PermissionFlagsBits.ManageGuildExpressions.toString(),
   dm_permission: false,
   options: [
     {

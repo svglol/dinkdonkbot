@@ -1,16 +1,16 @@
 import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
 import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
+import { PermissionFlagsBits } from 'discord-api-types/v10'
 import { and, eq, like } from 'drizzle-orm'
 import { tables, useDB } from '../../database/db'
 import { getChannelId, getStreamerDetails, searchStreamers } from '../../twitch/twitch'
 import { buildErrorEmbed, buildSuccessEmbed, checkChannelPermission, updateInteraction } from '../discord'
 import { autoCompleteResponse, interactionEphemeralLoading } from '../interactionHandler'
-import { COMMAND_PERMISSIONS } from './permissions'
 
 const TWITCH_CLIPS_COMMAND = {
   name: 'clips',
   description: 'Manage Twitch clip subscriptions for streamers to be posted hourly',
-  default_member_permissions: COMMAND_PERMISSIONS.ADMINISTRATOR,
+  default_member_permissions: PermissionFlagsBits.Administrator.toString(),
   dm_permission: false,
   options: [{
     type: 1,
