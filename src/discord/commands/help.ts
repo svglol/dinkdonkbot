@@ -9,7 +9,6 @@ import { CLIPS_HELP_MESSAGE } from './twitchClips'
 const HELP_COMMAND = {
   name: 'help',
   description: 'Show help for DinkDonk Bot',
-  dm_permission: false,
 }
 
 const helpPages: Record<string, string> = {
