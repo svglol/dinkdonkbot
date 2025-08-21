@@ -1,23 +1,17 @@
 import type { APIApplicationCommandInteraction, APIMessageComponentInteraction, APIModalSubmitInteraction } from 'discord-api-types/v10'
 import type { HangmanGame } from '../../../server'
+import { isGuildInteraction } from 'discord-api-types/utils'
 import { PermissionFlagsBits } from 'discord-api-types/v10'
-import { interactionLoading } from '../../interactionHandler'
+import { InteractionResponseType } from 'discord-interactions'
+import { JsonResponse } from '../../../util/jsonResponse'
+import { buildErrorEmbed, updateInteraction } from '../../discord'
+import { interactionEphemeralLoading, interactionLoading } from '../../interactionHandler'
 
 const HANGMAN_COMMAND = {
   name: 'hangman',
   description: 'Create a community game of hangman',
   dm_permission: false,
   default_member_permissions: PermissionFlagsBits.UseApplicationCommands.toString(),
-  options: [
-    {
-      type: 3,
-      name: 'word',
-      description: 'Word or phrase you want to use for the game',
-      min_length: 1,
-      max_length: 100,
-      required: false,
-    },
-  ],
 }
 
 /**
@@ -28,9 +22,40 @@ const HANGMAN_COMMAND = {
  * @returns A promise that resolves to nothing. Updates the interaction with a coinflip emote.
  */
 function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
+  if (!isGuildInteraction(interaction)) {
+    ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] }))
+    return interactionEphemeralLoading()
+  }
+  return new JsonResponse({
+    type: InteractionResponseType.MODAL,
+    data: {
+      custom_id: 'hangman_start_modal',
+      title: 'Start a Hangman Game',
+      components: [
+        {
+          type: 1,
+          components: [
+            {
+              custom_id: 'hangman_phrase_input',
+              type: 4,
+              label: 'Word or Phrase (leave empty for random)',
+              style: 1,
+              min_length: 0,
+              max_length: 100,
+              placeholder: 'Enter your word or phrase here',
+              required: false,
+            },
+          ],
+        },
+      ],
+    },
+  })
+}
+
+async function handleStartModal(interaction: APIModalSubmitInteraction, env: Env, ctx: ExecutionContext) {
   const durableObjectId = env.HANGMANGAME.idFromName(interaction.id)
   const durableObject: DurableObjectStub<HangmanGame> = env.HANGMANGAME.get(durableObjectId)
-  ctx.waitUntil(durableObject.startGame(interaction))
+  ctx.waitUntil(durableObject.startGameModal(interaction))
   return interactionLoading()
 }
 
@@ -50,5 +75,5 @@ export default {
   command: HANGMAN_COMMAND,
   handler,
   messageComponentHandlers: { hangman_make_guess: handleMakeGuess },
-  modalSubmitHandlers: { hangman_guess_modal: handleGuessModal },
+  modalSubmitHandlers: { hangman_guess_modal: handleGuessModal, hangman_start_modal: handleStartModal },
 } satisfies DiscordAPIApplicationCommand

@@ -1,13 +1,12 @@
-import type { APIApplicationCommandInteraction, APIComponentInContainer, APIMessageComponentInteraction, APIMessageTopLevelComponent, APIModalSubmitInteraction } from 'discord-api-types/v10'
+import type { APIComponentInContainer, APIMessageComponentInteraction, APIMessageTopLevelComponent, APIModalSubmitInteraction } from 'discord-api-types/v10'
 import { DurableObject } from 'cloudflare:workers'
-import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
 import { InteractionResponseType } from 'discord-interactions'
 import { buildErrorEmbed, updateInteraction } from '../discord/discord'
 import { deferedUpdate, interactionEphemeralLoading } from '../discord/interactionHandler'
 import { JsonResponse } from '../util/jsonResponse'
 
 interface PersistedState {
-  interaction: APIApplicationCommandInteraction | null
+  interaction: APIModalSubmitInteraction | null
   alarmScheduled: boolean
   phrase: string | null
   customPhrase: boolean
@@ -23,7 +22,7 @@ export class HangmanGame extends DurableObject {
   env: Env
 
   // In-memory state (will be synced with persistent state)
-  private interaction: APIApplicationCommandInteraction | null = null
+  private interaction: APIModalSubmitInteraction | null = null
   private alarmScheduled: boolean = false
   private phrase: string | null = null
   private customPhrase: boolean = false
@@ -149,21 +148,16 @@ export class HangmanGame extends DurableObject {
     await this.state.storage.deleteAll()
   }
 
-  async startGame(interaction: APIApplicationCommandInteraction) {
+  async startGameModal(interaction: APIModalSubmitInteraction) {
     this.interaction = interaction
-    if (!isGuildInteraction(interaction))
-      return await updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in a server', this.env)] })
-
     // Get the word/phrase from the interaction options or fetch a random one
-    if (isChatInputApplicationCommandInteraction(interaction) && interaction.data.options) {
-      const wordOption = interaction.data.options.find(option => option.name === 'word')
-      if (wordOption && 'value' in wordOption && typeof wordOption.value === 'string') {
-        this.phrase = wordOption.value.trim().toUpperCase().replace(/[^A-Z0-9 ]/g, '')
-        this.customPhrase = true
-        if (this.phrase.length === 0) {
-          this.reset()
-          return await updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Phrase cannot be empty', this.env)] })
-        }
+    const phraseInput = interaction.data.components[0].components.find(c => c.custom_id === 'hangman_phrase_input')
+    if (phraseInput && phraseInput.value.length > 0) {
+      this.phrase = phraseInput.value.trim().toUpperCase().replace(/[^A-Z0-9 ]/g, '')
+      this.customPhrase = true
+      if (this.phrase.length === 0) {
+        this.reset()
+        return await updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Phrase cannot be empty', this.env)] })
       }
     }
     else {
@@ -236,7 +230,7 @@ export class HangmanGame extends DurableObject {
       }
       if (this.interaction?.member && interaction.member && this.customPhrase) {
         if (this.interaction.member.user.id === interaction.member.user.id) {
-          this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You cannot guess your own game!', this.env)] }))
+          this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You cannot guess in your own game!', this.env)] }))
           return interactionEphemeralLoading()
         }
       }
