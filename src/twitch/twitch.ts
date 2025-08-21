@@ -73,76 +73,94 @@ export async function getChannelId(broadcasterLoginName: string, env: Env) {
  *          exist, and false if an error occurs during the subscription process.
  * @throws If the fetch requests to Twitch API fail.
  */
-
 export async function subscribe(broadcasterUserId: string, env: Env) {
   try {
     const subscriptions = await getSubscriptions(env)
     if (!subscriptions)
       throw new Error('Failed to fetch subscriptions')
+
     const onlineSubscription = subscriptions.data.find(sub => sub.type === 'stream.online' && sub.condition.broadcaster_user_id === broadcasterUserId)
     const offlineSubscription = subscriptions.data.find(sub => sub.type === 'stream.offline' && sub.condition.broadcaster_user_id === broadcasterUserId)
+
+    // if already subscribed to both, no need to continue
     if (onlineSubscription && offlineSubscription)
       return true
 
-    let response = false
-    // create stream.online subscription
+    let success = false
+
+    // create stream.online subscription if missing
     if (!onlineSubscription) {
-      const onlineResponse = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
-        method: 'POST',
-        headers: {
-          'Client-ID': env.TWITCH_CLIENT_ID,
-          'Authorization': `Bearer ${await getToken(env)}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'stream.online',
-          version: '1',
-          condition: {
-            broadcaster_user_id: broadcasterUserId,
+      try {
+        const onlineResponse = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+          method: 'POST',
+          headers: {
+            'Client-ID': env.TWITCH_CLIENT_ID,
+            'Authorization': `Bearer ${await getToken(env)}`,
+            'Content-Type': 'application/json',
           },
-          transport: {
-            method: 'webhook',
-            callback: `${env.WEBHOOK_URL}/twitch-eventsub`,
-            secret: env.TWITCH_EVENT_SECRET,
-          },
-        }),
-      })
-      if (onlineResponse.ok)
-        response = true
-      else
-        throw new Error(`Failed to create stream.online subscription: ${JSON.stringify(await onlineResponse.json())}`)
+          body: JSON.stringify({
+            type: 'stream.online',
+            version: '1',
+            condition: { broadcaster_user_id: broadcasterUserId },
+            transport: {
+              method: 'webhook',
+              callback: `${env.WEBHOOK_URL}/twitch-eventsub`,
+              secret: env.TWITCH_EVENT_SECRET,
+            },
+          }),
+        })
+
+        if (onlineResponse.ok) {
+          success = true
+        }
+        else {
+          console.error('Failed to create stream.online subscription:', await onlineResponse.json())
+        }
+      }
+      catch (err) {
+        console.error('Error creating stream.online subscription:', err)
+      }
     }
-    // create stream.offline subscription
+
+    // create stream.offline subscription if missing
     if (!offlineSubscription) {
-      const offlineResponse = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
-        method: 'POST',
-        headers: {
-          'Client-ID': env.TWITCH_CLIENT_ID,
-          'Authorization': `Bearer ${await getToken(env)}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'stream.offline',
-          version: '1',
-          condition: {
-            broadcaster_user_id: broadcasterUserId,
+      try {
+        const offlineResponse = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+          method: 'POST',
+          headers: {
+            'Client-ID': env.TWITCH_CLIENT_ID,
+            'Authorization': `Bearer ${await getToken(env)}`,
+            'Content-Type': 'application/json',
           },
-          transport: {
-            method: 'webhook',
-            callback: `${env.WEBHOOK_URL}/twitch-eventsub`,
-            secret: env.TWITCH_EVENT_SECRET,
-          },
-        }),
-      })
-      if (offlineResponse.ok)
-        response = true
-      else
-        throw new Error(`Failed to create stream.offline subscription: ${JSON.stringify(await offlineResponse.json())}`)
+          body: JSON.stringify({
+            type: 'stream.offline',
+            version: '1',
+            condition: { broadcaster_user_id: broadcasterUserId },
+            transport: {
+              method: 'webhook',
+              callback: `${env.WEBHOOK_URL}/twitch-eventsub`,
+              secret: env.TWITCH_EVENT_SECRET,
+            },
+          }),
+        })
+
+        if (offlineResponse.ok) {
+          success = true
+        }
+        else {
+          console.error('Failed to create stream.offline subscription:', await offlineResponse.json())
+        }
+      }
+      catch (err) {
+        console.error('Error creating stream.offline subscription:', err)
+      }
     }
-    return response
+
+    return success
   }
   catch (error) {
     console.error('Error subscribing:', error)
+    return false
   }
 }
 
