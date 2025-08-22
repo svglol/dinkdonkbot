@@ -409,7 +409,7 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
 
       const body = bodyBuilder(streamMessage, env)
       if (global) {
-        if ('value' in global && global.value === 'true') {
+        if ('value' in global && global.value === true) {
           await sendMessage(stream.channelId, env.DISCORD_TOKEN, body, env)
           return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`Sent test message for **${streamer}**`, env)] })
         }
