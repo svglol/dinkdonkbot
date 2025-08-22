@@ -128,6 +128,12 @@ export async function kickUnsubscribe(broadcasterUserId: number, env: Env) {
  * @throws If the request to fetch the webhooks fails.
  */
 export async function getKickSubscriptions(env: Env) {
+  const cacheKey = `kick_subscriptions_${env.KICK_CLIENT_ID}`
+  const cachedSubscriptions = await env.KV.get(cacheKey, { type: 'json' }) as KickWebhooksResponse | null
+  if (cachedSubscriptions) {
+    return cachedSubscriptions
+  }
+
   const response = await fetch(`${baseUrl}/events/subscriptions`, {
     method: 'GET',
     headers: {
@@ -142,7 +148,10 @@ export async function getKickSubscriptions(env: Env) {
   if (!response.ok)
     throw new Error(`HTTP error! status: ${response.status}`)
 
-  return await response.json() as KickWebhooksResponse
+  const data = await response.json() as KickWebhooksResponse
+  await env.KV.put(cacheKey, JSON.stringify(data), { expirationTtl: 60 })
+
+  return data
 }
 
 /**

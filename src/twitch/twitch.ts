@@ -258,17 +258,60 @@ export async function removeSubscription(broadcasterUserId: string, env: Env) {
  */
 
 export async function getSubscriptions(env: Env) {
+  const cacheKey = `twitch_subscriptions_${env.TWITCH_CLIENT_ID}`
+  const cachedData = await env.KV.get(cacheKey, { type: 'json' }) as SubscriptionResponse | null
+  if (cachedData) {
+    return cachedData
+  }
+
+  // If no cache, fetch from Twitch API
+
+  const allData: Subscription[] = []
+  let total = 0
+  let totalCost = 0
+  let maxTotalCost = 0
+
+  // Initialize cursor for pagination
+  let cursor: string | undefined
+
   try {
-    const subscriptionsRes = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
-      headers: {
-        'Client-ID': env.TWITCH_CLIENT_ID,
-        'Authorization': `Bearer ${await getToken(env)}`,
+    do {
+      const url = new URL('https://api.twitch.tv/helix/eventsub/subscriptions')
+      if (cursor)
+        url.searchParams.set('after', cursor)
+
+      const res = await fetch(url.toString(), {
+        headers: {
+          'Client-ID': env.TWITCH_CLIENT_ID,
+          'Authorization': `Bearer ${await getToken(env)}`,
+        },
+      })
+
+      if (!res.ok) {
+        throw new Error(`Failed to fetch subscriptions: ${JSON.stringify(await res.json())}`)
+      }
+
+      const json = (await res.json()) as SubscriptionResponse
+      allData.push(...json.data)
+      cursor = json.pagination?.cursor as string | undefined
+
+      total = json.total
+      totalCost = json.total_cost
+      maxTotalCost = json.max_total_cost
+    } while (cursor)
+
+    const data = {
+      data: allData,
+      total,
+      total_cost: totalCost,
+      max_total_cost: maxTotalCost,
+      pagination: {
+        cursor: cursor || '',
       },
-    })
-    if (!subscriptionsRes.ok)
-      throw new Error(`Failed to fetch subscriptions: ${JSON.stringify(await subscriptionsRes.json())}`)
-    const subscriptions = await subscriptionsRes.json() as SubscriptionResponse
-    return subscriptions
+    } as SubscriptionResponse
+
+    await env.KV.put(cacheKey, JSON.stringify(data), { expirationTtl: 60 })
+    return data
   }
   catch (error) {
     console.error('Error fetching subscriptions:', error)
