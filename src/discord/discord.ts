@@ -664,7 +664,8 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
       description = `${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} streamed for **${duration}**`
       status = 'Last online'
       timestamp = Math.floor(new Date(streamMessage.twitchStreamEndedAt || Date.now()).getTime() / 1000)
-      image = streamMessage.twitchStreamerData?.offline_image_url || ''
+      const backupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}` : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
+      image = streamMessage.twitchStreamerData?.offline_image_url || backupImage
       url = `https://www.twitch.tv/${streamMessage.twitchStreamerData?.login}`
 
       if (streamMessage.twitchVod) {
@@ -740,6 +741,8 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
     return { content: '', embeds: [], components: [] }
   }
 
+  // TODO we should check if all the nessary data is there and not just '' for strings that are needed
+
   const titleComponent = {
     type: 10,
     content: message,
@@ -754,11 +757,11 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
         components: [
           {
             type: 10,
-            content: `# [${title}](${url}) `,
+            content: `## [${title}](${url}) `,
           },
           {
             type: 10,
-            content: `## ${description}${game ? `\n**Game**\n${game}` : ''}`,
+            content: `### ${description}${game ? `\n**Game**\n${game}` : ''}`,
           },
         ],
         accessory: {
@@ -781,15 +784,20 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
         type: 10,
         content: `-# <a:DinkDonk:1357111617787002962> DinkDonk Bot • ${status} • <t:${timestamp}>`,
       },
-
     ],
   }
 
-  return {
-    components: [titleComponent, container, {
+  const components: APIMessageTopLevelComponent[] = []
+  components.push(titleComponent, container)
+  if (buttons.length > 0) {
+    components.push({
       type: 1,
       components: buttons,
-    }],
+    })
+  }
+
+  return {
+    components,
     flags: 1 << 15,
   }
 }
