@@ -135,6 +135,12 @@ router.post('/kick-eventsub', async (request, env: Env, ctx: ExecutionContext) =
 })
 
 router.get('/check', async (request, env: Env, ctx: ExecutionContext) => {
+  const providedKey = request.headers.get('x-api-key')
+  const allowedKey = env.ACCESS_KEY
+
+  if (providedKey !== allowedKey) {
+    return new Response('Unauthorized', { status: 401 })
+  }
   ctx.waitUntil(scheduledCheck(env))
   return new Response('OK', { status: 200 })
 })
