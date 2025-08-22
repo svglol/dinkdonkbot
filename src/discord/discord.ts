@@ -608,7 +608,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
   let description: string
   let game: string | undefined
   let status: string
-  let timestamp: number
+  let timestamp: number = new Date().getTime() / 1000
   let thumbnail: string
   let image: string
   let url: string
@@ -740,9 +740,6 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
     return { content: '', embeds: [], components: [] }
   }
 
-  if (message === '' || message === undefined) {
-    console.error('message is empty')
-  }
   if (title === '' || title === undefined) {
     console.error('title is empty')
   }
@@ -755,14 +752,11 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
   if (url === '' || url === undefined) {
     console.error('url is empty')
   }
-  if (timestamp === undefined) {
-    console.error('timestamp is undefined')
-  }
   if (thumbnail === '' || thumbnail === undefined) {
     console.error('thumbnail is empty')
   }
 
-  const titleComponent = {
+  const messageComponent = {
     type: 10,
     content: escapeDiscordMarkdown(message),
   }
@@ -776,7 +770,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
         components: [
           {
             type: 10,
-            content: `## [${escapeDiscordMarkdown(title)}](${url})`,
+            content: `## [${title}](${url})`,
           },
           {
             type: 10,
@@ -807,7 +801,10 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
   }
 
   const components: APIMessageTopLevelComponent[] = []
-  components.push(titleComponent, container)
+  if (message.length > 0) {
+    components.push(messageComponent)
+  }
+  components.push(container)
   if (buttons.length > 0) {
     components.push({
       type: 1,
@@ -822,7 +819,8 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
 }
 
 function escapeDiscordMarkdown(text: string) {
-  return text.replace(/(([_*~`|]){2})/g, '\\$1')
+  // Escape Discord markdown characters
+  return text.replace(/([_*~`|\\])/g, '\\$1')
 }
 
 export function buildErrorEmbed(error: string, env: Env, embed?: APIEmbed) {
