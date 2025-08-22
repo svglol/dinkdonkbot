@@ -779,7 +779,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
       },
       {
         type: 10,
-        content: `-# <a:DinkDonk:1404661261030916246> ${status} • <t:${timestamp}>`,
+        content: `-# <a:DinkDonk:1357111617787002962> ${status} • <t:${timestamp}>`,
       },
 
     ],
