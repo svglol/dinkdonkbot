@@ -87,7 +87,7 @@ async function streamOffline(payload: KickLivestreamStatusUpdatedEvent, env: Env
       }
 
       const discordMessage = bodyBuilder(updatedMessageWithStreams, env)
-      if (discordMessage.embeds.length > 0) {
+      if ((discordMessage.embeds && discordMessage.embeds.length > 0) || (discordMessage.components && discordMessage.components?.length > 0)) {
         return await updateMessage(message.discordChannelId, message?.discordMessageId ?? '', env.DISCORD_TOKEN, discordMessage)
       }
       else if (message?.kickStream?.cleanup) {

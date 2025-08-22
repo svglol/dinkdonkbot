@@ -80,8 +80,8 @@ async function streamOffline(payload: SubscriptionEventResponseData<Subscription
         return
       }
 
-      const discordMessage = await bodyBuilder(updatedMessageWithStreams, env)
-      if (discordMessage.embeds.length > 0) {
+      const discordMessage = bodyBuilder(updatedMessageWithStreams, env)
+      if ((discordMessage.embeds && discordMessage.embeds.length > 0) || (discordMessage.components && discordMessage.components?.length > 0)) {
         return await updateMessage(message.discordChannelId, message?.discordMessageId ?? '', env.DISCORD_TOKEN, discordMessage)
       }
       else if (message?.stream?.cleanup) {
