@@ -116,7 +116,7 @@ async function handleEmoteCommand(interaction: APIApplicationCommandInteraction,
             cleanName = cleanName.padEnd(2, '_').slice(0, 32)
             const imageBuffer = await fetch7tvEmoteImageBuffer(emote)
             const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, cleanName, imageBuffer)
-            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`Emote added: <:${cleanName}:${discordEmote.id}>`, env)] })
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`Emote added: <${emote.animated ? 'a' : ''}:${cleanName}:${discordEmote.id}>`, env)] })
           }
           catch (error) {
             return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`${error}`, env)] })
