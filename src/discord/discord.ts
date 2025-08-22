@@ -780,7 +780,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
           },
           {
             type: 10,
-            content: `### ${escapeDiscordMarkdown(description)}${game ? `\n**Game**\n${escapeDiscordMarkdown(game)}` : ''}`,
+            content: `### ${description}${game ? `\n**Game**\n${escapeDiscordMarkdown(game)}` : ''}`,
           },
         ],
         accessory: {
