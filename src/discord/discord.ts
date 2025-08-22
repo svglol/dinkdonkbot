@@ -305,6 +305,11 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
   if (!streamMessage)
     return { content: '', embeds: [], components: [] }
 
+  // ! TEMP this is for testing the new body builder only for the beta server (we can remove this when its ready)
+  if (streamMessage.stream?.guildId === '705928685068222496' || streamMessage.kickStream?.guildId === '705928685068222496') {
+    return betaBodyBuilder(streamMessage, env)
+  }
+
   const components: APIMessageTopLevelComponent[] = []
   const embeds: APIEmbed[] = []
   let content = ''
@@ -594,6 +599,198 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
     content,
     embeds,
     components,
+  }
+}
+
+export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPostAPIChannelMessageJSONBody {
+  let message: string
+  let title: string
+  let color: number = 0xFFF200
+  let description: string
+  let game: string | undefined
+  let status: string
+  let timestamp: number
+  let thumbnail: string
+  let image: string
+  let url: string
+  const buttons: APIButtonComponent[] = []
+  // TODO for now we ignore multi stream and just show the first stream
+  // if (streamMessage.kickStream && streamMessage.stream) {
+  //   // TODO handle multi stream
+  //   message = 'todo'
+  //   title = 'todo'
+  //   color = 0x53FC18
+  //   description = 'todo'
+  //   game = 'todo'
+  //   status = 'todo'
+  //   timestamp = new Date().getTime()
+  //   thumbnail = 'https://kick.com/img/default-channel-banners/offline.webp'
+  //   image = 'https://kick.com/img/default-channel-banners/offline.webp'
+  //   url = 'https://kick.com/'
+  // }
+  if (streamMessage.stream) {
+    thumbnail = streamMessage.twitchStreamerData?.profile_image_url || ''
+    color = 0x6441A4
+    if (streamMessage.twitchOnline) {
+      message = `${streamMessage.stream.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''}${messageBuilder(streamMessage.stream.liveMessage ? streamMessage.stream.liveMessage : '{{name}} is live!', streamMessage.stream.name, streamMessage.twitchStreamData?.game_name, streamMessage.twitchStreamData?.started_at)}`
+      title = streamMessage.twitchStreamData?.title || `${streamMessage.twitchStreamerData?.display_name} is live!`
+      description = `**${streamMessage.twitchStreamerData?.display_name} is live on Twitch!**`
+      game = streamMessage.twitchStreamData?.game_name || 'No game'
+      status = 'Online'
+      timestamp = Math.floor(new Date(streamMessage.twitchStreamData?.started_at || Date.now()).getTime() / 1000)
+      image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : streamMessage.twitchStreamerData?.offline_image_url || ''
+      url = `https://twitch.tv/${streamMessage.twitchStreamerData?.login}`
+
+      buttons.push({
+        type: 2,
+        label: 'Watch Twitch Stream',
+        url,
+        style: 5,
+        emoji: {
+          name: 'twitch',
+          id: '1404661243373031585',
+          animated: false,
+        },
+      })
+    }
+    else {
+      message = messageBuilder(streamMessage.stream.offlineMessage ? streamMessage.stream.offlineMessage : '{{name}} is now offline.', streamMessage.stream.name)
+      title = `${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} is no longer live!`
+      const duration = streamMessage.twitchVod
+        ? streamMessage.twitchVod.duration
+        : streamMessage.twitchStreamEndedAt && streamMessage.twitchStreamStartedAt
+          ? formatDuration(streamMessage.twitchStreamEndedAt.getTime() - streamMessage.twitchStreamStartedAt.getTime())
+          : '0'
+      description = `${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} streamed for **${duration}**`
+      status = 'Last online'
+      timestamp = Math.floor(new Date(streamMessage.twitchStreamEndedAt || Date.now()).getTime() / 1000)
+      image = streamMessage.twitchStreamerData?.offline_image_url || ''
+      url = `https://www.twitch.tv/${streamMessage.twitchStreamerData?.login}`
+
+      if (streamMessage.twitchVod) {
+        buttons.push({
+          type: 2,
+          label: 'Watch Twitch VOD',
+          url: `https://twitch.tv/videos/${streamMessage.twitchVod.id}`,
+          style: 5,
+          emoji: {
+            name: 'twitch',
+            id: '1404661243373031585',
+            animated: false,
+          },
+        })
+      }
+    }
+  }
+  else if (streamMessage.kickStream) {
+    thumbnail = streamMessage.kickStreamerData?.user.profile_pic || ''
+    color = 0x53FC18
+    if (streamMessage.kickOnline) {
+      const roleMention = streamMessage.kickStream.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
+      message = `${roleMention}${messageBuilder(streamMessage.kickStream.liveMessage ? streamMessage.kickStream.liveMessage : '{{name}} is live!', streamMessage.kickStream.name, streamMessage.kickStreamData?.category.name, streamMessage.kickStreamData?.started_at, 'kick')}`
+      title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} is live!`
+      description = `**${streamMessage.kickStream.name} is live on Kick!**`
+      game = streamMessage.kickStreamData?.category.name || 'No game'
+      status = 'Online'
+      timestamp = Math.floor(new Date(streamMessage.kickStreamData?.started_at || Date.now()).getTime() / 1000)
+      image = streamMessage.kickStreamData?.thumbnail ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${new Date().getTime()}` : 'https://kick.com/img/default-channel-banners/offline.webp'
+      url = `https://kick.com/${streamMessage.kickStream.name}`
+
+      buttons.push({
+        type: 2,
+        label: 'Watch Kick Stream',
+        url,
+        style: 5,
+        emoji: {
+          name: 'kick',
+          id: '1404661261030916246',
+          animated: false,
+        },
+      })
+    }
+    else {
+      message = messageBuilder(streamMessage.kickStream?.offlineMessage ? streamMessage.kickStream?.offlineMessage : '{{name}} is now offline.', streamMessage.kickStream.name)
+      title = `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} is no longer live!`
+      const duration = streamMessage.kickVod && !Number.isNaN(streamMessage.kickVod.duration) && streamMessage.kickVod.duration > 0
+        ? formatDuration(streamMessage.kickVod.duration)
+        : streamMessage.kickStreamEndedAt && streamMessage.kickStreamStartedAt
+          ? formatDuration(streamMessage.kickStreamEndedAt.getTime() - streamMessage.kickStreamStartedAt.getTime())
+          : '0'
+      description = `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} streamed for **${duration}**`
+      status = 'Last online'
+      timestamp = Math.floor(new Date(streamMessage.kickStreamEndedAt || Date.now()).getTime() / 1000)
+      image = streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp'
+      url = `https://kick.com/${streamMessage.kickStream.name}`
+      if (streamMessage.kickVod) {
+        buttons.push({
+          type: 2,
+          label: 'Watch Kick VOD',
+          url: `https://kick.com/${streamMessage.kickStream.name}/videos/${streamMessage.kickVod.video.uuid}`,
+          style: 5,
+          emoji: {
+            name: 'kick',
+            id: '1404661261030916246',
+            animated: false,
+          },
+        })
+      }
+    }
+  }
+  else {
+    return { content: '', embeds: [], components: [] }
+  }
+
+  const titleComponent = {
+    type: 10,
+    content: message,
+  }
+
+  const container = {
+    type: 17,
+    accent_color: color,
+    components: [
+      {
+        type: 9,
+        components: [
+          {
+            type: 10,
+            content: `# [${title}](${url}) `,
+          },
+          {
+            type: 10,
+            content: `## ${description}${game ? `\n**Game**\n${game}` : ''}`,
+          },
+        ],
+        accessory: {
+          type: 11,
+          media: {
+            url: thumbnail,
+          },
+        },
+      },
+
+      {
+        type: 12,
+        items: [
+          {
+            media: { url: image },
+          },
+        ],
+      },
+      {
+        type: 10,
+        content: `${status} • <t:${timestamp}>`,
+      },
+
+    ],
+  }
+
+  return {
+    components: [titleComponent, container, {
+      type: 1,
+      components: buttons,
+    }],
+    flags: 1 << 15,
   }
 }
 
