@@ -492,7 +492,7 @@ async function autoCompleteHandler(interaction: APIApplicationCommandAutocomplet
     if (streamerOption.focused) {
       // we can auto complete the streamer field
       const input = streamerOption.value.toLowerCase()
-      const cacheKey = `autocomplete:${guildId}:clips:${subCommand.name}:${input}`
+      const cacheKey = `autocomplete:${guildId}:kick:${subCommand.name}:${input}`
 
       // Try KV cache
       const cached = await env.KV.get(cacheKey, { type: 'json' }) as { name: string, value: string }[] | null
