@@ -634,7 +634,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
     if (streamMessage.twitchOnline) {
       message = `${streamMessage.stream.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''}${messageBuilder(streamMessage.stream.liveMessage ? streamMessage.stream.liveMessage : '{{name}} is live!', streamMessage.stream.name, streamMessage.twitchStreamData?.game_name, streamMessage.twitchStreamData?.started_at)}`
       title = streamMessage.twitchStreamData?.title || `${streamMessage.twitchStreamerData?.display_name} is live!`
-      description = `**${streamMessage.twitchStreamerData?.display_name} is live on Twitch!**`
+      description = `**<:twitch:1404661243373031585> ${streamMessage.twitchStreamerData?.display_name} is live on Twitch!**`
       game = streamMessage.twitchStreamData?.game_name || 'No game'
       status = 'Online'
       timestamp = Math.floor(new Date(streamMessage.twitchStreamData?.started_at || Date.now()).getTime() / 1000)
@@ -689,7 +689,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
       const roleMention = streamMessage.kickStream.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
       message = `${roleMention}${messageBuilder(streamMessage.kickStream.liveMessage ? streamMessage.kickStream.liveMessage : '{{name}} is live!', streamMessage.kickStream.name, streamMessage.kickStreamData?.category.name, streamMessage.kickStreamData?.started_at, 'kick')}`
       title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} is live!`
-      description = `**${streamMessage.kickStream.name} is live on Kick!**`
+      description = `**<:kick:1404661261030916246> ${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} is live on KICK!**`
       game = streamMessage.kickStreamData?.category.name || 'No game'
       status = 'Online'
       timestamp = Math.floor(new Date(streamMessage.kickStreamData?.started_at || Date.now()).getTime() / 1000)
@@ -779,7 +779,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
       },
       {
         type: 10,
-        content: `${status} • <t:${timestamp}>`,
+        content: `-# <a:DinkDonk:1404661261030916246> ${status} • <t:${timestamp}>`,
       },
 
     ],
