@@ -380,7 +380,6 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
       components: buttons,
     })
   }
-
   // build embeds
   if (streamMessage?.stream) {
     if (streamMessage.twitchOnline) {
@@ -741,11 +740,31 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
     return { content: '', embeds: [], components: [] }
   }
 
-  // TODO we should check if all the nessary data is there and not just '' for strings that are needed
+  if (message === '' || message === undefined) {
+    console.error('message is empty')
+  }
+  if (title === '' || title === undefined) {
+    console.error('title is empty')
+  }
+  if (description === '' || description === undefined) {
+    console.error('description is empty')
+  }
+  if (image === '' || image === undefined) {
+    console.error('image is empty')
+  }
+  if (url === '' || url === undefined) {
+    console.error('url is empty')
+  }
+  if (timestamp === undefined) {
+    console.error('timestamp is undefined')
+  }
+  if (thumbnail === '' || thumbnail === undefined) {
+    console.error('thumbnail is empty')
+  }
 
   const titleComponent = {
     type: 10,
-    content: message,
+    content: escapeDiscordMarkdown(message),
   }
 
   const container = {
@@ -757,11 +776,11 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
         components: [
           {
             type: 10,
-            content: `## [${title}](${url}) `,
+            content: `## [${escapeDiscordMarkdown(title)}](${url})`,
           },
           {
             type: 10,
-            content: `### ${description}${game ? `\n**Game**\n${game}` : ''}`,
+            content: `### ${escapeDiscordMarkdown(description)}${game ? `\n**Game**\n${escapeDiscordMarkdown(game)}` : ''}`,
           },
         ],
         accessory: {
@@ -782,7 +801,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
       },
       {
         type: 10,
-        content: `-# <a:DinkDonk:1357111617787002962> DinkDonk Bot • ${status} • <t:${timestamp}>`,
+        content: `-# <a:DinkDonk:1357111617787002962> DinkDonk Bot • ${escapeDiscordMarkdown(status)} • <t:${timestamp}>`,
       },
     ],
   }
@@ -800,6 +819,10 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
     components,
     flags: 1 << 15,
   }
+}
+
+function escapeDiscordMarkdown(text: string) {
+  return text.replace(/(([_*~`|]){2})/g, '\\$1')
 }
 
 export function buildErrorEmbed(error: string, env: Env, embed?: APIEmbed) {
