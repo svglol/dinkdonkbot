@@ -50,7 +50,7 @@ async function streamOnline(payload: KickLivestreamStatusUpdatedEvent, env: Env)
 async function streamOffline(payload: KickLivestreamStatusUpdatedEvent, env: Env) {
   const broadcasterId = payload.broadcaster.user_id
   const broadcasterName = payload.broadcaster.username
-  const latestVOD = await getKickLatestVod(broadcasterName)
+  const latestVOD = await getKickLatestVod(payload.started_at, payload.ended_at, broadcasterName)
 
   // get any stream messages with this kick broadcaster id that need to be updated
   const streamMessages = await useDB(env).query.streamMessages.findMany({
