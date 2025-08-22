@@ -10,6 +10,7 @@ import { kickEventHandler } from '../kick/eventHandler'
 import { getKickChannelV2 } from '../kick/kick'
 import { twitchEventHandler } from '../twitch/eventHandler'
 import { JsonResponse } from '../util/jsonResponse'
+import { scheduledCheck } from './scheduled'
 
 const router = Router()
 export default {
@@ -131,6 +132,11 @@ router.post('/kick-eventsub', async (request, env: Env, ctx: ExecutionContext) =
   const payload = JSON.parse(body) as KickLivestreamStatusUpdatedEvent
   ctx.waitUntil(kickEventHandler(eventType, payload, env, ctx))
   return new JsonResponse({ message: 'Success' }, { status: 200 })
+})
+
+router.get('/check', async (request, env: Env, ctx: ExecutionContext) => {
+  ctx.waitUntil(scheduledCheck(env))
+  return new Response('OK', { status: 200 })
 })
 
 router.get('/static/:filename', async (request, env: Env) => {

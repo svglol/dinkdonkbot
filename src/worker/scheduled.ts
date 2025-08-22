@@ -77,7 +77,7 @@ async function scheduledTwitchClips(env: Env) {
  * @param env The environment variables for accessing configuration and services.
  * @returns A promise that resolves to true if all checks and maintenance tasks were successful.
  */
-async function scheduledCheck(env: Env) {
+export async function scheduledCheck(env: Env) {
   try {
     const streams = await useDB(env).select().from(tables.streams)
     const kickStreams = await useDB(env).select().from(tables.kickStreams)
