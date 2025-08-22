@@ -101,11 +101,12 @@ declare global {
   enum SubscriptionType {
     Online = 'stream.online',
     Offline = 'stream.offline',
+    Update = 'channel.update',
   }
 
   interface SubscriptionData {
     id: string
-    type: 'stream.online' | 'stream.offline'
+    type: 'stream.online' | 'stream.offline' | 'channel.update'
     version: string
     status: string
     cost: number
@@ -128,11 +129,28 @@ declare global {
     broadcaster_user_login: string
     broadcaster_user_name: string
   }
-  type SubscriptionEventByType<T extends SubscriptionType> = T extends SubscriptionType.Online
+
+  interface ChannelUpdateEventData {
+    broadcaster_user_id: string
+    broadcaster_user_login: string
+    broadcaster_user_name: string
+    title: string
+    language: string
+    category_id: string
+    category_name: string
+    content_classification_labels: string[]
+  }
+
+  // This type maps the SubscriptionType to the corresponding event data type
+  // It uses conditional types to determine the correct type based on the SubscriptionType
+  type SubscriptionEventByType<T extends SubscriptionType>
+  = T extends SubscriptionType.Online
     ? OnlineEventData
     : T extends SubscriptionType.Offline
       ? OfflineEventData
-      : never
+      : T extends SubscriptionType.Update
+        ? ChannelUpdateEventData
+        : never
 
   interface SubscriptionEventResponseData<T extends SubscriptionType> {
     subscription: SubscriptionData
@@ -241,6 +259,29 @@ declare global {
     ended_at: string
   }
 
+  interface KickLivestreamMetadataUpdatedEvent
+  {
+    broadcaster: {
+      is_anonymous: boolean
+      user_id: number
+      username: string
+      is_verified: boolean
+      profile_picture: string
+      channel_slug: string
+      identity: null
+    }
+    metadata: {
+      title: string
+      language: string
+      has_mature_content: boolean
+      Category: {
+        id: number
+        name: string
+        thumbnail: string
+      }
+    }
+  }
+
   interface KickChannelsResponse {
     data: KickChannel[]
     message: string
@@ -271,7 +312,7 @@ declare global {
     stream_title: string
   }
 
-  interface KickCategory {
+  interface KickCategoryBasic {
     id: number
     name: string
     thumbnail: string
@@ -306,7 +347,7 @@ declare global {
 
   export interface KickLiveStream {
     broadcaster_user_id: number
-    category: KickCategory
+    category: KickCategoryBasic
     channel_id: number
     has_mature_content: boolean
     language: string

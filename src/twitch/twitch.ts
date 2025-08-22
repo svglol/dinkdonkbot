@@ -81,9 +81,10 @@ export async function subscribe(broadcasterUserId: string, env: Env) {
 
     const onlineSubscription = subscriptions.data.find(sub => sub.type === 'stream.online' && sub.condition.broadcaster_user_id === broadcasterUserId)
     const offlineSubscription = subscriptions.data.find(sub => sub.type === 'stream.offline' && sub.condition.broadcaster_user_id === broadcasterUserId)
+    const updateSubscription = subscriptions.data.find(sub => sub.type === 'channel.update' && sub.condition.broadcaster_user_id === broadcasterUserId)
 
     // if already subscribed to both, no need to continue
-    if (onlineSubscription && offlineSubscription)
+    if (onlineSubscription && offlineSubscription && updateSubscription)
       return true
 
     let success = false
@@ -156,6 +157,39 @@ export async function subscribe(broadcasterUserId: string, env: Env) {
       }
     }
 
+    if (!updateSubscription) {
+      try {
+        const updateResponse = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+          method: 'POST',
+          headers: {
+            'Client-ID': env.TWITCH_CLIENT_ID,
+            'Authorization': `Bearer ${await getToken(env)}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            type: 'channel.update',
+            version: '1',
+            condition: { broadcaster_user_id: broadcasterUserId },
+            transport: {
+              method: 'webhook',
+              callback: `${env.WEBHOOK_URL}/twitch-eventsub`,
+              secret: env.TWITCH_EVENT_SECRET,
+            },
+          }),
+        })
+
+        if (updateResponse.ok) {
+          success = true
+        }
+        else {
+          console.error('Failed to create channel.update subscription:', await updateResponse.json())
+        }
+      }
+      catch (err) {
+        console.error('Error creating channel.update subscription:', err)
+      }
+    }
+
     return success
   }
   catch (error) {
@@ -186,7 +220,7 @@ export async function removeSubscription(broadcasterUserId: string, env: Env) {
       throw new Error(`Failed to fetch subscriptions: ${JSON.stringify(await subscriptionsRes.json())}`)
 
     const subscriptions = await subscriptionsRes.json() as SubscriptionResponse
-    const subscriptionsToDelete = subscriptions.data.filter(sub => (sub.type === 'stream.online' || sub.type === 'stream.offline') && sub.condition.broadcaster_user_id === broadcasterUserId)
+    const subscriptionsToDelete = subscriptions.data.filter(sub => (sub.type === 'stream.online' || sub.type === 'stream.offline' || sub.type === 'channel.update') && sub.condition.broadcaster_user_id === broadcasterUserId)
     const promises = subscriptionsToDelete.map(async (sub) => {
       try {
         const res = await fetch(`https://api.twitch.tv/helix/eventsub/subscriptions?id=${sub.id}`, {

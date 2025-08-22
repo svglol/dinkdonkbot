@@ -121,17 +121,22 @@ async function scheduledCheck(env: Env) {
     // check if twitch event sub is subscribed to all of our streams in the database
     await removeFailedSubscriptions(env)
     const twitchSubscriptions = await getSubscriptions(env)
+
+    // Check if twitch event sub is subscribed to all of our streams in the database
     if (twitchSubscriptions) {
       const streamOnlineSubs = twitchSubscriptions.data.filter(sub => sub.type === 'stream.online' && sub.status === 'enabled').map(sub => sub.condition.broadcaster_user_id)
       const streamOfflineSubs = twitchSubscriptions.data.filter(sub => sub.type === 'stream.offline' && sub.status === 'enabled').map(sub => sub.condition.broadcaster_user_id)
+      const channelUpdateSubs = twitchSubscriptions.data.filter(sub => sub.type === 'channel.update' && sub.status === 'enabled').map(sub => sub.condition.broadcaster_user_id)
       const broadcasterIds = [...new Set(streams.map(stream => stream.broadcasterId))]
 
       const broadcasterIdsWithoutSubs = broadcasterIds.filter(
         broadcasterId =>
           !streamOnlineSubs.includes(broadcasterId)
-          && !streamOfflineSubs.includes(broadcasterId),
+          || !streamOfflineSubs.includes(broadcasterId)
+          || !channelUpdateSubs.includes(broadcasterId),
       )
 
+      console.warn('attempting to subscribe to', broadcasterIdsWithoutSubs.length, 'twitch streams')
       const subsciptionPromises = broadcasterIdsWithoutSubs.map(async (broadcasterId) => {
         return await subscribe(broadcasterId, env)
       })
@@ -141,6 +146,7 @@ async function scheduledCheck(env: Env) {
       // check if there are any subscriptions to remove
       const subscriptionsToRemove = twitchSubscriptions.data.filter(sub => !broadcasterIds.includes(sub.condition.broadcaster_user_id ?? ''))
 
+      console.warn('attempting to remove', subscriptionsToRemove.length, 'twitch subscriptions')
       const removeSubscriptions = subscriptionsToRemove.map(async (sub) => {
         await removeSubscription(sub.condition.broadcaster_user_id ?? '', env)
       })
@@ -162,8 +168,11 @@ async function scheduledCheck(env: Env) {
     // Check if kick event sub is subscribed to all of our streams in the database
     if (kickSubscriptions) {
       const kickStreamIds = kickSubscriptions.data.map(sub => sub.broadcaster_user_id.toString())
+      const statusSubs = kickSubscriptions.data.filter(sub => sub.event === 'livestream.status.updated').map(sub => sub.broadcaster_user_id.toString())
+      const metaSubs = kickSubscriptions.data.filter(sub => sub.event === 'livestream.metadata.updated').map(sub => sub.broadcaster_user_id.toString())
 
-      const streamsToSubscribe = kickStreams.filter(stream => !kickStreamIds.includes(stream.broadcasterId.toString()))
+      const streamsToSubscribe = kickStreams.filter(stream => !statusSubs.includes(stream.broadcasterId.toString()) || !metaSubs.includes(stream.broadcasterId.toString()))
+      console.warn('attempting to subscribe to', streamsToSubscribe.length, 'kick streams')
       const kickSubscriptionsPromises = streamsToSubscribe.map(async (kickStream) => {
         await kickSubscribe(Number(kickStream.broadcasterId), env)
       })
@@ -171,22 +180,23 @@ async function scheduledCheck(env: Env) {
 
       // check if the bot is subscribed to any channels it shouldnt be
       const subscriptionsToRemove = kickSubscriptions.data.filter(sub => !kickStreamIds.includes(sub.broadcaster_user_id.toString()))
+      console.warn('attempting to remove', subscriptionsToRemove.length, 'kick subscriptions')
       const unsubscribePromises = subscriptionsToRemove.map(sub =>
         kickUnsubscribe(Number(sub.broadcaster_user_id), env),
       )
 
       await Promise.allSettled(unsubscribePromises)
-
-      // ensure all kick streams have the correct name
-      const kickStreamsPromises = kickStreams.map(async (kickStream) => {
-        const kickUser = await getKickUser(Number(kickStream.broadcasterId), env)
-        if (kickUser && kickUser.name !== kickStream.name) {
-          await useDB(env).update(tables.kickStreams).set({ name: kickUser.name }).where(eq(tables.kickStreams.id, kickStream.id))
-        }
-      })
-
-      await Promise.allSettled(kickStreamsPromises)
     }
+
+    // ensure all kick streams have the correct name
+    const kickStreamsPromises = kickStreams.map(async (kickStream) => {
+      const kickUser = await getKickUser(Number(kickStream.broadcasterId), env)
+      if (kickUser && kickUser.name !== kickStream.name) {
+        await useDB(env).update(tables.kickStreams).set({ name: kickUser.name }).where(eq(tables.kickStreams.id, kickStream.id))
+      }
+    })
+
+    await Promise.allSettled(kickStreamsPromises)
 
     // Clean up any discord messages for kick/twitch that are older than 48h
     const streamMesages = await useDB(env).query.streamMessages.findMany({ })

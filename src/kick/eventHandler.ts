@@ -10,16 +10,19 @@ import { getKickLatestVod } from './kick'
  * @param payload - The payload containing the event data and subscription details.
  * @param env - The environment variables for accessing configuration and services.
  */
-export async function kickEventHandler(eventType: string, payload: KickLivestreamStatusUpdatedEvent, env: Env, ctx: ExecutionContext) {
-  if (eventType !== 'livestream.status.updated') {
-    throw new Error(`Invalid event type: ${eventType}`)
+export async function kickEventHandler(eventType: string, payload: KickLivestreamStatusUpdatedEvent | KickLivestreamMetadataUpdatedEvent, env: Env, ctx: ExecutionContext) {
+  if (eventType === 'livestream.status.updated') {
+    payload = payload as KickLivestreamStatusUpdatedEvent
+    if (payload.is_live && payload.ended_at === null) {
+      ctx.waitUntil(streamOnline(payload, env))
+    }
+    else {
+      ctx.waitUntil(streamOffline(payload, env))
+    }
   }
-
-  if (payload.is_live && payload.ended_at === null) {
-    ctx.waitUntil(streamOnline(payload, env))
-  }
-  else {
-    ctx.waitUntil(streamOffline(payload, env))
+  else if (eventType === 'livestream.metadata.updated') {
+    payload = payload as KickLivestreamMetadataUpdatedEvent
+    ctx.waitUntil(streamMetadataUpdated(payload, env))
   }
 }
 
@@ -95,5 +98,55 @@ async function streamOffline(payload: KickLivestreamStatusUpdatedEvent, env: Env
 
     // delete any stream messages that are no longer live on both kick and twitch (these are no longer needed)
     await useDB(env).delete(tables.streamMessages).where(and(eq(tables.streamMessages.kickOnline, false), eq(tables.streamMessages.twitchOnline, false)))
+  }
+}
+async function streamMetadataUpdated(payload: KickLivestreamMetadataUpdatedEvent, env: Env) {
+  const broadcasterId = payload.broadcaster.user_id
+  const streamMessages = await useDB(env).query.streamMessages.findMany({
+    with: {
+      stream: true,
+      kickStream: true,
+    },
+    where: (messages, { eq, and }) => and(eq(messages.kickOnline, true)),
+  })
+
+  const filteredStreamMessages = streamMessages.filter(message => message.kickStream?.broadcasterId === broadcasterId.toString())
+  if (filteredStreamMessages?.length > 0) {
+    const updatePromises = filteredStreamMessages.map(async (message) => {
+      if (message.kickStreamData) {
+        try {
+          await useDB(env).update(tables.streamMessages).set({
+            kickStreamData: {
+              ...message.kickStreamData,
+              stream_title: payload.metadata.title,
+              category: {
+                id: payload.metadata.Category.id,
+                name: payload.metadata.Category.name,
+                thumbnail: payload.metadata.Category.thumbnail,
+              },
+              language: payload.metadata.language,
+            },
+          }).where(eq(tables.streamMessages.id, message.id))
+        }
+        catch (error) {
+          console.error('Error updating kick stream data for message', message.id, error)
+        }
+      }
+      const updatedMessage = await useDB(env).query.streamMessages.findFirst({
+        where: (messages, { eq }) => eq(messages.id, message.id),
+        with: {
+          stream: true,
+          kickStream: true,
+        },
+      })
+
+      if (!updatedMessage || !updatedMessage.discordChannelId || !updatedMessage.discordMessageId) {
+        return
+      }
+
+      const discordMessage = bodyBuilder(updatedMessage, env)
+      return await updateMessage(message.discordChannelId, updatedMessage.discordMessageId, env.DISCORD_TOKEN, discordMessage)
+    })
+    await Promise.allSettled(updatePromises)
   }
 }

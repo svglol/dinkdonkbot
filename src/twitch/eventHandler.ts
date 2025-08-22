@@ -17,6 +17,9 @@ export async function twitchEventHandler(payload: SubscriptionEventResponseData<
     else if (payload.subscription.type === 'stream.offline') {
       ctx.waitUntil(streamOffline(payload, env))
     }
+    else if (payload.subscription.type === 'channel.update') {
+      ctx.waitUntil(channelUpdate(payload, env))
+    }
   }
 }
 
@@ -88,5 +91,55 @@ async function streamOffline(payload: SubscriptionEventResponseData<Subscription
     await Promise.allSettled(updatePromises)
     // delete all messages from db for this stream
     await useDB(env).delete(tables.streamMessages).where(and(eq(tables.streamMessages.kickOnline, false), eq(tables.streamMessages.twitchOnline, false)))
+  }
+}
+
+/**
+ * Handles a 'channel.update' event by updating all subscribed Discord messages with the updated
+ * stream title and game.
+ *
+ * @param payload - The payload containing the event data and subscription details.
+ * @param env - The environment variables for accessing configuration and services.
+ */
+async function channelUpdate(payload: SubscriptionEventResponseData<SubscriptionType>, env: Env) {
+  const event = payload.event as ChannelUpdateEventData
+  const broadcasterId = event.broadcaster_user_id
+  const streamMessages = await useDB(env).query.streamMessages.findMany({
+    with: {
+      stream: true,
+      kickStream: true,
+    },
+    where: (messages, { eq, and }) => and(eq(messages.twitchOnline, true)),
+  })
+  const filteredStreamMessages = streamMessages.filter(message => message.stream?.broadcasterId === broadcasterId)
+  if (filteredStreamMessages?.length > 0) {
+    const updatePromises = filteredStreamMessages.map(async (message) => {
+      if (message.twitchStreamData) {
+        await useDB(env).update(tables.streamMessages).set({
+          twitchStreamData: {
+            ...message.twitchStreamData,
+            title: event.title,
+            game_id: event.category_id,
+            game_name: event.category_name,
+            language: event.language,
+          },
+        }).where(eq(tables.streamMessages.id, message.id))
+      }
+      const updatedMessage = await useDB(env).query.streamMessages.findFirst({
+        where: (messages, { eq }) => eq(messages.id, message.id),
+        with: {
+          stream: true,
+          kickStream: true,
+        },
+      })
+
+      if (!updatedMessage || !updatedMessage.discordChannelId || !updatedMessage.discordMessageId) {
+        return
+      }
+
+      const discordMessage = bodyBuilder(updatedMessage, env)
+      return await updateMessage(message.discordChannelId, updatedMessage.discordMessageId, env.DISCORD_TOKEN, discordMessage)
+    })
+    await Promise.allSettled(updatePromises)
   }
 }
