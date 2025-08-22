@@ -386,7 +386,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
 
       if (streamMessage.twitchStreamData) {
         title = streamMessage.twitchStreamData.title
-        thumbnail = `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}`
+        thumbnail = `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}`
         timestamp = new Date(streamMessage.twitchStreamData.started_at).toISOString()
       }
 
@@ -464,7 +464,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
       let timestamp = new Date().toISOString()
       if (streamMessage.kickStreamData) {
         title = streamMessage.kickStreamData.stream_title
-        thumbnail = `${streamMessage.kickStreamData.thumbnail}?b=${streamMessage.kickStreamData.started_at}`
+        thumbnail = `${streamMessage.kickStreamData.thumbnail}?b=${streamMessage.kickStreamData.started_at}&t=${new Date().getTime()}`
         timestamp = new Date(streamMessage.kickStreamData.started_at).toISOString()
       }
       const embed = {
