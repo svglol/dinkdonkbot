@@ -2,7 +2,7 @@ import type { APIComponentInContainer, APIMessageComponentInteraction, APIMessag
 import { DurableObject } from 'cloudflare:workers'
 import { InteractionResponseType } from 'discord-interactions'
 import { buildErrorEmbed, updateInteraction } from '../discord/discord'
-import { deferedUpdate, interactionEphemeralLoading } from '../discord/interactionHandler'
+import { interactionEphemeralLoading } from '../discord/interactionHandler'
 import { JsonResponse } from '../util/jsonResponse'
 
 interface PersistedState {
@@ -15,7 +15,7 @@ interface PersistedState {
   maxWrongGuesses: number
 }
 
-const ALARM_TIME = 60000 * 10// 10 minutes with no interaction
+const ALARM_TIME = 60000 * 15// 15 minutes from interaction creation
 
 export class HangmanGame extends DurableObject {
   state: DurableObjectState
