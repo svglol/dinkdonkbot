@@ -1,6 +1,6 @@
 import type { APIButtonComponent, APIEmbed, APIInteraction, APIMessage, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
 import type { StreamMessage } from '../database/db'
-import { escapeMarkdown, escapeMaskedLink } from '@discordjs/formatters'
+import { escapeMarkdown } from '@discordjs/formatters'
 
 import { DiscordAPIError, REST } from '@discordjs/rest'
 
@@ -775,7 +775,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
           },
           {
             type: 10,
-            content: `## [${escapeMaskedLink(title)}](${url})`,
+            content: `## ${escapeMarkdown(title)}`,
           },
           {
             type: 10,
