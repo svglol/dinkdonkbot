@@ -47,13 +47,28 @@ ${EMOTE_HELP_MESSAGE}`,
 - </rps:1407312970903457903> - Play a game of rock, paper, scissors against another user
 - </roll:1407494568366047252> - Roll dice
 - </hangman:1407585217257934929> - Play a game of hangman with the community`,
-  page_support:
-`## ❓ **Support**
-If you have any issues, open a [GitHub issue](https://github.com/svglol/dinkdonkbot/issues/new/choose).
-    
-🔗 Links: [Website](https://svglol.github.io/dinkdonkbot/) | [GitHub](https://github.com/svglol/dinkdonkbot)`,
+  page_support: `## ❓ Support
+
+Need help or want to support DinkDonk Bot? Here’s where to go:
+
+The fastest way to get assistance is on **[Discord](https://discord.gg/NuY7Tnrb6F)**.
+
+🔗 Useful Links:  
+- [Join Discord](https://discord.gg/NuY7Tnrb6F)  
+- [Official Website](https://svglol.github.io/dinkdonkbot/)  
+- [GitHub Repository](https://github.com/svglol/dinkdonkbot)
+`,
 }
 
+/** ***********  ✨ Windsurf Command ⭐  */
+/**
+ * Handles the /help command.
+ *
+ * @param interaction - The interaction to handle
+ * @param env - The environment to use
+ * @param ctx - The context to use
+ */
+/** *****  f3346a23-0c7b-4c01-8a0f-61562a0cd671  */
 function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
   ctx.waitUntil(handleHelpCommand(interaction, env))
   return interactionEphemeralLoading()
@@ -83,6 +98,16 @@ async function handleHelpCommand(interaction: APIMessageComponentInteraction | A
   const actionButtons: APIMessageTopLevelComponent = {
     type: 1,
     components: [
+      {
+        type: 2,
+        label: 'Discord Server',
+        url: 'https://discord.gg/NuY7Tnrb6F',
+        style: 5,
+        emoji: {
+          name: 'Discord',
+          id: '1408714772794310686',
+        },
+      },
       {
         type: 2,
         label: 'Documentation',
