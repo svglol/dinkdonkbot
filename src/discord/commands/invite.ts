@@ -1,4 +1,5 @@
 import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
+import { applicationDirectory } from '@discordjs/formatters'
 import { updateInteraction } from '../discord'
 import { interactionLoading } from '../interactionHandler'
 
@@ -8,10 +9,7 @@ const INVITE_COMMAND = {
 }
 
 async function handleInviteCommand(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
-  const applicationId = env.DISCORD_APPLICATION_ID
-  const INVITE_URL = `https://discord.com/oauth2/authorize?client_id=${applicationId}&permissions=8797166895104&scope=applications.commands+bot`
-  const inviteMessage = `[Click here to invite the bot to your server!](${INVITE_URL})`
-  ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: inviteMessage }))
+  ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: applicationDirectory(env.DISCORD_APPLICATION_ID) }))
   return interactionLoading()
 }
 

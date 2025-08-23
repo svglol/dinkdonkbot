@@ -25,6 +25,7 @@
     "db:migrations-local": "wrangler d1 migrations apply DB"
   },
   "dependencies": {
+    "@discordjs/formatters": "0.6.1",
     "@discordjs/rest": "2.5.1",
     "date-fns-tz": "3.2.0",
     "discord-api-types": "0.38.20",

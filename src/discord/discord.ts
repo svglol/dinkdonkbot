@@ -1,9 +1,10 @@
 import type { APIButtonComponent, APIEmbed, APIInteraction, APIMessage, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
 import type { StreamMessage } from '../database/db'
+import { escapeMarkdown, escapeMaskedLink } from '@discordjs/formatters'
+
 import { DiscordAPIError, REST } from '@discordjs/rest'
 
 import { Routes } from 'discord-api-types/v10'
-
 import { eq, tables, useDB } from '../database/db'
 import { formatDuration } from '../util/formatDuration'
 
@@ -758,7 +759,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
 
   const messageComponent = {
     type: 10,
-    content: escapeDiscordMarkdown(message),
+    content: escapeMarkdown(message),
   }
 
   const container = {
@@ -770,11 +771,11 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
         components: [
           {
             type: 10,
-            content: `## [${title}](${url})`,
+            content: `## [${escapeMaskedLink(title)}](${url})`,
           },
           {
             type: 10,
-            content: `### ${description}${game ? `\n**Game**\n${escapeDiscordMarkdown(game)}` : ''}`,
+            content: `### ${description}${game ? `\n**Game**\n${escapeMarkdown(game)}` : ''}`,
           },
         ],
         accessory: {
@@ -795,7 +796,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
       },
       {
         type: 10,
-        content: `-# <a:DinkDonk:1357111617787002962> DinkDonk Bot • ${escapeDiscordMarkdown(status)} • <t:${timestamp}>`,
+        content: `-# <a:DinkDonk:1357111617787002962> DinkDonk Bot • ${escapeMarkdown(status)} • <t:${timestamp}>`,
       },
     ],
   }
@@ -816,11 +817,6 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
     components,
     flags: 1 << 15,
   }
-}
-
-function escapeDiscordMarkdown(text: string) {
-  // Escape Discord markdown characters
-  return text.replace(/([_*~`|\\])/g, '\\$1')
 }
 
 export function buildErrorEmbed(error: string, env: Env, embed?: APIEmbed) {

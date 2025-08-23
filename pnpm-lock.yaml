@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@discordjs/formatters':
+        specifier: 0.6.1
+        version: 0.6.1
       '@discordjs/rest':
         specifier: 2.5.1
         version: 2.5.1
@@ -210,6 +213,10 @@ packages:
   '@discordjs/collection@2.1.1':
     resolution: {integrity: sha512-LiSusze9Tc7qF03sLCujF5iZp7K+vRNEDBZ86FT9aQAv3vxMLihUvKvpsCWiQ2DJq1tVckopKm1rxomgNUc9hg==}
     engines: {node: '>=18'}
+
+  '@discordjs/formatters@0.6.1':
+    resolution: {integrity: sha512-5cnX+tASiPCqCWtFcFslxBVUaCetB0thvM/JyavhbXInP1HJIEU+Qv/zMrnuwSsX3yWH2lVXNJZeDK3EiP4HHg==}
+    engines: {node: '>=16.11.0'}
 
   '@discordjs/rest@2.5.1':
     resolution: {integrity: sha512-Tg9840IneBcbrAjcGaQzHUJWFNq1MMWZjTdjJ0WS/89IffaNKc++iOvffucPxQTF/gviO9+9r8kEPea1X5J2Dw==}
@@ -2867,6 +2874,10 @@ snapshots:
       '@jridgewell/trace-mapping': 0.3.9
 
   '@discordjs/collection@2.1.1': {}
+
+  '@discordjs/formatters@0.6.1':
+    dependencies:
+      discord-api-types: 0.38.20
 
   '@discordjs/rest@2.5.1':
     dependencies:
