@@ -3,6 +3,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/svglol/dinkdonkbot?style=social)](https://github.com/svglol/dinkdonkbot/stargazers)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F68212?logo=cloudflare)](https://workers.cloudflare.com)
 [![CI](https://github.com/svglol/dinkdonkbot/actions/workflows/ci.yml/badge.svg)](https://github.com/svglol/dinkdonkbot/actions/workflows/ci.yml)
+[![Discord](https://img.shields.io/badge/Join-Discord-5865F2?style=flat&logo=discord&logoColor=white)](https://discord.gg/NuY7Tnrb6F)
 
 A powerful Discord bot for Twitch & Kick notifications and emote management, running on Cloudflare Workers.
 
@@ -14,6 +15,7 @@ A powerful Discord bot for Twitch & Kick notifications and emote management, run
 ## Get Started
 [![Add DinkDonk Bot](https://img.shields.io/badge/Add%20to-Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/oauth2/authorize?client_id=1227866873220173824&permissions=8797166895104&scope=applications.commands+bot)
 [![Documentation](https://img.shields.io/badge/Read-Documentation-blue?style=for-the-badge&logo=gitbook&logoColor=white)](https://svglol.github.io/dinkdonkbot/)
+[![Join Discord Server](https://img.shields.io/badge/Join%20Discord-Server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/NuY7Tnrb6F)
 [![Ko-fi](https://img.shields.io/badge/Support%20us-fc4c58?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/svglol)
 
 ## Commands
