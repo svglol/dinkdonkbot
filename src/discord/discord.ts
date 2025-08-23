@@ -32,9 +32,26 @@ export async function sendMessage(channelId: string, discordToken: string, body:
     if (error instanceof DiscordAPIError) {
       // If the channel isnt found or the bot doesn't have permission to post in the channel
       if (error.status === 404 || error.status === 403) {
-        await useDB(env).delete(tables.streams).where(eq(tables.streams.channelId, channelId))
-        await useDB(env).delete(tables.clips).where(eq(tables.clips.channelId, channelId))
-        await useDB(env).delete(tables.kickStreams).where(eq(tables.kickStreams.channelId, channelId))
+        const kvKey = `channel:error:${channelId}`
+        const channel = await env.KV.get(kvKey) as number | null
+
+        const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
+        const discordChannel = await rest.get(Routes.channel(channelId)) as RESTGetAPIChannelResult
+        if (discordChannel) {
+          // channel exists we just dont have permission to post in it (lets not delete their subscriptions)
+          return null
+        }
+
+        // If we havnt been able to post in the channel 3 times in the last week, then we can assume the channel has been deleted
+        if (channel && channel > 2) {
+          await useDB(env).delete(tables.streams).where(eq(tables.streams.channelId, channelId))
+          await useDB(env).delete(tables.clips).where(eq(tables.clips.channelId, channelId))
+          await useDB(env).delete(tables.kickStreams).where(eq(tables.kickStreams.channelId, channelId))
+          await env.KV.delete(kvKey)
+        }
+        else {
+          await env.KV.put(kvKey, JSON.stringify((channel || 0) + 1), { expirationTtl: 60 * 60 * 24 * 7 })
+        }
         return null
       }
     }
