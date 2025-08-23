@@ -1,5 +1,4 @@
 import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
-import { applicationDirectory } from '@discordjs/formatters'
 import { updateInteraction } from '../discord'
 import { interactionLoading } from '../interactionHandler'
 
@@ -9,7 +8,7 @@ const INVITE_COMMAND = {
 }
 
 async function handleInviteCommand(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
-  ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: applicationDirectory(env.DISCORD_APPLICATION_ID) }))
+  ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `https://discord.com/application-directory/${env.DISCORD_APPLICATION_ID}` }))
   return interactionLoading()
 }
 
