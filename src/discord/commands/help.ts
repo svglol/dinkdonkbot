@@ -123,7 +123,8 @@ async function handleHelpCommand(interaction: APIMessageComponentInteraction | A
         url: 'https://github.com/svglol/dinkdonkbot',
         style: 5,
         emoji: {
-          name: '🐙',
+          name: 'GitHub',
+          id: '1408716639268241491',
         },
       },
       {
