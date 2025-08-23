@@ -132,6 +132,14 @@ const KICK_COMMAND = {
         required: true,
         autocomplete: true,
       }, {
+        type: 3,
+        name: 'message-type',
+        description: 'Whether to test the live or offline message',
+        choices: [
+          { name: 'Live', value: 'live' },
+          { name: 'Offline', value: 'offline' },
+        ],
+      }, {
         type: 5,
         name: 'global',
         description: 'Show the notification for everyone in the server',
@@ -385,6 +393,9 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
       if (!stream)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
 
+      const messageTypeOption = test.options.find(option => option.name === 'message-type')
+      const messageType = messageTypeOption && 'value' in messageTypeOption ? messageTypeOption.value as string : 'live'
+
       const [kickUser, kickLivestream] = await Promise.all([
         await getKickChannelV2(stream.name),
         await getKickLivestream(Number(stream.broadcasterId), env),
@@ -396,8 +407,8 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
         streamId: null,
         kickStream: stream,
         kickStreamId: null,
-        kickStreamStartedAt: new Date(),
-        kickStreamEndedAt: null,
+        kickStreamStartedAt: messageType === 'live' ? new Date(kickLivestream?.started_at || new Date()) : new Date(new Date(kickLivestream?.started_at || new Date()).getTime() - 3600000),
+        kickStreamEndedAt: messageType === 'live' ? null : new Date(),
         twitchStreamStartedAt: null,
         twitchStreamEndedAt: null,
         discordChannelId: stream.channelId,
@@ -410,7 +421,7 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
         kickStreamData: kickLivestream ?? null,
         kickStreamerData: kickUser ?? null,
         kickVod: null,
-        kickOnline: true,
+        kickOnline: messageType === 'live',
         createdAt: new Date().toISOString(),
       } satisfies StreamMessage
 

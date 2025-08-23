@@ -109,6 +109,14 @@ const TWITCH_COMMAND = {
       required: true,
       autocomplete: true,
     }, {
+      type: 3,
+      name: 'message-type',
+      description: 'Whether to test the live or offline message',
+      choices: [
+        { name: 'Live', value: 'live' },
+        { name: 'Offline', value: 'offline' },
+      ],
+    }, {
       type: 5,
       name: 'global',
       description: 'Show the notification for everyone in the server',
@@ -383,6 +391,9 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
       if (!stream)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer && 'value' in streamer ? streamer.value as string : ''}\``, env)] })
 
+      const messageTypeOption = test.options.find(option => option.name === 'message-type')
+      const messageType = messageTypeOption && 'value' in messageTypeOption ? messageTypeOption.value as string : 'live'
+
       const [streamerData, streamData] = await Promise.all([
         getStreamerDetails(stream.name, env),
         getStreamDetails(stream.name, env),
@@ -395,12 +406,12 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
         kickStreamId: null,
         kickStreamStartedAt: null,
         kickStreamEndedAt: null,
-        twitchStreamStartedAt: new Date(),
-        twitchStreamEndedAt: null,
+        twitchStreamStartedAt: messageType === 'live' ? new Date(streamData?.started_at || new Date()) : new Date(new Date(streamData?.started_at || new Date()).getTime() - 3600000),
+        twitchStreamEndedAt: messageType === 'live' ? null : new Date(),
         discordChannelId: stream.channelId,
         discordMessageId: null,
-        twitchStreamId: null,
-        twitchOnline: true,
+        twitchStreamId: streamData?.id || null,
+        twitchOnline: messageType === 'live',
         twitchStreamData: streamData,
         twitchStreamerData: streamerData,
         twitchVod: null,
