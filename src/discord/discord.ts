@@ -254,8 +254,21 @@ export async function checkChannelPermission(channelId: string, discordToken: st
   try {
     const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
     const channel = await rest.get(Routes.channel(channelId)) as RESTGetAPIChannelResult
-    if (channel)
-      return true
+    if (channel) {
+      const message = await rest.post(Routes.channelMessages(channelId), {
+        body: {
+          content: 'Checking I have permission to post in this channel',
+        },
+      }) as RESTPostAPIChannelMessageResult
+
+      if (message) {
+        await rest.delete(Routes.channelMessage(channelId, message.id))
+        return true
+      }
+      else {
+        return false
+      }
+    }
   }
   catch (error: unknown) {
     console.error('Error checking send message permission:', error)
