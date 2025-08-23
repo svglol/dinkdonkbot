@@ -272,16 +272,11 @@ export class HangmanGame extends DurableObject {
       await this.saveState()
       // Reset the alarm because the game is still ongoing
       const hangmanCard = this.buildComponents()
-      if (hangmanCard.components.find(c => c.type === 1)) {
-      // If there are still buttons that means the game is still ongoing
-        await this.clearAlarm()
-        await this.scheduleAlarm()
-      }
-      else {
-      // If there are no buttons, the game is over
-        await this.clearAlarm()
+      if (!hangmanCard.components.find(c => c.type === 1)) {
+        // If there are no buttons, the game is over
         await this.reset()
       }
+
       this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, {
         flags: 1 << 15,
         components: [hangmanCard],
@@ -375,10 +370,9 @@ export class HangmanGame extends DurableObject {
           ...new Set(
             allContributors
               .map(g => g.userId)
-              .filter(id => !winningMove || id !== winningMove.userId),
+              .filter(id => id !== winningMove?.userId),
           ),
         ]
-
         if (contributorIds.length > 1) {
           const contributorList = contributorIds.map(id => `<@${id}>`).join(', ')
 
