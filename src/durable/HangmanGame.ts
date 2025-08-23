@@ -277,11 +277,13 @@ export class HangmanGame extends DurableObject {
         await this.reset()
       }
 
-      this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, {
-        flags: 1 << 15,
-        components: [hangmanCard],
-      }))
-      return deferedUpdate()
+      return new JsonResponse({
+        type: InteractionResponseType.UPDATE_MESSAGE,
+        data: {
+          flags: 1 << 15,
+          components: [hangmanCard],
+        },
+      })
     })
   }
 
