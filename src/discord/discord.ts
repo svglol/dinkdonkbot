@@ -681,6 +681,17 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
           },
         })
       }
+      buttons.push({
+        type: 2,
+        label: 'Get Top Clips from Stream',
+        style: 2,
+        custom_id: `top-clips:${streamMessage.twitchStreamerData?.id}:${streamMessage.twitchStreamStartedAt?.getTime()}:${streamMessage.twitchStreamEndedAt?.getTime()}`,
+        emoji: {
+          name: 'twitch',
+          id: '1404661243373031585',
+          animated: false,
+        },
+      })
     }
   }
   else if (streamMessage.kickStream) {
@@ -789,7 +800,6 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
           },
         },
       },
-
       {
         type: 12,
         items: [

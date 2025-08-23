@@ -1,5 +1,8 @@
-import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIMessageComponentInteraction, APIModalSubmitInteraction } from 'discord-api-types/v10'
+import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIMessageComponentInteraction, APIMessageTopLevelComponent, APIModalSubmitInteraction } from 'discord-api-types/v10'
+import { escapeMarkdown } from '@discordjs/formatters'
+import { ButtonStyle, ComponentType } from 'discord-api-types/v10'
 import { InteractionResponseFlags, InteractionResponseType } from 'discord-interactions'
+import { getClips } from '../twitch/twitch'
 import { JsonResponse } from '../util/jsonResponse'
 import * as commands from './commands'
 import { buildErrorEmbed, updateInteraction } from './discord'
@@ -104,6 +107,13 @@ export async function discordInteractionMessageComponentHandler(interaction: API
   if (handler) {
     return handler(interaction, env, ctx)
   }
+  else if (interaction.data.custom_id.toLowerCase().startsWith('top-clips:')) {
+    const broadcasterId = interaction.data.custom_id.split(':')[1]
+    const startDate = new Date(Number(interaction.data.custom_id.split(':')[2]))
+    const endDate = new Date(Number(interaction.data.custom_id.split(':')[3]))
+    ctx.waitUntil(handleTopClipsCommand(interaction, env, broadcasterId, startDate, endDate))
+    return interactionEphemeralLoading()
+  }
   else {
     return new JsonResponse({ error: 'MessageComponent not implemented' }, { status: 400 })
   }
@@ -177,4 +187,51 @@ export function autoCompleteResponse(options: { name: string, value: string }[])
       choices: options.slice(0, 25),
     },
   })
+}
+async function handleTopClipsCommand(interaction: APIMessageComponentInteraction, env: Env, broadcasterId: string, startDate: Date, endDate: Date) {
+  const clips = await getClips(broadcasterId, startDate, endDate, env)
+  if (clips && clips.data.length > 0) {
+    const components: APIMessageTopLevelComponent[] = []
+
+    for (const clip of clips.data) {
+      components.push({
+        type: ComponentType.Container,
+        accent_color: 0x6441A4,
+        components: [
+          {
+            type: ComponentType.Section,
+            components: [
+              {
+                type: ComponentType.TextDisplay,
+                content: `## ${escapeMarkdown(clip.title)}\n**${clip.view_count.toLocaleString()}** views • **${Math.floor(clip.duration)}s** • Clipped by **${escapeMarkdown(clip.creator_name)}**`,
+              },
+            ],
+            accessory: {
+              type: 11,
+              media: {
+                url: clip.thumbnail_url,
+              },
+            },
+          },
+
+          {
+            type: ComponentType.ActionRow,
+            components: [
+              {
+                type: ComponentType.Button,
+                style: ButtonStyle.Link,
+                url: clip.url,
+                label: 'Watch Clip',
+              },
+            ],
+          },
+        ],
+
+      })
+    }
+    await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { components, flags: 1 << 15 })
+  }
+  else {
+    await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('We could not find any clips from this stream 😢', env)] })
+  }
 }

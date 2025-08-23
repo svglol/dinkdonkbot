@@ -541,6 +541,35 @@ export async function getClipsLastHour(broadcasterId: string, env: Env) {
   }
 }
 
+/**
+ * Fetches the clips for a given broadcaster ID in a given time range.
+ *
+ * @param broadcasterId The ID of the Twitch broadcaster to fetch clips for.
+ * @param startDate The start date for the time range to fetch clips from.
+ * @param endDate The end date for the time range to fetch clips from.
+ * @param env The environment variables for accessing configuration and services.
+ * @returns A promise that resolves to the TwitchClipsResponse object containing
+ *          the clips, or null if the request fails.
+ * @throws If the request to fetch the clips fails.
+ */
+export async function getClips(broadcasterId: string, startDate: Date, endDate: Date, env: Env) {
+  try {
+    const clipsRes = await fetch(`https://api.twitch.tv/helix/clips?broadcaster_id=${broadcasterId}&first=5&started_at=${startDate.toISOString()}&ended_at=${endDate.toISOString()}`, {
+      headers: {
+        'Client-ID': env.TWITCH_CLIENT_ID,
+        'Authorization': `Bearer ${await getToken(env)}`,
+      },
+    })
+    if (!clipsRes.ok)
+      throw new Error(`Failed to fetch clips: ${JSON.stringify(await clipsRes.json())}`)
+    const clips = await clipsRes.json() as TwitchClipsResponse
+    return clips
+  }
+  catch (error) {
+    console.error('Error fetching clips:', error)
+  }
+}
+
 export async function getUserbyID(userId: string, env: Env) {
   try {
     const userRes = await fetch(`https://api.twitch.tv/helix/users?id=${userId}`, {
