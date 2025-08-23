@@ -196,7 +196,7 @@ export class HangmanGame extends DurableObject {
   }
 
   async makeGuessButton(interaction: APIMessageComponentInteraction) {
-    if (this.interaction?.member && interaction.member && this.customPhrase) {
+    if ((this.interaction?.member && this.interaction.member.user.id === interaction.member?.user.id) && this.customPhrase) {
       this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You cannot make a guess while playing a custom phrase game that you started!', this.env)] }))
       return interactionEphemeralLoading()
     }
