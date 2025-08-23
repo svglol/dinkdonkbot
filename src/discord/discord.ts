@@ -661,7 +661,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
         : streamMessage.twitchStreamEndedAt && streamMessage.twitchStreamStartedAt
           ? formatDuration(streamMessage.twitchStreamEndedAt.getTime() - streamMessage.twitchStreamStartedAt.getTime())
           : '0'
-      description = `${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} streamed for **${duration}**`
+      description = `<:twitch:1404661243373031585> ${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} streamed for **${duration}** on Twitch`
       status = 'Last online'
       timestamp = Math.floor(new Date(streamMessage.twitchStreamEndedAt || Date.now()).getTime() / 1000)
       const backupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}` : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
@@ -717,7 +717,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
         : streamMessage.kickStreamEndedAt && streamMessage.kickStreamStartedAt
           ? formatDuration(streamMessage.kickStreamEndedAt.getTime() - streamMessage.kickStreamStartedAt.getTime())
           : '0'
-      description = `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} streamed for **${duration}**`
+      description = `<:kick:1404661261030916246> ${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} streamed for **${duration}** on KICK`
       status = 'Last online'
       timestamp = Math.floor(new Date(streamMessage.kickStreamEndedAt || Date.now()).getTime() / 1000)
       image = streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp'
@@ -771,11 +771,15 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
         components: [
           {
             type: 10,
+            content: `### ${description}`,
+          },
+          {
+            type: 10,
             content: `## [${escapeMaskedLink(title)}](${url})`,
           },
           {
             type: 10,
-            content: `### ${description}${game ? `\n**Game**\n${escapeMarkdown(game)}` : ''}`,
+            content: `${game ? `\n**Game**\n${escapeMarkdown(game)}` : '‎ '}`, // empty character
           },
         ],
         accessory: {
