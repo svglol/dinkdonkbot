@@ -171,10 +171,12 @@ export async function scheduledCheck(env: Env) {
       const statusSubs = kickSubscriptions.data.filter(sub => sub.event === 'livestream.status.updated').map(sub => sub.broadcaster_user_id.toString())
       const metaSubs = kickSubscriptions.data.filter(sub => sub.event === 'livestream.metadata.updated').map(sub => sub.broadcaster_user_id.toString())
 
-      const streamsToSubscribe = kickStreams.filter(stream => !statusSubs.includes(stream.broadcasterId.toString()) || !metaSubs.includes(stream.broadcasterId.toString()))
-      console.warn('attempting to subscribe to', streamsToSubscribe.length, 'kick streams')
-      const kickSubscriptionsPromises = streamsToSubscribe.map(async (kickStream) => {
-        await kickSubscribe(Number(kickStream.broadcasterId), env)
+      const broadcasterIds = [...new Set(kickStreams.map(stream => stream.broadcasterId))]
+      const broadcasterIdsWithoutSubs = broadcasterIds.filter(broadcasterId => !statusSubs.includes(broadcasterId) || !metaSubs.includes(broadcasterId))
+
+      console.warn('attempting to subscribe to', broadcasterIdsWithoutSubs.length, 'kick streams')
+      const kickSubscriptionsPromises = broadcasterIdsWithoutSubs.map(async (kickStream) => {
+        await kickSubscribe(Number(kickStream), env)
       })
       await Promise.allSettled(kickSubscriptionsPromises)
 
