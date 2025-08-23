@@ -638,6 +638,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
   let color: number = 0xFFF200
   let description: string
   let game: string | undefined
+  let duration: string | undefined
   let status: string
   let timestamp: number = new Date().getTime() / 1000
   let thumbnail: string
@@ -685,13 +686,14 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
     }
     else {
       message = messageBuilder(streamMessage.stream.offlineMessage ? streamMessage.stream.offlineMessage : '{{name}} is now offline.', streamMessage.stream.name)
-      title = `${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} is no longer live!`
-      const duration = streamMessage.twitchVod
+      title = streamMessage.twitchStreamData?.title || `${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} is no longer live!`
+      duration = streamMessage.twitchVod
         ? streamMessage.twitchVod.duration
         : streamMessage.twitchStreamEndedAt && streamMessage.twitchStreamStartedAt
           ? formatDuration(streamMessage.twitchStreamEndedAt.getTime() - streamMessage.twitchStreamStartedAt.getTime())
           : '0'
-      description = `<:twitch:1404661243373031585> ${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} streamed for **${duration}** on Twitch`
+      description = `**<:twitch:1404661243373031585> ${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} is no longer live!**`
+      // description = `<:twitch:1404661243373031585> ${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} streamed for **${duration}** on Twitch`
       status = 'Last online'
       timestamp = Math.floor(new Date(streamMessage.twitchStreamEndedAt || Date.now()).getTime() / 1000)
       const backupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}` : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
@@ -752,13 +754,13 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
     }
     else {
       message = messageBuilder(streamMessage.kickStream?.offlineMessage ? streamMessage.kickStream?.offlineMessage : '{{name}} is now offline.', streamMessage.kickStream.name)
-      title = `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} is no longer live!`
-      const duration = streamMessage.kickVod && !Number.isNaN(streamMessage.kickVod.duration) && streamMessage.kickVod.duration > 0
+      title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} is no longer live!`
+      duration = streamMessage.kickVod && !Number.isNaN(streamMessage.kickVod.duration) && streamMessage.kickVod.duration > 0
         ? formatDuration(streamMessage.kickVod.duration)
         : streamMessage.kickStreamEndedAt && streamMessage.kickStreamStartedAt
           ? formatDuration(streamMessage.kickStreamEndedAt.getTime() - streamMessage.kickStreamStartedAt.getTime())
           : '0'
-      description = `<:kick:1404661261030916246> ${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} streamed for **${duration}** on KICK`
+      description = `<:kick:1404661261030916246> ${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} is no longer live on KICK`
       status = 'Last online'
       timestamp = Math.floor(new Date(streamMessage.kickStreamEndedAt || Date.now()).getTime() / 1000)
       image = streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp'
@@ -820,7 +822,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
           },
           {
             type: 10,
-            content: `${game ? `\n**Game**\n${escapeMarkdown(game)}` : '‎ '}`, // empty character
+            content: `${duration ? `\n**Streamed for**\n${duration}` : ''}${game ? `\n**Game**\n${escapeMarkdown(game)}` : ''}` || '‎ ', // empty character if both are empty
           },
         ],
         accessory: {
