@@ -309,8 +309,15 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
 
       const channel = edit.options.find(option => option.name === 'discord-channel')
-      if (channel)
-        await useDB(env).update(tables.streams).set({ channelId: String('value' in channel ? channel.value : '') }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+      if (channel) {
+        const hasPermission = await checkChannelPermission(String('value' in channel ? channel.value as string : ''), env.DISCORD_TOKEN)
+        if (hasPermission) {
+          await useDB(env).update(tables.streams).set({ channelId: String('value' in channel ? channel.value : '') }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+        }
+        else {
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This bot does not have permission to send messages in this channel', env)] })
+        }
+      }
       const role = edit.options.find(option => option.name === 'ping-role')
       let roleId: string | undefined
       if (role) {

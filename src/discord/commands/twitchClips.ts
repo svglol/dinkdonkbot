@@ -205,8 +205,15 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You are not subscribed to this streamer', env)] })
 
       const channel = edit.options.find(option => option.name === 'discord-channel')
-      if (channel)
-        await useDB(env).update(tables.clips).set({ channelId: String('value' in channel ? channel.value : '') }).where(and(like(tables.clips.streamer, streamer), eq(tables.clips.guildId, server)))
+      if (channel) {
+        const hasPermission = await checkChannelPermission(String('value' in channel ? channel.value as string : ''), env.DISCORD_TOKEN)
+        if (hasPermission) {
+          await useDB(env).update(tables.clips).set({ channelId: String('value' in channel ? channel.value : '') }).where(and(like(tables.clips.streamer, streamer), eq(tables.clips.guildId, server)))
+        }
+        else {
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This bot does not have permission to send messages in this channel', env)] })
+        }
+      }
 
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`Edited \`${streamer}\` for clip notifications`, env)] })
     }
