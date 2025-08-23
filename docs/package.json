@@ -25,7 +25,7 @@
     "@vueuse/nuxt": "13.6.0",
     "better-sqlite3": "12.2.0",
     "eslint": "9.33.0",
-    "eslint-plugin-better-tailwindcss": "3.7.4",
+    "eslint-plugin-better-tailwindcss": "3.7.5",
     "nuxt": "4.0.3",
     "nuxt-og-image": "5.1.9",
     "postcss-html": "1.8.0",
