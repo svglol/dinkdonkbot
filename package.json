@@ -28,7 +28,7 @@
     "@discordjs/formatters": "0.6.1",
     "@discordjs/rest": "2.6.0",
     "date-fns-tz": "3.2.0",
-    "discord-api-types": "0.38.20",
+    "discord-api-types": "0.38.21",
     "discord-interactions": "4.3.0",
     "drizzle-orm": "0.44.4",
     "itty-router": "5.0.22",
