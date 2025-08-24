@@ -20,6 +20,7 @@
   },
   "devDependencies": { "@antfu/eslint-config": "5.2.1", "eslint": "9.33.0" },
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "docs"
   ]
 }
