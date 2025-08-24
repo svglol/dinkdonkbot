@@ -4,7 +4,7 @@ import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'di
 import { PermissionFlagsBits } from 'discord-api-types/v10'
 import { and, eq, like } from 'drizzle-orm'
 import { tables, useDB } from '../../database/db'
-import { getKickChannel, getKickChannelV2, getKickLivestream, getKickUser, kickSubscribe, kickUnsubscribe } from '../../kick/kick'
+import { getKickChannel, getKickChannelV2, getKickLatestVod, getKickLivestream, getKickUser, kickSubscribe, kickUnsubscribe } from '../../kick/kick'
 import { bodyBuilder, buildErrorEmbed, buildSuccessEmbed, checkChannelPermission, sendMessage, updateInteraction } from '../discord'
 import { autoCompleteResponse, interactionEphemeralLoading } from '../interactionHandler'
 
@@ -403,6 +403,8 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
         await getKickLivestream(Number(stream.broadcasterId), env),
       ])
 
+      const kickVod = messageType === 'live' ? null : await getKickLatestVod(kickLivestream?.started_at || new Date().toISOString(), stream.name)
+
       // build a fake stream message object
       const streamMessage = {
         id: 0,
@@ -422,7 +424,7 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
         twitchVod: null,
         kickStreamData: kickLivestream ?? null,
         kickStreamerData: kickUser ?? null,
-        kickVod: null,
+        kickVod,
         kickOnline: messageType === 'live',
         createdAt: new Date().toISOString(),
       } satisfies StreamMessage

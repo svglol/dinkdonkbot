@@ -331,7 +331,6 @@ export async function getKickChannelV2(slug: string) {
  * Fetches the latest Video on Demand (VOD) for a given Kick channel.
  *
  * @param startedAt - The start time of the Stream in ISO 8601 format.
- * @param endedAt - The end time of the Stream in ISO 8601 format.
  * @param slug - The slug of the channel to fetch the latest VOD from.
  * @returns A promise that resolves to a KickVOD object containing the VOD details,
  *          or undefined if no VOD is found or an error occurs.
@@ -339,7 +338,7 @@ export async function getKickChannelV2(slug: string) {
  *         Specific errors are thrown for unauthorized access, forbidden access, channel not found,
  *         rate limits, or other HTTP errors.
  */
-export async function getKickLatestVod(startedAt: string, endedAt: string, slug: string) {
+export async function getKickLatestVod(startedAt: string, slug: string) {
   try {
     if (!slug || slug.trim() === '') {
       throw new Error('Channel slug is required')
@@ -379,32 +378,25 @@ export async function getKickLatestVod(startedAt: string, endedAt: string, slug:
     }
 
     if (videos.length === 0) {
-      return undefined
+      return null
     }
-    return videos[0]
+    function toUTC(dateStr: string): string {
+      if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(dateStr)) {
+        return new Date(`${dateStr.replace(' ', 'T')}Z`).toISOString()
+      }
+      return new Date(dateStr).toISOString()
+    }
 
-    // Find the VOD with the largest overlap
-    const bufferSeconds = 60 * 2
-    const startTime = new Date(startedAt).getTime() - bufferSeconds * 1000
-    const endTime = new Date(endedAt).getTime() + bufferSeconds * 1000
-    let bestVod: KickVOD | undefined
-    let maxOverlap = 0
+    const startedTime = new Date(startedAt).getTime()
+    const tolerance = 2 * 60 * 1000
 
-    for (const vod of videos) {
-      const vodStart = new Date(vod.created_at).getTime()
-      const vodEnd = vodStart + vod.duration * 1000
-
-      const overlapStart = Math.max(vodStart, startTime)
-      const overlapEnd = Math.min(vodEnd, endTime)
-      const overlap = Math.max(0, overlapEnd - overlapStart)
-
-      if (overlap > maxOverlap) {
-        maxOverlap = overlap
-        bestVod = vod
+    for (const video of videos) {
+      const videoTime = new Date(toUTC(video.start_time)).getTime()
+      if (Math.abs(videoTime - startedTime) <= tolerance) {
+        return video
       }
     }
-
-    return bestVod
+    return null
   }
   catch (error) {
     if (error instanceof Error) {
@@ -413,6 +405,6 @@ export async function getKickLatestVod(startedAt: string, endedAt: string, slug:
     else {
       console.error(`Unknown error fetching latest VOD for channel "${slug}":`, error)
     }
-    return undefined
+    return null
   }
 }
