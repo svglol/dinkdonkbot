@@ -4,7 +4,7 @@ import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'di
 import { PermissionFlagsBits } from 'discord-api-types/v10'
 import { and, eq, like } from 'drizzle-orm'
 import { tables, useDB } from '../../database/db'
-import { getKickChannel, getKickChannelV2, getKickLivestream, kickSubscribe, kickUnsubscribe } from '../../kick/kick'
+import { getKickChannel, getKickChannelV2, getKickLivestream, getKickUser, kickSubscribe, kickUnsubscribe } from '../../kick/kick'
 import { bodyBuilder, buildErrorEmbed, buildSuccessEmbed, checkChannelPermission, sendMessage, updateInteraction } from '../discord'
 import { autoCompleteResponse, interactionEphemeralLoading } from '../interactionHandler'
 
@@ -226,6 +226,8 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
       if (!kickChannel)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`Kick channel with name:\`${streamer}\` could not be found`, env)] })
 
+      const kickUser = await getKickUser(Number(kickChannel.broadcaster_user_id), env)
+
       // check if we have permission to post in this discord channel
       const hasPermission = await checkChannelPermission(channel, env.DISCORD_TOKEN)
       if (!hasPermission)
@@ -248,7 +250,7 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
 
       // add to database
       const subscription = await useDB(env).insert(tables.kickStreams).values({
-        name: kickChannel ? kickChannel.slug : streamer,
+        name: kickUser ? kickUser.name : streamer,
         broadcasterId: String(kickChannel.broadcaster_user_id),
         guildId: server,
         channelId: channel,
