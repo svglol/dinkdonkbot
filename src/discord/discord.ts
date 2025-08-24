@@ -849,7 +849,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
       game = streamMessage.twitchStreamData?.game_name || 'No game'
       status = 'Online'
       timestamp = Math.floor(new Date(streamMessage.twitchStreamData?.started_at || Date.now()).getTime() / 1000)
-      image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : streamMessage.twitchStreamerData?.offline_image_url || ''
+      image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : streamMessage.twitchStreamerData?.offline_image_url || streamMessage.twitchStreamerData?.profile_image_url || ''
       url = `https://twitch.tv/${streamMessage.twitchStreamerData?.login}`
 
       buttons.push({
