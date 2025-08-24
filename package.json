@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "5.2.1",
-    "@cloudflare/vitest-pool-workers": "0.8.65",
+    "@cloudflare/vitest-pool-workers": "0.8.66",
     "@cloudflare/workers-types": "4.20250821.0",
     "@types/tz-lookup": "6.1.2",
     "dotenv": "17.2.1",
