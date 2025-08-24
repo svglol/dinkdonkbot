@@ -1,10 +1,8 @@
 {
   "name": "dinkdonkbot-monorepo",
+  "type": "module",
   "private": true,
-  "devDependencies": {},
-  "workspaces": [
-    "apps/*"
-  ],
+  "packageManager": "pnpm@10.14.0",
   "scripts": {
     "start": "pnpm --filter dinkdonkbot start",
     "dev": "pnpm --filter dinkdonkbot dev",
@@ -20,5 +18,8 @@
     "db:migrations": "pnpm --filter dinkdonkbot db:migrations",
     "db:migrations-local": "pnpm --filter dinkdonkbot db:migrations-local"
   },
-  "packageManager": "pnpm@10.14.0"
+  "devDependencies": { "@antfu/eslint-config": "5.2.1", "eslint": "9.33.0" },
+  "workspaces": [
+    "apps/*"
+  ]
 }
