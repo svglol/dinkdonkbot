@@ -381,6 +381,7 @@ export async function getKickLatestVod(startedAt: string, endedAt: string, slug:
     if (videos.length === 0) {
       return undefined
     }
+    return videos[0]
 
     // Find the VOD with the largest overlap
     const bufferSeconds = 60 * 2
