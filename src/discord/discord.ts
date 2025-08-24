@@ -633,33 +633,213 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
 }
 
 export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPostAPIChannelMessageJSONBody {
-  let message: string
-  let title: string
+  let message: string = '‎ '
+  let title: string = '‎ '
   let color: number = 0xFFF200
-  let description: string
+  let description: string = '‎ '
   let game: string | undefined
   let duration: string | undefined
-  let status: string
+  let status: string = '‎ '
   let timestamp: number = new Date().getTime() / 1000
-  let thumbnail: string
-  let image: string
-  let url: string
+  let thumbnail: string = '‎ ' // TODO default thumbnail
+  let image: string = '‎ ' // TODO default image
+  let url: string = '‎ '
   const buttons: APIButtonComponent[] = []
-  // TODO for now we ignore multi stream and just show the first stream
-  // if (streamMessage.kickStream && streamMessage.stream) {
-  //   // TODO handle multi stream
-  //   message = 'todo'
-  //   title = 'todo'
-  //   color = 0x53FC18
-  //   description = 'todo'
-  //   game = 'todo'
-  //   status = 'todo'
-  //   timestamp = new Date().getTime()
-  //   thumbnail = 'https://kick.com/img/default-channel-banners/offline.webp'
-  //   image = 'https://kick.com/img/default-channel-banners/offline.webp'
-  //   url = 'https://kick.com/'
-  // }
-  if (streamMessage.stream) {
+  // TODO color for multiplatform should be based on the users color
+  if (streamMessage.kickStream && streamMessage.stream) {
+    const bothOnline = streamMessage.twitchOnline && streamMessage.kickOnline
+    const bothOffline = !streamMessage.twitchOnline && !streamMessage.kickOnline
+    const oneTwitchOneKick = streamMessage.twitchOnline !== streamMessage.kickOnline
+
+    if (bothOnline) {
+      const roleMention = streamMessage.stream.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''
+      const kickRoleMention = streamMessage.kickStream.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
+
+      if (streamMessage.stream.liveMessage === streamMessage.kickStream.liveMessage) {
+        // we can combine the messages
+        message = [roleMention, kickRoleMention, messageBuilder(
+          streamMessage.stream.liveMessage ? streamMessage.stream.liveMessage : '{{name}} is now live!',
+          streamMessage.stream.name,
+          streamMessage.twitchStreamData?.game_name,
+          streamMessage.twitchStreamData?.started_at,
+          'both',
+        )].filter(Boolean).join(' ')
+      }
+      else {
+        // TODO temp
+        // different messages, use fallback
+        message = `${roleMention}${kickRoleMention}${streamMessage.stream.name} is live on both Twitch and Kick!`
+      }
+      title = streamMessage.twitchStreamData?.title || streamMessage.kickStreamData?.stream_title || `${streamMessage.stream.name} is live!`
+      description = `<:twitch:1036024995008005120> <:kick:1404661261030916246> ${streamMessage.stream.name} is live on Twitch and Kick`
+      color = 0x9146FF
+      status = 'Online'
+
+      // Use Twitch data as primary
+      game = streamMessage.twitchStreamData?.game_name || streamMessage.kickStreamData?.category?.name || 'No game'
+      timestamp = Math.floor(new Date(streamMessage.twitchStreamData?.started_at || streamMessage.kickStreamData?.started_at || Date.now()).getTime() / 1000)
+      thumbnail = streamMessage.twitchStreamerData?.profile_image_url || streamMessage.kickStreamerData?.user?.profile_pic || ''
+      image = streamMessage.twitchStreamData
+        ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}`
+        : streamMessage.kickStreamData?.thumbnail || 'https://kick.com/img/default-channel-banners/offline.webp'
+      url = `https://twitch.tv/${streamMessage.stream.name}`
+
+      // Add both platform buttons
+      buttons.push({
+        type: 2,
+        label: 'Watch on Twitch',
+        url: `https://twitch.tv/${streamMessage.stream.name}`,
+        style: 5,
+        emoji: {
+          name: 'twitch',
+          id: '1404661243373031585',
+          animated: false,
+        },
+      })
+      buttons.push({
+        type: 2,
+        label: 'Watch on Kick',
+        url: `https://kick.com/${streamMessage.kickStream.name}`,
+        style: 5,
+        emoji: {
+          name: 'kick',
+          id: '1404661261030916246',
+          animated: false,
+        },
+      })
+    }
+    else if (bothOffline) {
+      // Both streams are offline
+      const twitchOfflineMessage = messageBuilder(streamMessage.stream.offlineMessage ? streamMessage.stream.offlineMessage : '{{name}} is now offline.', streamMessage.stream.name)
+      const kickOfflineMessage = messageBuilder(streamMessage.kickStream?.offlineMessage ? streamMessage.kickStream?.offlineMessage : '{{name}} is now offline.', streamMessage.kickStream.name)
+      if (twitchOfflineMessage === kickOfflineMessage) {
+        message = twitchOfflineMessage
+      }
+      else {
+        message = `${twitchOfflineMessage}\n${kickOfflineMessage}`
+      }
+      title = streamMessage.twitchStreamData?.title || `${streamMessage.stream.name} has ended their streams`
+      description = `<:twitch:1404661243373031585> <:kick:1404661261030916246> ${streamMessage.stream.name} is no longer live on both Twitch and Kick.`
+      color = 0x747F8D // Gray for offline
+      status = 'Last Online'
+
+      // Calculate duration from the longer stream
+      const twitchDuration = streamMessage.twitchVod?.duration
+        || (streamMessage.twitchStreamEndedAt && streamMessage.twitchStreamStartedAt
+          ? formatDuration(streamMessage.twitchStreamEndedAt.getTime() - streamMessage.twitchStreamStartedAt.getTime())
+          : '0')
+
+      const kickDuration = (streamMessage.kickVod && !Number.isNaN(streamMessage.kickVod.duration) && streamMessage.kickVod.duration > 0)
+        ? formatDuration(streamMessage.kickVod.duration)
+        : (streamMessage.kickStreamEndedAt && streamMessage.kickStreamStartedAt
+            ? formatDuration(streamMessage.kickStreamEndedAt.getTime() - streamMessage.kickStreamStartedAt.getTime())
+            : '0')
+
+      duration = twitchDuration > kickDuration ? twitchDuration : kickDuration
+      timestamp = Math.floor(new Date(streamMessage.twitchStreamEndedAt || streamMessage.kickStreamEndedAt || Date.now()).getTime() / 1000)
+      thumbnail = streamMessage.twitchStreamerData?.profile_image_url || streamMessage.kickStreamerData?.user?.profile_pic || ''
+      image = streamMessage.twitchStreamerData?.offline_image_url || streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp'
+      url = `https://twitch.tv/${streamMessage.stream.name}`
+
+      // Add VOD buttons if available
+      if (streamMessage.twitchVod) {
+        buttons.push({
+          type: 2,
+          label: 'Watch Twitch VOD',
+          url: `https://twitch.tv/videos/${streamMessage.twitchVod.id}`,
+          style: 5,
+          emoji: {
+            name: 'twitch',
+            id: '1404661243373031585',
+            animated: false,
+          },
+        })
+      }
+      if (streamMessage.kickVod) {
+        buttons.push({
+          type: 2,
+          label: 'Watch Kick VOD',
+          url: `https://kick.com/${streamMessage.kickStream.name}/videos/${streamMessage.kickVod.video.uuid}`,
+          style: 5,
+          emoji: {
+            name: 'kick',
+            id: '1404661261030916246',
+            animated: false,
+          },
+        })
+      }
+
+      buttons.push({
+        type: 2,
+        label: 'Get Top Clips from Stream',
+        style: 2,
+        custom_id: `top-clips:${streamMessage.twitchStreamerData?.id}:${streamMessage.twitchStreamStartedAt?.getTime()}:${streamMessage.twitchStreamEndedAt?.getTime()}`,
+        emoji: {
+          name: 'twitch',
+          id: '1404661243373031585',
+          animated: false,
+        },
+      })
+    }
+    else if (oneTwitchOneKick) {
+      // One platform online, one offline - prioritize the online one
+      if (streamMessage.twitchOnline) {
+        // Twitch is live, Kick is offline
+        // TODO we should some how show that kick is offline
+        const roleMention = streamMessage.stream.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''
+        message = `${roleMention}${messageBuilder(streamMessage.stream.liveMessage ? streamMessage.stream.liveMessage : '{{name}} is live!', streamMessage.stream.name, streamMessage.twitchStreamData?.game_name, streamMessage.twitchStreamData?.started_at)}`
+        title = streamMessage.twitchStreamData?.title || `${streamMessage.twitchStreamerData?.display_name} is live on Twitch!`
+        description = `<:twitch:1404661243373031585> ${streamMessage.twitchStreamerData?.display_name} is live on Twitch!**`
+        color = 0x6441A4
+        game = streamMessage.twitchStreamData?.game_name || 'No game'
+        status = 'Online'
+        timestamp = Math.floor(new Date(streamMessage.twitchStreamData?.started_at || Date.now()).getTime() / 1000)
+        thumbnail = streamMessage.twitchStreamerData?.profile_image_url || ''
+        image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : streamMessage.twitchStreamerData?.offline_image_url || ''
+        url = `https://twitch.tv/${streamMessage.twitchStreamerData?.login}`
+
+        buttons.push({
+          type: 2,
+          label: 'Watch Twitch Stream',
+          url,
+          style: 5,
+          emoji: {
+            name: 'twitch',
+            id: '1404661243373031585',
+            animated: false,
+          },
+        })
+      }
+      else {
+        // Kick is live, Twitch is offline
+        // TODO we should some how show that twitch is offline
+        const roleMention = streamMessage.kickStream.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
+        message = `${roleMention}${messageBuilder(streamMessage.kickStream.liveMessage ? streamMessage.kickStream.liveMessage : '{{name}} is live!', streamMessage.kickStream.name, streamMessage.kickStreamData?.category.name, streamMessage.kickStreamData?.started_at, 'kick')}`
+        title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} is live!`
+        description = `<:kick:1404661261030916246> ${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} is live on KICK!`
+        color = 0x53FC18
+        game = streamMessage.kickStreamData?.category.name || 'No game'
+        status = 'Online'
+        timestamp = Math.floor(new Date(streamMessage.kickStreamData?.started_at || Date.now()).getTime() / 1000)
+        thumbnail = streamMessage.kickStreamerData?.user?.profile_pic || ''
+        image = streamMessage.kickStreamData?.thumbnail ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${new Date().getTime()}` : 'https://kick.com/img/default-channel-banners/offline.webp'
+        url = `https://kick.com/${streamMessage.kickStream.name}`
+
+        buttons.push({
+          type: 2,
+          label: 'Watch Kick Stream',
+          url,
+          style: 5,
+          emoji: {
+            name: 'kick',
+            id: '1404661261030916246',
+            animated: false,
+          },
+        })
+      }
+    }
+  }
+  else if (streamMessage.stream) {
     thumbnail = streamMessage.twitchStreamerData?.profile_image_url || ''
     color = 0x6441A4
     if (streamMessage.twitchOnline) {
@@ -692,8 +872,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
         : streamMessage.twitchStreamEndedAt && streamMessage.twitchStreamStartedAt
           ? formatDuration(streamMessage.twitchStreamEndedAt.getTime() - streamMessage.twitchStreamStartedAt.getTime())
           : '0'
-      description = `**<:twitch:1404661243373031585> ${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} is no longer live!**`
-      // description = `<:twitch:1404661243373031585> ${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} streamed for **${duration}** on Twitch`
+      description = `<:twitch:1404661243373031585> ${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} is no longer live!`
       status = 'Last online'
       timestamp = Math.floor(new Date(streamMessage.twitchStreamEndedAt || Date.now()).getTime() / 1000)
       const backupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}` : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
@@ -733,7 +912,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
       const roleMention = streamMessage.kickStream.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
       message = `${roleMention}${messageBuilder(streamMessage.kickStream.liveMessage ? streamMessage.kickStream.liveMessage : '{{name}} is live!', streamMessage.kickStream.name, streamMessage.kickStreamData?.category.name, streamMessage.kickStreamData?.started_at, 'kick')}`
       title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} is live!`
-      description = `**<:kick:1404661261030916246> ${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} is live on KICK!**`
+      description = `<:kick:1404661261030916246> ${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} is live on KICK!`
       game = streamMessage.kickStreamData?.category.name || 'No game'
       status = 'Online'
       timestamp = Math.floor(new Date(streamMessage.kickStreamData?.started_at || Date.now()).getTime() / 1000)
@@ -779,25 +958,6 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
         })
       }
     }
-  }
-  else {
-    return { content: '', embeds: [], components: [] }
-  }
-
-  if (title === '' || title === undefined) {
-    console.error('title is empty')
-  }
-  if (description === '' || description === undefined) {
-    console.error('description is empty')
-  }
-  if (image === '' || image === undefined) {
-    console.error('image is empty')
-  }
-  if (url === '' || url === undefined) {
-    console.error('url is empty')
-  }
-  if (thumbnail === '' || thumbnail === undefined) {
-    console.error('thumbnail is empty')
   }
 
   const messageComponent = {
