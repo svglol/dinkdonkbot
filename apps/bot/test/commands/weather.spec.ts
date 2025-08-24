@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { COMMAND_DEFINITIONS, findAutoCompleteHandlerByName, findHandlerByName, findMessageComponentHandlerByName, findModalSubmitHandlerByName } from '../../src/discord/commands'
+import { COMMAND_DEFINITIONS, findAutoCompleteHandlerByName, findHandlerByName, findMessageComponentHandlerByName, findModalSubmitHandlerByName } from '../../../../src/discord/commands'
 
 describe('weather', () => {
   it('should have command defined', () => {

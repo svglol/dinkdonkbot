@@ -1,51 +1,24 @@
 {
-  "name": "dinkdonkbot",
-  "type": "module",
-  "version": "1.0.0",
+  "name": "dinkdonkbot-monorepo",
   "private": true,
-  "packageManager": "pnpm@10.14.0",
-  "description": "A discord bot that posts notifications when twitch streamers go live",
-  "author": "Matthew Trotman <savageguy@gmail.com>",
-  "license": "MIT",
-  "keywords": [],
-  "main": "src/server.ts",
+  "devDependencies": {},
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "start": "tsx src/server.ts",
-    "dev": "wrangler dev src/server.ts --test-scheduled",
-    "localtunnel": "npx localtunnel --port 8787 --subdomain dinkdonkbotdev",
-    "ngrok": "ngrok http 8787",
-    "fix": "eslint --fix .",
-    "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "register": "tsx src/discord/register.ts",
-    "publish": "wrangler deploy",
-    "db:generate": "drizzle-kit generate",
-    "db:migrations": "wrangler d1 migrations apply DB --remote",
-    "db:migrations-local": "wrangler d1 migrations apply DB"
+    "start": "pnpm --filter dinkdonkbot start",
+    "dev": "pnpm --filter dinkdonkbot dev",
+    "localtunnel": "pnpm --filter dinkdonkbot localtunnel",
+    "ngrok": "pnpm --filter dinkdonkbot ngrok",
+    "fix": "pnpm --filter dinkdonkbot fix",
+    "lint": "pnpm --filter dinkdonkbot lint",
+    "typecheck": "pnpm --filter dinkdonkbot typecheck",
+    "test": "pnpm --filter dinkdonkbot test",
+    "register": "pnpm --filter dinkdonkbot register",
+    "publish": "pnpm --filter dinkdonkbot publish",
+    "db:generate": "pnpm --filter dinkdonkbot db:generate",
+    "db:migrations": "pnpm --filter dinkdonkbot db:migrations",
+    "db:migrations-local": "pnpm --filter dinkdonkbot db:migrations-local"
   },
-  "dependencies": {
-    "@discordjs/formatters": "0.6.1",
-    "@discordjs/rest": "2.5.1",
-    "date-fns-tz": "3.2.0",
-    "discord-api-types": "0.38.20",
-    "discord-interactions": "4.3.0",
-    "drizzle-orm": "0.44.4",
-    "itty-router": "5.0.22",
-    "tz-lookup": "6.1.25"
-  },
-  "devDependencies": {
-    "@antfu/eslint-config": "5.2.1",
-    "@cloudflare/vitest-pool-workers": "0.8.65",
-    "@cloudflare/workers-types": "4.20250820.0",
-    "@types/tz-lookup": "6.1.2",
-    "dotenv": "17.2.1",
-    "drizzle-kit": "0.31.4",
-    "eslint": "9.33.0",
-    "ngrok": "5.0.0-beta.2",
-    "tsx": "4.20.4",
-    "typescript": "5.9.2",
-    "vitest": "3.2.4",
-    "wrangler": "4.31.0"
-  }
+  "packageManager": "pnpm@10.14.0"
 }
