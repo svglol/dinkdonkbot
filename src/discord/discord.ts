@@ -345,6 +345,17 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
   const embeds: APIEmbed[] = []
   let content = ''
 
+  // check if we should return an embed
+  if ((!streamMessage.twitchOnline && streamMessage.stream?.cleanup) && (!streamMessage.kickOnline && streamMessage.kickStream?.cleanup)) {
+    return { content: '', embeds: [], components: [] }
+  }
+  else if ((!streamMessage.twitchOnline && streamMessage.stream?.cleanup) && !streamMessage.kickStream) {
+    return { content: '', embeds: [], components: [] }
+  }
+  else if ((!streamMessage.kickOnline && streamMessage.kickStream?.cleanup) && !streamMessage.stream) {
+    return { content: '', embeds: [], components: [] }
+  }
+
   // build components
   const buttons: APIButtonComponent[] = []
   if (streamMessage?.stream) {
@@ -646,8 +657,19 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
   let timestamp: number = new Date().getTime() / 1000
   let thumbnail: string = '‎ ' // TODO default thumbnail
   let image: string = '‎ ' // TODO default image
-  let url: string = '‎ '
   const buttons: APIButtonComponent[] = []
+
+  // check if we should send a message
+  if ((!streamMessage.twitchOnline && streamMessage.stream?.cleanup) && (!streamMessage.kickOnline && streamMessage.kickStream?.cleanup)) {
+    return { content: '', embeds: [], components: [] }
+  }
+  else if ((!streamMessage.twitchOnline && streamMessage.stream?.cleanup) && !streamMessage.kickStream) {
+    return { content: '', embeds: [], components: [] }
+  }
+  else if ((!streamMessage.kickOnline && streamMessage.kickStream?.cleanup) && !streamMessage.stream) {
+    return { content: '', embeds: [], components: [] }
+  }
+
   if (streamMessage.kickStream && streamMessage.stream) {
     const bothOnline = streamMessage.twitchOnline && streamMessage.kickOnline
     const bothOffline = !streamMessage.twitchOnline && !streamMessage.kickOnline
@@ -672,19 +694,20 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
         // different messages, use fallback
           message = `${roleMention}${kickRoleMention}${streamMessage.stream.name} is live on both Twitch and Kick!`
         }
+
+        // TODO if titles are different show both (with corresponding emoji at the start)
         title = streamMessage.twitchStreamData?.title || streamMessage.kickStreamData?.stream_title || `${streamMessage.stream.name} is live!`
         description = `<:twitch:1036024995008005120> <:kick:1404661261030916246> ${streamMessage.stream.name} is live on Twitch and Kick`
         color = 0x9146FF
         status = 'Online'
 
-        // Use Twitch data as primary
+        // TODO show both categories if different(with corresponding emoji at the start)
         game = streamMessage.twitchStreamData?.game_name || streamMessage.kickStreamData?.category?.name || 'No game'
         timestamp = Math.floor(new Date(streamMessage.twitchStreamData?.started_at || streamMessage.kickStreamData?.started_at || Date.now()).getTime() / 1000)
         thumbnail = streamMessage.twitchStreamerData?.profile_image_url || streamMessage.kickStreamerData?.user?.profile_pic || ''
         image = streamMessage.twitchStreamData
           ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}`
           : streamMessage.kickStreamData?.thumbnail || 'https://kick.com/img/default-channel-banners/offline.webp'
-        url = `https://twitch.tv/${streamMessage.stream.name}`
 
         // Add both platform buttons
         buttons.push({
@@ -741,7 +764,6 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
         timestamp = Math.floor(new Date(streamMessage.twitchStreamEndedAt || streamMessage.kickStreamEndedAt || Date.now()).getTime() / 1000)
         thumbnail = streamMessage.twitchStreamerData?.profile_image_url || streamMessage.kickStreamerData?.user?.profile_pic || ''
         image = streamMessage.twitchStreamerData?.offline_image_url || streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp'
-        url = `https://twitch.tv/${streamMessage.stream.name}`
 
         // Add VOD buttons if available
         if (streamMessage.twitchVod) {
@@ -799,12 +821,11 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
           timestamp = Math.floor(new Date(streamMessage.twitchStreamData?.started_at || Date.now()).getTime() / 1000)
           thumbnail = streamMessage.twitchStreamerData?.profile_image_url || ''
           image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : streamMessage.twitchStreamerData?.offline_image_url || ''
-          url = `https://twitch.tv/${streamMessage.twitchStreamerData?.login}`
 
           buttons.push({
             type: 2,
             label: 'Watch Twitch Stream',
-            url,
+            url: `https://twitch.tv/${streamMessage.twitchStreamerData?.login}`,
             style: 5,
             emoji: {
               name: 'twitch',
@@ -826,12 +847,11 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
           timestamp = Math.floor(new Date(streamMessage.kickStreamData?.started_at || Date.now()).getTime() / 1000)
           thumbnail = streamMessage.kickStreamerData?.user?.profile_pic || ''
           image = streamMessage.kickStreamData?.thumbnail ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${new Date().getTime()}` : 'https://kick.com/img/default-channel-banners/offline.webp'
-          url = `https://kick.com/${streamMessage.kickStream.name}`
 
           buttons.push({
             type: 2,
             label: 'Watch Kick Stream',
-            url,
+            url: `https://kick.com/${streamMessage.kickStream.name}`,
             style: 5,
             emoji: {
               name: 'kick',
@@ -854,12 +874,11 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
       status = 'Online'
       timestamp = Math.floor(new Date(streamMessage.twitchStreamData?.started_at || Date.now()).getTime() / 1000)
       image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : streamMessage.twitchStreamerData?.offline_image_url || streamMessage.twitchStreamerData?.profile_image_url || ''
-      url = `https://twitch.tv/${streamMessage.twitchStreamerData?.login}`
 
       buttons.push({
         type: 2,
         label: 'Watch Twitch Stream',
-        url,
+        url: `https://twitch.tv/${streamMessage.twitchStreamerData?.login}`,
         style: 5,
         emoji: {
           name: 'twitch',
@@ -882,8 +901,6 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
       timestamp = Math.floor(new Date(streamMessage.twitchStreamEndedAt || Date.now()).getTime() / 1000)
       const backupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}` : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
       image = streamMessage.twitchStreamerData?.offline_image_url || backupImage
-      url = `https://www.twitch.tv/${streamMessage.twitchStreamerData?.login}`
-
       if (streamMessage.twitchVod) {
         buttons.push({
           type: 2,
@@ -922,12 +939,11 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
       status = 'Online'
       timestamp = Math.floor(new Date(streamMessage.kickStreamData?.started_at || Date.now()).getTime() / 1000)
       image = streamMessage.kickStreamData?.thumbnail ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${new Date().getTime()}` : 'https://kick.com/img/default-channel-banners/offline.webp'
-      url = `https://kick.com/${streamMessage.kickStream.name}`
 
       buttons.push({
         type: 2,
         label: 'Watch Kick Stream',
-        url,
+        url: `https://kick.com/${streamMessage.kickStream.name}`,
         style: 5,
         emoji: {
           name: 'kick',
@@ -949,7 +965,6 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
       status = 'Last online'
       timestamp = Math.floor(new Date(streamMessage.kickStreamEndedAt || Date.now()).getTime() / 1000)
       image = streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp'
-      url = `https://kick.com/${streamMessage.kickStream.name}`
       if (streamMessage.kickVod) {
         buttons.push({
           type: 2,
