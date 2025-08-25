@@ -698,7 +698,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
         }
 
         title = streamMessage.twitchStreamData?.title || streamMessage.kickStreamData?.stream_title || `${streamMessage.stream.name} is live!`
-        description = `<:twitch:1404661243373031585> <:kick:1404661261030916246> ${streamMessage.stream.name} is live on Twitch & Kick`
+        description = `<:twitch:1404661243373031585> <:kick:1404661261030916246> ${streamMessage.stream.name} is live on Twitch & KICK!`
         color = MULTI_COLOR
         status = 'Online'
 
@@ -743,7 +743,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
           message = `${twitchOfflineMessage}\n${kickOfflineMessage}`
         }
         title = streamMessage.twitchStreamData?.title || `${streamMessage.stream.name} has ended their streams`
-        description = `<:twitch:1404661243373031585> <:kick:1404661261030916246> ${streamMessage.stream.name} is no longer live on Twitch & Kick`
+        description = `<:twitch:1404661243373031585> <:kick:1404661261030916246> ${streamMessage.stream.name} is no longer live on Twitch & KICK!`
         color = OFFLINE_COLOR
         status = 'Last Online'
 
