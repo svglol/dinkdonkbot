@@ -1,9 +1,9 @@
 import type { APIButtonComponent, APIEmbed, APIInteraction, APIMessage, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
 import type { StreamMessage } from '../database/db'
+
 import { escapeMarkdown } from '@discordjs/formatters'
 
 import { DiscordAPIError, REST } from '@discordjs/rest'
-
 import { Routes } from 'discord-api-types/v10'
 import { eq, tables, useDB } from '../database/db'
 import { formatDuration } from '../util/formatDuration'
@@ -643,9 +643,10 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
   }
 }
 
-export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPostAPIChannelMessageJSONBody {
+export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPIChannelMessageJSONBody {
   const TWITCH_COLOR = 0x6441A4
   const KICK_COLOR = 0x53FC18
+  const MULTI_COLOR = 0xFFF200
   const OFFLINE_COLOR = 0x747F8D
   let message: string = '‎ '
   let title: string = '‎ '
@@ -655,8 +656,8 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
   let duration: string | undefined
   let status: string = '‎ '
   let timestamp: number = new Date().getTime() / 1000
-  let thumbnail: string = '‎ ' // TODO default thumbnail
-  let image: string = '‎ ' // TODO default image
+  let thumbnail: string = env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/default_profile.png` : '‎ '
+  let image: string = env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/default_image.png` : '‎ '
   const buttons: APIButtonComponent[] = []
 
   // check if we should send a message
@@ -674,14 +675,16 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
     const bothOnline = streamMessage.twitchOnline && streamMessage.kickOnline
     const bothOffline = !streamMessage.twitchOnline && !streamMessage.kickOnline
     if (streamMessage.stream && streamMessage.kickStream) {
+      thumbnail = streamMessage.twitchStreamerData?.profile_image_url || streamMessage.kickStreamerData?.user?.profile_pic || thumbnail
       if (bothOnline) {
         const roleMention = streamMessage.stream.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''
         const kickRoleMention = streamMessage.kickStream.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
 
         if (streamMessage.stream.liveMessage === streamMessage.kickStream.liveMessage) {
-          // TODO we should check if the rolementions are the same to make sure we arent doubling up
         // we can combine the messages
-          message = [roleMention, kickRoleMention, messageBuilder(
+          const mentionsArray = [roleMention, kickRoleMention].filter(Boolean)
+          const mentions = mentionsArray[0] === mentionsArray[1] ? mentionsArray[0] || '' : mentionsArray.join(' ')
+          message = [mentions, messageBuilder(
             streamMessage.stream.liveMessage ? streamMessage.stream.liveMessage : '{{name}} is now live!',
             streamMessage.stream.name,
             streamMessage.twitchStreamData?.game_name,
@@ -690,24 +693,20 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
           )].filter(Boolean).join(' ')
         }
         else {
-        // TODO this needs to show both messages just on different lines
-        // different messages, use fallback
-          message = `${roleMention}${kickRoleMention}${streamMessage.stream.name} is live on both Twitch and Kick!`
+          // Show both messages on different lines
+          message = `${roleMention} ${messageBuilder(streamMessage.stream.liveMessage || '{{name}} is now live!', streamMessage.stream.name, streamMessage.twitchStreamData?.game_name, streamMessage.twitchStreamData?.started_at, 'twitch')}\n${kickRoleMention} ${messageBuilder(streamMessage.kickStream.liveMessage || '{{name}} is now live!', streamMessage.kickStream.name, streamMessage.kickStreamData?.stream_title, streamMessage.kickStreamData?.started_at, 'kick')}`
         }
 
-        // TODO if titles are different show both (with corresponding emoji at the start)
         title = streamMessage.twitchStreamData?.title || streamMessage.kickStreamData?.stream_title || `${streamMessage.stream.name} is live!`
-        description = `<:twitch:1036024995008005120> <:kick:1404661261030916246> ${streamMessage.stream.name} is live on Twitch and Kick`
-        color = 0x9146FF
+        description = `<:twitch:1404661243373031585> <:kick:1404661261030916246> ${streamMessage.stream.name} is live on Twitch & Kick`
+        color = MULTI_COLOR
         status = 'Online'
 
-        // TODO show both categories if different(with corresponding emoji at the start)
         game = streamMessage.twitchStreamData?.game_name || streamMessage.kickStreamData?.category?.name || 'No game'
         timestamp = Math.floor(new Date(streamMessage.twitchStreamData?.started_at || streamMessage.kickStreamData?.started_at || Date.now()).getTime() / 1000)
-        thumbnail = streamMessage.twitchStreamerData?.profile_image_url || streamMessage.kickStreamerData?.user?.profile_pic || ''
         image = streamMessage.twitchStreamData
           ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}`
-          : streamMessage.kickStreamData?.thumbnail || 'https://kick.com/img/default-channel-banners/offline.webp'
+          : streamMessage.kickStreamData?.thumbnail || image
 
         // Add both platform buttons
         buttons.push({
@@ -745,7 +744,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
         }
         title = streamMessage.twitchStreamData?.title || `${streamMessage.stream.name} has ended their streams`
         description = `<:twitch:1404661243373031585> <:kick:1404661261030916246> ${streamMessage.stream.name} is no longer live on Twitch & Kick`
-        color = OFFLINE_COLOR // Gray for offline
+        color = OFFLINE_COLOR
         status = 'Last Online'
 
         // Calculate duration from the longer stream
@@ -762,8 +761,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
 
         duration = twitchDuration > kickDuration ? twitchDuration : kickDuration
         timestamp = Math.floor(new Date(streamMessage.twitchStreamEndedAt || streamMessage.kickStreamEndedAt || Date.now()).getTime() / 1000)
-        thumbnail = streamMessage.twitchStreamerData?.profile_image_url || streamMessage.kickStreamerData?.user?.profile_pic || ''
-        image = streamMessage.twitchStreamerData?.offline_image_url || streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp'
+        image = streamMessage.twitchStreamerData?.offline_image_url || streamMessage.kickStreamerData?.offline_banner_image?.src || image
 
         // Add VOD buttons if available
         if (streamMessage.twitchVod) {
@@ -806,11 +804,10 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
         })
       }
       else {
-        // TODO mixed content (one online, one offline) needs a lot of work
+        // TODO mixed content (one online, one offline) should we show that one is offline?
       // One platform online, one offline - prioritize the online one
         if (streamMessage.twitchOnline) {
         // Twitch is live, Kick is offline
-        // TODO we should some how show that kick is offline
           const roleMention = streamMessage.stream.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''
           message = `${roleMention}${messageBuilder(streamMessage.stream.liveMessage ? streamMessage.stream.liveMessage : '{{name}} is live!', streamMessage.stream.name, streamMessage.twitchStreamData?.game_name, streamMessage.twitchStreamData?.started_at)}`
           title = streamMessage.twitchStreamData?.title || `${streamMessage.twitchStreamerData?.display_name} is live on Twitch!`
@@ -819,8 +816,8 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
           game = streamMessage.twitchStreamData?.game_name || 'No game'
           status = 'Online'
           timestamp = Math.floor(new Date(streamMessage.twitchStreamData?.started_at || Date.now()).getTime() / 1000)
-          thumbnail = streamMessage.twitchStreamerData?.profile_image_url || ''
-          image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : streamMessage.twitchStreamerData?.offline_image_url || ''
+          thumbnail = streamMessage.twitchStreamerData?.profile_image_url || thumbnail
+          image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : streamMessage.twitchStreamerData?.offline_image_url || image
 
           buttons.push({
             type: 2,
@@ -836,7 +833,6 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
         }
         else {
         // Kick is live, Twitch is offline
-        // TODO we should some how show that twitch is offline
           const roleMention = streamMessage.kickStream.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
           message = `${roleMention}${messageBuilder(streamMessage.kickStream.liveMessage ? streamMessage.kickStream.liveMessage : '{{name}} is live!', streamMessage.kickStream.name, streamMessage.kickStreamData?.category.name, streamMessage.kickStreamData?.started_at, 'kick')}`
           title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} is live!`
@@ -845,7 +841,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
           game = streamMessage.kickStreamData?.category.name || 'No game'
           status = 'Online'
           timestamp = Math.floor(new Date(streamMessage.kickStreamData?.started_at || Date.now()).getTime() / 1000)
-          thumbnail = streamMessage.kickStreamerData?.user?.profile_pic || ''
+          thumbnail = streamMessage.kickStreamerData?.user?.profile_pic || thumbnail
           image = streamMessage.kickStreamData?.thumbnail ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${new Date().getTime()}` : 'https://kick.com/img/default-channel-banners/offline.webp'
 
           buttons.push({
@@ -864,16 +860,17 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
     }
   }
   else if (streamMessage.stream) {
-    thumbnail = streamMessage.twitchStreamerData?.profile_image_url || ''
+    // TWITCH MESSAGE
+    thumbnail = streamMessage.twitchStreamerData?.profile_image_url || thumbnail
     if (streamMessage.twitchOnline) {
       color = TWITCH_COLOR
       message = `${streamMessage.stream.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''}${messageBuilder(streamMessage.stream.liveMessage ? streamMessage.stream.liveMessage : '{{name}} is live!', streamMessage.stream.name, streamMessage.twitchStreamData?.game_name, streamMessage.twitchStreamData?.started_at)}`
       title = streamMessage.twitchStreamData?.title || `${streamMessage.twitchStreamerData?.display_name} is live!`
-      description = `**<:twitch:1404661243373031585> ${streamMessage.twitchStreamerData?.display_name} is live on Twitch!**`
+      description = `<:twitch:1404661243373031585> ${streamMessage.twitchStreamerData?.display_name} is live on Twitch!`
       game = streamMessage.twitchStreamData?.game_name || 'No game'
       status = 'Online'
       timestamp = Math.floor(new Date(streamMessage.twitchStreamData?.started_at || Date.now()).getTime() / 1000)
-      image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : streamMessage.twitchStreamerData?.offline_image_url || streamMessage.twitchStreamerData?.profile_image_url || ''
+      image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : streamMessage.twitchStreamerData?.offline_image_url || streamMessage.twitchStreamerData?.profile_image_url || image
 
       buttons.push({
         type: 2,
@@ -899,7 +896,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
       description = `<:twitch:1404661243373031585> ${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} is no longer live!`
       status = 'Last online'
       timestamp = Math.floor(new Date(streamMessage.twitchStreamEndedAt || Date.now()).getTime() / 1000)
-      const backupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}` : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
+      const backupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
       image = streamMessage.twitchStreamerData?.offline_image_url || backupImage
       if (streamMessage.twitchVod) {
         buttons.push({
@@ -928,7 +925,8 @@ export function betaBodyBuilder(streamMessage: StreamMessage, _env: Env): RESTPo
     }
   }
   else if (streamMessage.kickStream) {
-    thumbnail = streamMessage.kickStreamerData?.user.profile_pic || ''
+    // KICK MESSAGE
+    thumbnail = streamMessage.kickStreamerData?.user.profile_pic || thumbnail
     if (streamMessage.kickOnline) {
       color = KICK_COLOR
       const roleMention = streamMessage.kickStream.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
