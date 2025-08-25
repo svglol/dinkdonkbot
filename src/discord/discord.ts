@@ -693,6 +693,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
   }
 
   function buildMultiOnlineMessage(streamMessage: StreamMessage, env: Env): Content {
+    // TODO maybe we should let users choose to prioritize twitch or kick data over the other (maybe build this into a /multistream command that has options for enable/disable multi stream + which data to prioritize)
     let message = ' '
     const roleMention = streamMessage.stream?.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''
     const kickRoleMention = streamMessage.kickStream?.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
@@ -1079,7 +1080,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
           },
           {
             type: 10,
-            content: `${content.duration ? `\n**Streamed for**\n${content.duration}` : ''}${content.game ? `\n**Game**\n${escapeMarkdown(content.game)}` : ''}` || '‎ ', // empty character if both are empty
+            content: `${content.duration ? `\n**Streamed for**\n${content.duration}` : ''}${content.game ? `\n**Category**\n${escapeMarkdown(content.game)}` : ''}` || '‎ ', // empty character if both are empty
           },
         ],
         accessory: {
