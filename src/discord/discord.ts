@@ -891,7 +891,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
       : streamMessage.twitchStreamEndedAt && streamMessage.twitchStreamStartedAt
         ? formatDuration(streamMessage.twitchStreamEndedAt.getTime() - streamMessage.twitchStreamStartedAt.getTime())
         : '0'
-    const description = `${TWITCH_EMOTE} ${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream?.name} is no longer live!`
+    const description = `${TWITCH_EMOTE} ${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream?.name} is no longer live on Twitch!`
     const status = 'Last online'
     const timestamp = Math.floor(new Date(streamMessage.twitchStreamEndedAt || Date.now()).getTime() / 1000)
     const backupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
