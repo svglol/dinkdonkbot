@@ -553,6 +553,12 @@ export async function getClipsLastHour(broadcasterId: string, env: Env) {
  * @throws If the request to fetch the clips fails.
  */
 export async function getClips(broadcasterId: string, startDate: Date, endDate: Date, env: Env) {
+  const cacheKey = `clips:${broadcasterId}:${startDate.toISOString()}:${endDate.toISOString()}`
+  const cachedClips = await env.KV.get(cacheKey) as TwitchClipsResponse | null
+
+  if (cachedClips) {
+    return cachedClips
+  }
   try {
     const clipsRes = await fetch(`https://api.twitch.tv/helix/clips?broadcaster_id=${broadcasterId}&first=5&started_at=${startDate.toISOString()}&ended_at=${endDate.toISOString()}`, {
       headers: {
@@ -563,6 +569,8 @@ export async function getClips(broadcasterId: string, startDate: Date, endDate: 
     if (!clipsRes.ok)
       throw new Error(`Failed to fetch clips: ${JSON.stringify(await clipsRes.json())}`)
     const clips = await clipsRes.json() as TwitchClipsResponse
+
+    await env.KV.put(cacheKey, JSON.stringify(clips), { expirationTtl: 60 * 60 * 15 })
     return clips
   }
   catch (error) {
