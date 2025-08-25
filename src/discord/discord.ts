@@ -656,8 +656,8 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
   let duration: string | undefined
   let status: string = '‎ '
   let timestamp: number = new Date().getTime() / 1000
-  let thumbnail: string = env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/default_profile.png` : '‎ '
-  let image: string = env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/default_image.png` : '‎ '
+  const thumbnail: string = streamMessage.twitchStreamerData?.profile_image_url || streamMessage.kickStreamerData?.user.profile_pic || `${env.WEBHOOK_URL}/static/default_profile.png`
+  let image: string = `${env.WEBHOOK_URL}/static/default_image.png`
   const buttons: APIButtonComponent[] = []
 
   // check if we should send a message
@@ -675,7 +675,6 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
     const bothOnline = streamMessage.twitchOnline && streamMessage.kickOnline
     const bothOffline = !streamMessage.twitchOnline && !streamMessage.kickOnline
     if (streamMessage.stream && streamMessage.kickStream) {
-      thumbnail = streamMessage.twitchStreamerData?.profile_image_url || streamMessage.kickStreamerData?.user?.profile_pic || thumbnail
       if (bothOnline) {
         const roleMention = streamMessage.stream.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''
         const kickRoleMention = streamMessage.kickStream.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
@@ -816,7 +815,6 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
           game = streamMessage.twitchStreamData?.game_name || 'No game'
           status = 'Online'
           timestamp = Math.floor(new Date(streamMessage.twitchStreamData?.started_at || Date.now()).getTime() / 1000)
-          thumbnail = streamMessage.twitchStreamerData?.profile_image_url || thumbnail
           image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : streamMessage.twitchStreamerData?.offline_image_url || image
 
           buttons.push({
@@ -841,7 +839,6 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
           game = streamMessage.kickStreamData?.category.name || 'No game'
           status = 'Online'
           timestamp = Math.floor(new Date(streamMessage.kickStreamData?.started_at || Date.now()).getTime() / 1000)
-          thumbnail = streamMessage.kickStreamerData?.user?.profile_pic || thumbnail
           image = streamMessage.kickStreamData?.thumbnail ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${new Date().getTime()}` : 'https://kick.com/img/default-channel-banners/offline.webp'
 
           buttons.push({
@@ -861,7 +858,6 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
   }
   else if (streamMessage.stream) {
     // TWITCH MESSAGE
-    thumbnail = streamMessage.twitchStreamerData?.profile_image_url || thumbnail
     if (streamMessage.twitchOnline) {
       color = TWITCH_COLOR
       message = `${streamMessage.stream.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''}${messageBuilder(streamMessage.stream.liveMessage ? streamMessage.stream.liveMessage : '{{name}} is live!', streamMessage.stream.name, streamMessage.twitchStreamData?.game_name, streamMessage.twitchStreamData?.started_at)}`
@@ -926,7 +922,6 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
   }
   else if (streamMessage.kickStream) {
     // KICK MESSAGE
-    thumbnail = streamMessage.kickStreamerData?.user.profile_pic || thumbnail
     if (streamMessage.kickOnline) {
       color = KICK_COLOR
       const roleMention = streamMessage.kickStream.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
