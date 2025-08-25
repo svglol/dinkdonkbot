@@ -938,7 +938,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
     const roleMention = streamMessage.kickStream?.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
     const message = `${roleMention}${messageBuilder(streamMessage.kickStream?.liveMessage ? streamMessage.kickStream.liveMessage : '{{name}} is live!', streamMessage.kickStream?.name || '', streamMessage.kickStreamData?.category.name, streamMessage.kickStreamData?.started_at, 'kick')}`
     const title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream?.name} is live!`
-    const description = `${KICK_EMOTE} ${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream?.name} is live on KICK!`
+    const description = `${KICK_EMOTE} ${streamMessage.kickStream?.name ?? streamMessage.kickStreamerData?.slug} is live on KICK!`
     const game = streamMessage.kickStreamData?.category.name || 'No game'
     const status = 'Online'
     const timestamp = Math.floor(new Date(streamMessage.kickStreamData?.started_at || Date.now()).getTime() / 1000)
@@ -1004,7 +1004,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
     }
   }
 
-  // check if we should send a message
+  // check if we should build a message
   if ((!streamMessage.twitchOnline && streamMessage.stream?.cleanup) && (!streamMessage.kickOnline && streamMessage.kickStream?.cleanup)) {
     return { content: '', embeds: [], components: [] }
   }
