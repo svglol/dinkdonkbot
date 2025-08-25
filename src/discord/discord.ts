@@ -715,7 +715,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
     }
 
     const title = streamMessage.twitchStreamData?.title || streamMessage.kickStreamData?.stream_title || `${streamMessage.stream?.name} is live!`
-    const description = `<:twitch:1404661243373031585> <:kick:1404661261030916246> ${streamMessage.stream?.name} is live on Twitch & KICK!`
+    const description = `${TWITCH_EMOTE} ${KICK_EMOTE} ${streamMessage.stream?.name} is live on Twitch & KICK!`
     const color = MULTI_COLOR
     const status = 'Online'
 
