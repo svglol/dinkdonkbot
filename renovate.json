@@ -11,10 +11,9 @@
     ":semanticCommitTypeAll(chore)",
     "group:monorepos",
     "group:recommended",
-    ":automergeBranch",
-    ":automergeMinor",
-    ":automergeRequireAllStatusChecks",
-    ":automergePr",
+    "group:allNonMajor",
+    "group:testNonMajor",
+    "group:linters",
     "npm:unpublishSafe"
   ],
   "packageRules": [
