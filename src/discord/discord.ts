@@ -827,6 +827,14 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     content: escapeMarkdown(content.message || '‎ '),
   }
 
+  function fixedEscapeMarkdown(text: string) {
+    text = escapeMarkdown(text)
+    if (text.startsWith('#')) {
+      text = `\\${text}`
+    }
+    return text
+  }
+
   const container = {
     type: 17,
     accent_color: content.color,
@@ -840,7 +848,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
           },
           {
             type: 10,
-            content: `## ${escapeMarkdown(content.title || 'No title')}`,
+            content: `## ${fixedEscapeMarkdown(content.title || 'No title')}`,
           },
           {
             type: 10,
