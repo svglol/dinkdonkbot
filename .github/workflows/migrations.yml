@@ -6,7 +6,7 @@ on:
       - master
     paths:
       - 'src/database/migrations/**'
-      - 'wrangler.toml'
+      - wrangler.toml
   workflow_dispatch:
 
 jobs:
