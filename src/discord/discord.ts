@@ -114,15 +114,18 @@ export async function deleteMessage(channelId: string, messageId: string, discor
  */
 export async function updateInteraction(interaction: APIInteraction, dicordApplicationId: string, body: RESTPatchAPIChannelMessageJSONBody) {
   try {
-    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(interaction.token)
-    const updatedInteraction = await rest.patch(Routes.webhookMessage(dicordApplicationId, interaction.token, '@original'), {
-      body,
-    }) as APIMessage
-
-    return updatedInteraction
+    const update = await fetch(`https://discord.com/api/v10/webhooks/${dicordApplicationId}/${interaction.token}/messages/@original`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    if (!update.ok)
+      throw new Error(`Failed to update interaction: ${await update.text()}`)
   }
-  catch (error: unknown) {
-    console.error('Failed to update interaction:', error)
+  catch (error) {
+    console.error('Error updating interaction:', error)
   }
 }
 
