@@ -110,6 +110,7 @@ To use this feature:
 - Make sure both are configured to post to the same Discord channel.
 - When one stream goes live, the bot will wait up to 15 seconds for the other to start before sending a notification.
 - You can set a priority to decide which platform’s data the message should use first.
+
 **Multistream commands**
 - ${await findBotCommandMarkdown(env, 'multistream', 'link')} - <twitch-streamer> <kick-streamer> <priority> - Setup a multistream connection between a Twitch & Kick Channel
 - ${await findBotCommandMarkdown(env, 'multistream', 'unlink')} - <twitch-streamer> <kick-streamer> - Remove a multistream connection between a Twitch & Kick Channel

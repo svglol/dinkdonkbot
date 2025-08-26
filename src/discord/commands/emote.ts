@@ -2,7 +2,7 @@ import type { APIApplicationCommandInteraction, APIMessageTopLevelComponent } fr
 import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
 import { PermissionFlagsBits } from 'discord-api-types/v10'
 import { fetch7tvEmoteImageBuffer, fetchEmoteImageBuffer, fetchSingular7tvEmote } from '../../util/emote'
-import { buildErrorEmbed, buildSuccessEmbed, fetchGuildEmojis, updateInteraction, uploadEmoji } from '../discord'
+import { buildErrorEmbed, buildSuccessEmbed, fetchGuildEmojis, findBotCommandMarkdown, updateInteraction, uploadEmoji } from '../discord'
 import { interactionEphemeralLoading } from '../interactionHandler'
 
 const EMOTE_COMMAND = {
@@ -32,10 +32,13 @@ const EMOTE_COMMAND = {
   ],
 }
 
-export const EMOTE_HELP_MESSAGE = `- </emote add:1348421861339304067> - Add an emote from another Discord server or 7tv  
-- </emote help:1348421861339304067> - Show this help message  
+export async function getEmoteHelpMessage(env: Env) {
+  return `Easily add custom emotes to your Discord server from other servers or 7tv. Steal emotes from messages or add them directly by URL or emoji.
+- ${await findBotCommandMarkdown(env, 'emote', 'add')} - Add an emote from another Discord server or 7tv  
+- ${await findBotCommandMarkdown(env, 'emote', 'help')} - Show this help message  
 - \`Context Menu -> Apps -> Steal Emote/Sticker\` - Use this option to take an emote or sticker directly from someone else's message and add it to your server
 `
+}
 
 function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
   ctx.waitUntil(handleEmoteCommand(interaction, env))
@@ -139,7 +142,7 @@ async function handleEmoteCommand(interaction: APIApplicationCommandInteraction,
               },
               {
                 type: 10,
-                content: EMOTE_HELP_MESSAGE,
+                content: await getEmoteHelpMessage(env),
               },
             ],
             accessory: {

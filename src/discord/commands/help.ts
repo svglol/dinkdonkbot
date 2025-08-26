@@ -1,12 +1,12 @@
 import type { APIApplicationCommandInteraction, APIMessageComponentInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
 import { CLIPPERS_EMOTE, DISCORD_EMOTE, GITHUB_EMOTE, KICK_EMOTE, TWITCH_EMOTE } from '../../util/discordEmotes'
-import { updateInteraction } from '../discord'
+import { findBotCommandMarkdown, updateInteraction } from '../discord'
 import { deferedUpdate, interactionEphemeralLoading } from '../interactionHandler'
-import { EMOTE_HELP_MESSAGE } from './emote'
-import { KICK_HELP_MESSAGE } from './kick'
+import { getEmoteHelpMessage } from './emote'
+import { getKickHelpMessage } from './kick'
 import { getMultistreamHelpMessage } from './multistream'
-import { TWITCH_HELP_MESSAGE } from './twitch'
-import { CLIPS_HELP_MESSAGE } from './twitchClips'
+import { getTwitchHelpMessage } from './twitch'
+import { getClipsHelpMessage } from './twitchClips'
 
 const HELP_COMMAND = {
   name: 'help',
@@ -16,42 +16,43 @@ const HELP_COMMAND = {
 async function getHelpPages(env: Env): Promise<Record<string, string>> {
   return {
     page_index: `## 📖 Help Overview
+
 ### ${TWITCH_EMOTE.formatted} Twitch Stream Alerts
-Get notifications when Twitch streamers go live or offline. Includes add, edit, remove, list, test, details, and help commands.
-### ${KICK_EMOTE.formatted} Kick Stream Alerts
-Get notifications when Kick streamers go live or offline. Includes add, edit, remove, list, test, details, and help commands.
+Set up Twitch stream notifications for your Discord server. Get notified when your favorite streamers go live or offline with customizable messages and ping roles.
+### ${KICK_EMOTE.formatted} Kick Stream Alerts  
+Set up Kick stream notifications for your Discord server. Get notified when your favorite streamers go live or offline with customizable messages and ping roles.
 ### 📺 Multistream Alerts
-Merge Twitch/Kick notifications into one message. Useful if a streamer goes live on both platforms at the same time and you want to get a single notification.
+Combine Twitch and Kick notifications into unified alerts. Perfect for streamers who multistream across both platforms.
 ### ${CLIPPERS_EMOTE.formatted} Twitch Clip Alerts
-Get notifications for Twitch clips from your favorite streamers. Includes add, remove, edit, list, and help commands.
+Subscribe to automatic Twitch clip notifications from your favorite streamers. Get the best clips posted hourly to your Discord channels.
 ### 🥳 Emote Management
-Manage emotes in your server. Add emotes from other servers or 7tv, and use the context menu to steal emotes.
+Easily add custom emotes to your Discord server from other servers or 7tv. Steal emotes from messages or add them directly by URL or emoji.
 ### 🎉 Misc Commands
-Various utility commands to help you interact with the bot, including time, weather, invites, fun interactions, and generating timestamps.
+Various utility commands including time, weather, invites, fun interactions, and timestamp generation.
 ### ❓ Support
 Links to the website, GitHub repository, and ways to support the bot.`,
     page_twitch: `## ${TWITCH_EMOTE.formatted} **Twitch Stream Alerts**
-${TWITCH_HELP_MESSAGE}`,
+${await getTwitchHelpMessage(env)}`,
     page_kick: `## ${KICK_EMOTE.formatted} **Kick Stream Alerts**
-${KICK_HELP_MESSAGE}`,
+${await getKickHelpMessage(env)}`,
     page_multistream: `## 📺 **Multistream Alerts**
 ${await getMultistreamHelpMessage(env)}`,
     page_clips: `## ${CLIPPERS_EMOTE.formatted} **Twitch Clips**
-${CLIPS_HELP_MESSAGE}`,
+${await getClipsHelpMessage(env)}`,
     page_emotes: `## 🥳 **Emote Management**
-${EMOTE_HELP_MESSAGE}`,
+${await getEmoteHelpMessage(env)}`,
     page_misc: `## 🎉 **Misc Commands**
-- </help:1404682388671430707> - Show this help message
-- </invite:1227872472049782918> - Generate an invite link to add DinkDonk Bot to another Discord server
-- </time:1405377555464196206> - Get the current time for a location
-- </weather:1405377555464196207> - Get the current weather for a location
-- </timestamp:1405390830742671433> - Create a Discord timestamp for a specific date/time and UTC offset
-- </dinkdonk:1348444759286353951> - Get DinkDonked
-- </randomemote:1405395336763019335> - Post a random emote from your server
-- </coinflip:1407262584649814066> - Flip a coin
-- </rps:1407312970903457903> - Play a game of rock, paper, scissors against another user
-- </roll:1407494568366047252> - Roll dice
-- </hangman:1407585217257934929> - Play a game of hangman with the community`,
+- ${await findBotCommandMarkdown(env, 'help')} - Show this help message
+- ${await findBotCommandMarkdown(env, 'invite')} - Generate an invite link to add DinkDonk Bot to another Discord server
+- ${await findBotCommandMarkdown(env, 'time')} - Get the current time for a location
+- ${await findBotCommandMarkdown(env, 'weather')} - Get the current weather for a location
+- ${await findBotCommandMarkdown(env, 'timestamp')} - Create a Discord timestamp for a specific date/time and UTC offset
+- ${await findBotCommandMarkdown(env, 'dinkdonk')} - Get DinkDonked
+- ${await findBotCommandMarkdown(env, 'randomemote')} - Post a random emote from your server
+- ${await findBotCommandMarkdown(env, 'coinflip')} - Flip a coin
+- ${await findBotCommandMarkdown(env, 'rps')} - Play a game of rock, paper, scissors against another user
+- ${await findBotCommandMarkdown(env, 'roll')} - Roll dice
+- ${await findBotCommandMarkdown(env, 'hangman')} - Play a game of hangman with the community`,
     page_support: `## ❓ Support
 
 Need help or want to support DinkDonk Bot? Here’s where to go:

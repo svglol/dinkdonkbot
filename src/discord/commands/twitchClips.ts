@@ -5,7 +5,7 @@ import { and, eq, like } from 'drizzle-orm'
 import { tables, useDB } from '../../database/db'
 import { getChannelId, getStreamerDetails, searchStreamers } from '../../twitch/twitch'
 import { CLIPPERS_EMOTE, TWITCH_EMOTE } from '../../util/discordEmotes'
-import { buildErrorEmbed, buildSuccessEmbed, checkChannelPermission, updateInteraction } from '../discord'
+import { buildErrorEmbed, buildSuccessEmbed, checkChannelPermission, findBotCommandMarkdown, updateInteraction } from '../discord'
 import { autoCompleteResponse, interactionEphemeralLoading } from '../interactionHandler'
 
 const TWITCH_CLIPS_COMMAND = {
@@ -74,16 +74,18 @@ const TWITCH_CLIPS_COMMAND = {
   }],
 }
 
-export const CLIPS_HELP_MESSAGE = `- </clips add:1348090120418361426> <streamer> <discord-channel> - Add a Twitch streamer to receive clip notifications when they go live or offline.  
-- </clips remove:1348090120418361426> <streamer> - Remove a Twitch streamer from receiving clip notifications.
-- </clips edit:1348090120418361426><streamer> <discord-channel> - Edit the notification channel for a Twitch streamer.
-- </clips list:1348090120418361426> - List all the Twitch streamers you are subscribed to for clip notifications.  
-- </clips help:1348090120418361426> - Get this help message for clip notifications commands.
+export async function getClipsHelpMessage(env: Env) {
+  return `Subscribe to automatic Twitch clip notifications from your favorite streamers. Get the best clips posted hourly to your Discord channels.
+- ${await findBotCommandMarkdown(env, 'clips', 'add')} <streamer> <discord-channel> - Add a Twitch streamer to receive clip notifications when they go live or offline.  
+- ${await findBotCommandMarkdown(env, 'clips', 'remove')} <streamer> - Remove a Twitch streamer from receiving clip notifications.
+- ${await findBotCommandMarkdown(env, 'clips', 'edit')} <streamer> <discord-channel> - Edit the notification channel for a Twitch streamer.
+- ${await findBotCommandMarkdown(env, 'clips', 'list')} - List all the Twitch streamers you are subscribed to for clip notifications.  
+- ${await findBotCommandMarkdown(env, 'clips', 'help')} - Get this help message for clip notifications commands.
+
 **Command variables**
-\`\`\`
-<streamer> – The name of the streamer to add  
-<discord-channel> – The Discord channel to post to when the streamer goes live  
-\`\`\``
+> \`<streamer>\` – The name of the streamer to add  
+> \`<discord-channel>\` – The Discord channel to post to when the streamer goes live`
+}
 
 function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
   ctx.waitUntil(handleTwitchClipsCommand(interaction, env))
@@ -242,7 +244,7 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
               },
               {
                 type: 10,
-                content: CLIPS_HELP_MESSAGE,
+                content: await getClipsHelpMessage(env),
               },
             ],
             accessory: {

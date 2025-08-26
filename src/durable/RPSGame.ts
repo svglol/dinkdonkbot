@@ -1,7 +1,7 @@
 import type { APIApplicationCommandInteraction, APIComponentInContainer, APIMessageComponentInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
 import { DurableObject } from 'cloudflare:workers'
 import { isChatInputApplicationCommandInteraction, isGuildInteraction, isMessageComponentInteraction } from 'discord-api-types/utils'
-import { buildErrorEmbed, updateInteraction } from '../discord/discord'
+import { buildErrorEmbed, findBotCommandMarkdown, updateInteraction } from '../discord/discord'
 import { deferedUpdate, interactionEphemeralLoading } from '../discord/interactionHandler'
 
 interface PersistedState {
@@ -193,7 +193,7 @@ export class RPSGame extends DurableObject {
       return deferedUpdate()
 
     if (interaction.member.user.id !== this.playerB && interaction.member.user.id !== this.playerA) {
-      this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This is not your game!\n If you want to challenge someone else, use the </rps:1407312970903457903> command', this.env)] }))
+      this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`This is not your game!\n If you want to challenge someone else, use the ${await findBotCommandMarkdown(this.env, 'rps')} command`, this.env)] }))
       return interactionEphemeralLoading()
     }
 
@@ -241,7 +241,7 @@ export class RPSGame extends DurableObject {
     if (!interaction.data || !isMessageComponentInteraction(interaction))
       return deferedUpdate()
     if (interaction.member.user.id !== this.playerB && interaction.member.user.id !== this.playerA) {
-      this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This is not your game!\n If you want to challenge someone else, use the </rps:1407312970903457903> command', this.env)] }))
+      this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`This is not your game!\n If you want to challenge someone else, use the ${await findBotCommandMarkdown(this.env, 'rps')} command`, this.env)] }))
       return interactionEphemeralLoading()
     }
 

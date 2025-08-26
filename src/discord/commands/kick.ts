@@ -7,7 +7,7 @@ import { tables, useDB } from '../../database/db'
 import { getKickChannel, getKickChannelV2, getKickLatestVod, getKickLivestream, getKickUser, kickSubscribe, kickUnsubscribe } from '../../kick/kick'
 import { getLatestVOD, getStreamDetails, getStreamerDetails } from '../../twitch/twitch'
 import { KICK_EMOTE, TWITCH_EMOTE } from '../../util/discordEmotes'
-import { bodyBuilder, buildErrorEmbed, buildSuccessEmbed, checkChannelPermission, sendMessage, updateInteraction } from '../discord'
+import { bodyBuilder, buildErrorEmbed, buildSuccessEmbed, checkChannelPermission, findBotCommandMarkdown, sendMessage, updateInteraction } from '../discord'
 import { autoCompleteResponse, interactionEphemeralLoading } from '../interactionHandler'
 
 const KICK_COMMAND = {
@@ -154,32 +154,36 @@ const KICK_COMMAND = {
   ],
 }
 
-export const KICK_HELP_MESSAGE = `- </kick add:1398833401888378910> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Add a Kick streamer to receive notifications for going online or offline
-- </kick edit:1398833401888378910> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Edit a Kick streamer’s settings  
-- </kick remove:1398833401888378910> <streamer> - Remove a Kick streamer from receiving notifications for going online or offline  
-- </kick list:1398833401888378910> - List the Kick streamers that you are subscribed to  
-- </kick test:1398833401888378910> <streamer> <global> - Test the notification for a streamer
-- </kick details:1398833401888378910> <streamer> - Show the details for a streamer you are subscribed to  
-- </kick help:1398833401888378910> - Get this help message  
+export async function getKickHelpMessage(env: Env) {
+  return `Set up Kick stream notifications for your Discord server. Get notified when your favorite streamers go live or offline with customizable messages and ping roles.
+- ${await findBotCommandMarkdown(env, 'kick', 'add')} <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Add a Kick streamer to receive notifications for going online or offline
+- ${await findBotCommandMarkdown(env, 'kick', 'edit')} <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Edit a Kick streamer’s settings  
+- ${await findBotCommandMarkdown(env, 'kick', 'remove')} <streamer> - Remove a Kick streamer from receiving notifications for going online or offline  
+- ${await findBotCommandMarkdown(env, 'kick', 'list')} - List the Kick streamers that you are subscribed to  
+- ${await findBotCommandMarkdown(env, 'kick', 'test')} <streamer> <global> <message-type> <multistream> - Test the notification for a streamer
+- ${await findBotCommandMarkdown(env, 'kick', 'details')} <streamer> - Show the details for a streamer you are subscribed to  
+- ${await findBotCommandMarkdown(env, 'kick', 'help')} - Get this help message  
+
 **Command variables**
-\`\`\`
-<streamer> – The name of the streamer to add  
-<discord-channel> – The Discord channel to post to when the streamer goes live  
-<ping-role> – What role to @ when the streamer goes live  
-<live-message> – The message to post when the streamer goes live  
-<offline-message> – The message to post when the streamer goes offline  
-<cleanup> – Delete notifications once the streamer goes offline  
-\`\`\`
+> \`<streamer>\` – The name of the streamer to add  
+> \`<discord-channel>\` – The Discord channel to post to when the streamer goes live  
+> \`<ping-role>\` – What role to @ when the streamer goes live  
+> \`<live-message>\` – The message to post when the streamer goes live  
+> \`<offline-message>\` – The message to post when the streamer goes offline  
+> \`<cleanup>\` – Delete notifications once the streamer goes offline  
+> \`<message-type>\` - Whether to test the live or offline message
+> \`<multistream>\` - Show the notification as if it was a multistream (only works if you have a multistream setup)
+> \`<global>\` - Show the notification for everyone in the server
+
 **Message variables**  
-\`\`\`
-{{name}}       = the name of the streamer
-{{url}}        = the url for the stream
-{{everyone}}   = @everyone
-{{here}}       = @here
-{{game}}/{{category}} = the game or category of the stream (live only)
-{{timestamp}}  = the time the stream started/ended
-\`\`\`
+> \`{{name}}\` = the name of the streamer
+> \`{{url}}\` = the url for the stream
+> \`{{everyone}}\` = @everyone
+> \`{{here}}\` = @here
+> \`{{game}}/{{category}}\` = the game or category of the stream (live only)
+> \`{{timestamp}}\` = the time the stream started/ended
 `
+}
 
 function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
   ctx.waitUntil(handleKickCommand(interaction, env))
@@ -524,7 +528,7 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
               },
               {
                 type: 10,
-                content: KICK_HELP_MESSAGE,
+                content: await getKickHelpMessage(env),
               },
             ],
             accessory: {

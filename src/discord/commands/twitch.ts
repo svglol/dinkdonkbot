@@ -7,7 +7,7 @@ import { tables, useDB } from '../../database/db'
 import { getKickChannelV2, getKickLatestVod, getKickLivestream } from '../../kick/kick'
 import { getChannelId, getLatestVOD, getStreamDetails, getStreamerDetails, removeSubscription, searchStreamers, subscribe } from '../../twitch/twitch'
 import { KICK_EMOTE, TWITCH_EMOTE } from '../../util/discordEmotes'
-import { bodyBuilder, buildErrorEmbed, buildSuccessEmbed, checkChannelPermission, sendMessage, updateInteraction } from '../discord'
+import { bodyBuilder, buildErrorEmbed, buildSuccessEmbed, checkChannelPermission, findBotCommandMarkdown, sendMessage, updateInteraction } from '../discord'
 import { autoCompleteResponse, interactionEphemeralLoading } from '../interactionHandler'
 
 const TWITCH_COMMAND = {
@@ -147,33 +147,36 @@ const TWITCH_COMMAND = {
   }],
 }
 
-export const TWITCH_HELP_MESSAGE = `- </twitch add:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Add a Twitch streamer to receive notifications for going online or offline
-- </twitch edit:1227872472049782919> <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Edit a Twitch streamer’s settings  
-- </twitch remove:1227872472049782919> <streamer> - Remove a Twitch streamer from receiving notifications for going online or offline  
-- </twitch list:1227872472049782919> - List the Twitch streamers that you are subscribed to  
-- </twitch test:1227872472049782919> <streamer> <global> - Test the notification for a streamer  
-\`<global>\` – Whether to send the message to everyone or not  
-- </twitch details:1227872472049782919> <streamer> - Show the details for a streamer you are subscribed to  
-- </twitch help:1227872472049782919> - Get this help message  
+export async function getTwitchHelpMessage(env: Env) {
+  return `Set up Twitch stream notifications for your Discord server. Get notified when your favorite streamers go live or offline with customizable messages and ping roles.
+- ${await findBotCommandMarkdown(env, 'twitch', 'add')} <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Add a Twitch streamer to receive notifications for going online or offline
+- ${await findBotCommandMarkdown(env, 'twitch', 'edit')} <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Edit a Twitch streamer’s settings  
+- ${await findBotCommandMarkdown(env, 'twitch', 'remove')} <streamer> - Remove a Twitch streamer from receiving notifications for going online or offline  
+- ${await findBotCommandMarkdown(env, 'twitch', 'list')} - List the Twitch streamers that you are subscribed to  
+- ${await findBotCommandMarkdown(env, 'twitch', 'test')} <streamer> <message-type> <multistream> <global> - Test the notification for a streamer
+- ${await findBotCommandMarkdown(env, 'twitch', 'details')} <streamer> - Show the details for a streamer you are subscribed to  
+- ${await findBotCommandMarkdown(env, 'twitch', 'help')} - Get this help message  
+
 **Command variables**
-\`\`\`
-<streamer> – The name of the streamer to add  
-<discord-channel> – The Discord channel to post to when the streamer goes live  
-<ping-role> – What role to @ when the streamer goes live  
-<live-message> – The message to post when the streamer goes live  
-<offline-message> – The message to post when the streamer goes offline  
-<cleanup> – Delete notifications once the streamer goes offline  
-\`\`\`
+> \`<streamer>\` – The name of the streamer to add  
+> \`<discord-channel>\` – The Discord channel to post to when the streamer goes live  
+> \`<ping-role>\` – What role to @ when the streamer goes live  
+> \`<live-message>\` – The message to post when the streamer goes live  
+> \`<offline-message>\` – The message to post when the streamer goes offline  
+> \`<cleanup>\` – Delete notifications once the streamer goes offline
+> \`<message-type>\` – Whether to test the live or offline message
+> \`<multistream>\` – Show the notification as if it was a multistream (only works if you have a multistream setup)
+> \`<global>\` – Show the notification for everyone in the server  
+
 **Message variables**  
-\`\`\`
-{{name}}       = the name of the streamer
-{{url}}        = the url for the stream
-{{everyone}}   = @everyone
-{{here}}       = @here
-{{game}}/{{category}} = the game or category of the stream (live only)
-{{timestamp}}  = the time the stream started/ended
-\`\`\`
+> \`{{name}}\` = the name of the streamer
+> \`{{url}}\` = the url for the stream
+> \`{{everyone}}\` = @everyone
+> \`{{here}}\` = @here
+> \`{{game}}/{{category}}\` = the game or category of the stream (live only)
+> \`{{timestamp}}\` = the time the stream started/ended
 `
+}
 
 function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
   ctx.waitUntil(handleTwitchCommand(interaction, env))
@@ -522,7 +525,7 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
               },
               {
                 type: 10,
-                content: TWITCH_HELP_MESSAGE,
+                content: await getTwitchHelpMessage(env),
               },
             ],
             accessory: {
