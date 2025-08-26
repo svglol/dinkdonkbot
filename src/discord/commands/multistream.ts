@@ -215,7 +215,7 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
       const streams = await useDB(env).query.streams.findMany({
         where: (streams, { eq }) => eq(streams.guildId, interaction.guild_id),
         with: {
-          multiStream: true,
+          multiStream: { with: { kickStream: true, stream: true } },
         },
       })
 
@@ -233,7 +233,7 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
           embeds: [
             buildSuccessEmbed(` `, env, {
-              title: `Successfully removed ${TWITCH_EMOTE.formatted}\`${twitchStream?.name}\` + ${KICK_EMOTE.formatted}\`${kickStream?.name}\` multistream link`,
+              title: `Successfully removed ${TWITCH_EMOTE.formatted}\`${multiStream?.stream?.name}\` + ${KICK_EMOTE.formatted}\`${multiStream?.kickStream?.name}\` multistream link`,
             }),
           ],
         })
@@ -258,7 +258,7 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
       const multiStreams = streams.filter(stream => stream.multiStream).flatMap(stream => stream.multiStream)
 
       if (multiStreams.length > 0) {
-        const list = multiStreams.map(multistream => `${TWITCH_EMOTE.formatted}:\`${multistream.stream.name}\` ${KICK_EMOTE.formatted}:\`${multistream.kickStream.name}\` ${'Priority: '}${multistream.priority === 'twitch' ? TWITCH_EMOTE.formatted : KICK_EMOTE.formatted}`).join('\n')
+        const list = multiStreams.map(multistream => `${TWITCH_EMOTE.formatted}\`${multistream.stream.name}\` ${KICK_EMOTE.formatted}\`${multistream.kickStream.name}\` ${'Priority: '}${multistream.priority === 'twitch' ? TWITCH_EMOTE.formatted : KICK_EMOTE.formatted}`).join('\n')
         return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(list, env, { title: 'Multistream Links', color: 0xFFF200 })] })
       }
       else {
