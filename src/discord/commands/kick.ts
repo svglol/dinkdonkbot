@@ -339,18 +339,25 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Missing required arguments', env)] })
       const dbStream = await useDB(env).query.kickStreams.findFirst({
         where: (kickStreams, { and, eq, like }) => and(like(kickStreams.name, streamer), eq(kickStreams.guildId, interaction.guild_id)),
+        with: { multiStream: true },
       })
       if (!dbStream)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
 
       const channel = edit.options.find(option => option.name === 'discord-channel')
       if (channel) {
-        const hasPermission = await checkChannelPermission(String('value' in channel ? channel.value as string : ''), env.DISCORD_TOKEN)
-        if (hasPermission) {
-          await useDB(env).update(tables.kickStreams).set({ channelId: String('value' in channel ? channel.value as string : '') }).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
-        }
-        else {
-          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This bot does not have permission to send messages in this channel', env)] })
+        const channelValue = String('value' in channel ? channel.value as string : '')
+        if (dbStream.channelId !== channelValue) {
+          const hasPermission = await checkChannelPermission(String('value' in channel ? channel.value as string : ''), env.DISCORD_TOKEN)
+          if (hasPermission) {
+            if (dbStream.multiStream) {
+              await useDB(env).delete(tables.multiStream).where(eq(tables.multiStream.streamId, dbStream.id))
+            }
+            await useDB(env).update(tables.kickStreams).set({ channelId: channelValue }).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
+          }
+          else {
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This bot does not have permission to send messages in this channel', env)] })
+          }
         }
       }
       const role = edit.options.find(option => option.name === 'ping-role')
