@@ -12,8 +12,8 @@ crons = [
 
 [[d1_databases]]
 binding = "DB"
-database_name = "dinkdonk"
-database_id = "3221ff85-9afb-4081-bb4d-6876473c6dd7"
+database_name = "dinkdonkdb"
+database_id = "aec13dad-8941-4002-b64e-6350904ba326"
 migrations_dir = "src/database/migrations"
 
 [placement]
