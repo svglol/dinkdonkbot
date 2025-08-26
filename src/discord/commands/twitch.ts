@@ -4,7 +4,9 @@ import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'di
 import { PermissionFlagsBits } from 'discord-api-types/v10'
 import { and, eq, like } from 'drizzle-orm'
 import { tables, useDB } from '../../database/db'
-import { getChannelId, getStreamDetails, getStreamerDetails, removeSubscription, searchStreamers, subscribe } from '../../twitch/twitch'
+import { getKickChannelV2, getKickLatestVod, getKickLivestream } from '../../kick/kick'
+import { getChannelId, getLatestVOD, getStreamDetails, getStreamerDetails, removeSubscription, searchStreamers, subscribe } from '../../twitch/twitch'
+import { KICK_EMOTE, TWITCH_EMOTE } from '../../util/discordEmotes'
 import { bodyBuilder, buildErrorEmbed, buildSuccessEmbed, checkChannelPermission, sendMessage, updateInteraction } from '../discord'
 import { autoCompleteResponse, interactionEphemeralLoading } from '../interactionHandler'
 
@@ -113,9 +115,13 @@ const TWITCH_COMMAND = {
       name: 'message-type',
       description: 'Whether to test the live or offline message',
       choices: [
-        { name: 'Live', value: 'live' },
+        { name: 'Online', value: 'live' },
         { name: 'Offline', value: 'offline' },
       ],
+    }, {
+      type: 5,
+      name: 'multistream',
+      description: 'Show the notification as if it was a multistream (only works if you have a multistream setup)',
     }, {
       type: 5,
       name: 'global',
@@ -263,16 +269,32 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
       if (!subscription)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Failed to add subscription to database', env)] })
 
+      // create a multi stream if a matching kick stream is found
+      const kickStream = await useDB(env).query.kickStreams.findFirst({
+        where: (kickStreams, { eq, and, like }) => and(eq(kickStreams.channelId, channel), like(kickStreams.name, streamer)),
+        with: {
+          multiStream: true,
+        },
+      })
+      if (kickStream && !kickStream.multiStream) {
+        await useDB(env).insert(tables.multiStream).values({
+          streamId: subscription.id,
+          kickStreamId: kickStream.id,
+        })
+      }
+
       let details = `Streamer: \`${subscription.name}\`\n`
       details += `Channel: <#${subscription.channelId}>\n`
       details += `Live Message: \`${subscription.liveMessage}\`\n`
       details += `Offline Message: \`${subscription.offlineMessage}\`\n`
       details += `Cleanup: \`${subscription.cleanup}\`\n`
       if (subscription.roleId)
-        details += `\n Role: <@&${subscription.roleId}>`
+        details += `Role: <@&${subscription.roleId}>\n`
+      if (kickStream && !kickStream.multiStream)
+        details += `\nAutomatically make a multi-stream with Kick Stream: \`${kickStream.name}\`\n`
 
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`${details}`, env, {
-        title: `<:twitch:1404661243373031585> Subscribed to notifications for \`${subscription.name}\``,
+        title: `${TWITCH_EMOTE.formatted} Subscribed to notifications for \`${subscription.name}\``,
         ...(streamerDetails?.profile_image_url && {
           thumbnail: { url: streamerDetails.profile_image_url },
         }),
@@ -363,7 +385,7 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
       if (subscription.roleId)
         details += `\n Role: <@&${subscription.roleId}>`
 
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`${details}`, env, { title: `<:twitch:1404661243373031585> Edited notifications for \`${streamer}\`` })] })
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`${details}`, env, { title: `${TWITCH_EMOTE.formatted} Edited notifications for \`${streamer}\`` })] })
     }
     case 'list': {
       const streams = await useDB(env).query.streams.findMany({
@@ -377,7 +399,7 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Not subscribed to any Twitch streams', env)] })
       }
 
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(streamList, env, { title: '<:twitch:1404661243373031585> Twitch Streams' })] })
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(streamList, env, { title: `${TWITCH_EMOTE.formatted} Twitch Streams` })] })
     }
     case 'test':{
       const test = interaction.data.options.find(option => option.name === 'test')
@@ -387,6 +409,13 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
       const global = test.options.find(option => option.name === 'global')
       const stream = await useDB(env).query.streams.findFirst({
         where: (streams, { and, eq, like }) => and(like(streams.name, streamer && 'value' in streamer ? streamer.value as string : ''), eq(streams.guildId, interaction.guild_id)),
+        with: {
+          multiStream: {
+            with: {
+              kickStream: true,
+            },
+          },
+        },
       })
       if (!stream)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer && 'value' in streamer ? streamer.value as string : ''}\``, env)] })
@@ -394,18 +423,35 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
       const messageTypeOption = test.options.find(option => option.name === 'message-type')
       const messageType = messageTypeOption && 'value' in messageTypeOption ? messageTypeOption.value as string : 'live'
 
+      const multiStreamOption = test.options.find(option => option.name === 'multistream')
+      const multiStream = multiStreamOption && 'value' in multiStreamOption ? Boolean(multiStreamOption.value) && stream.multiStream : false
+
       const [streamerData, streamData] = await Promise.all([
         getStreamerDetails(stream.name, env),
         getStreamDetails(stream.name, env),
       ])
+
+      let kickStreamData: KickLiveStream | null = null
+      let kickStreamerData: KickChannelV2 | null = null
+      if (multiStream) {
+        [kickStreamerData, kickStreamData] = await Promise.all([
+          await getKickChannelV2(stream.multiStream.kickStream.name) ?? null,
+          await getKickLivestream(Number(stream.multiStream.kickStream.broadcasterId), env) ?? null,
+        ])
+      }
+
+      const kickVod = multiStream ? messageType === 'live' ? null : await getKickLatestVod(kickStreamData?.started_at || new Date().toISOString(), stream.name) : null
+      const twitchVod = messageType === 'live' ? null : await getLatestVOD(stream.broadcasterId, streamData?.id || '', env)
+
       // build a fake stream message object
       const streamMessage = {
         id: 0,
         streamId: stream.id,
         stream,
-        kickStreamId: null,
-        kickStreamStartedAt: null,
-        kickStreamEndedAt: null,
+        kickStream: multiStream ? stream.multiStream.kickStream : null,
+        kickStreamId: multiStream ? stream.multiStream.kickStreamId : null,
+        kickStreamStartedAt: multiStream ? messageType === 'live' ? new Date(kickStreamData?.started_at || new Date()) : new Date(new Date(kickStreamData?.started_at || new Date()).getTime() - 3600000) : messageType === 'live' ? new Date() : null,
+        kickStreamEndedAt: multiStream ? messageType === 'live' ? null : new Date() : null,
         twitchStreamStartedAt: messageType === 'live' ? new Date(streamData?.started_at || new Date()) : new Date(new Date(streamData?.started_at || new Date()).getTime() - 3600000),
         twitchStreamEndedAt: messageType === 'live' ? null : new Date(),
         discordChannelId: stream.channelId,
@@ -414,11 +460,11 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
         twitchOnline: messageType === 'live',
         twitchStreamData: streamData,
         twitchStreamerData: streamerData,
-        twitchVod: null,
-        kickStreamData: null,
-        kickStreamerData: null,
-        kickVod: null,
-        kickOnline: false,
+        twitchVod: twitchVod ?? null,
+        kickStreamData,
+        kickStreamerData,
+        kickVod,
+        kickOnline: multiStream ? messageType === 'live' : false,
         createdAt: new Date().toISOString(),
       } satisfies StreamMessage
 
@@ -446,6 +492,7 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
       const stream = await useDB(env).query.streams.findFirst({
         where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
+        with: { multiStream: { with: { kickStream: true } } },
       })
       if (!stream)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
@@ -455,9 +502,11 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
       message += `Offline Message: \`${stream.offlineMessage}\`\n`
       message += `Cleanup: \`${stream.cleanup}\`\n`
       if (stream.roleId)
-        message += `\n Role: <@&${stream.roleId}>`
+        message += `Role: <@&${stream.roleId}>\n`
+      if (stream.multiStream)
+        message += `Multistream linked to: ${KICK_EMOTE.formatted}:\`${stream.multiStream.kickStream.name}\``
 
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(message, env, { title: '<:twitch:1404661243373031585> Twitch Stream Notification Details' })] })
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(message, env, { title: `${TWITCH_EMOTE.formatted} Twitch Stream Notification Details` })] })
     }
     case 'help': {
       const helpCard = {
@@ -469,7 +518,7 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
             components: [
               {
                 type: 10,
-                content: '# <:twitch:1404661243373031585> Available commands',
+                content: `# ${TWITCH_EMOTE.formatted} Available commands`,
               },
               {
                 type: 10,

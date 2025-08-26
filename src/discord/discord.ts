@@ -1,11 +1,13 @@
-import type { APIButtonComponent, APIEmbed, APIInteraction, APIMessage, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
+import type { APIApplicationCommandOption, APIButtonComponent, APIEmbed, APIInteraction, APIMessage, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
 import type { StreamMessage } from '../database/db'
 
-import { escapeMarkdown } from '@discordjs/formatters'
+import { chatInputApplicationCommandMention, escapeMarkdown } from '@discordjs/formatters'
 
 import { DiscordAPIError, REST } from '@discordjs/rest'
 import { Routes } from 'discord-api-types/v10'
 import { eq, tables, useDB } from '../database/db'
+
+import { DINKDONK_EMOTE, KICK_EMOTE, TWITCH_EMOTE } from '../util/discordEmotes'
 import { formatDuration } from '../util/formatDuration'
 
 /**
@@ -214,50 +216,86 @@ export async function uploadSticker(guildId: string, discordToken: string, stick
 }
 
 /**
- * Replaces placeholders in a message with actual values.
+ * Replaces placeholders in a message with actual values from a StreamMessage object.
+ * Placeholders are as follows:
+ * - `{{name}}`: The name of the streamer, with a platform-specific emote if `service` is set to 'both'.
+ * - `{{twitch_name}}`: The name of the streamer on Twitch.
+ * - `{{kick_name}}`: The name of the streamer on Kick.
+ * - `{{url}}`: The URL of the streamer's channel, based on the `service` parameter.
+ * - `{{twitch_url}}`: The URL of the streamer's Twitch channel.
+ * - `{{kick_url}}`: The URL of the streamer's Kick channel.
+ * - `{{everyone}}`: The '@everyone' mention.
+ * - `{{here}}`: The '@here' mention.
+ * - `{{game}}` or `{{category}}`: The game/category of the stream.
+ * - `{{timestamp}}`: A timestamp in Discord's <t:timestamp:format> format, based on the `type` parameter.
  *
- * Replaces the following placeholders:
- *
- * - `{{name}}` with the streamer's name
- * - `{{url}}` with a link to the streamer's channel
- * - `{{everyone}}` with a mention of the `@everyone` role
- * - `{{here}}` with a mention of the `@here` role
- * - `{{game}}` or `{{category}}` with the game/category the streamer is playing (if provided)
- * - `{{timestamp}}` with a timestamp of when the stream started (if provided)
- *
- * @param message - The message with placeholders to be replaced.
- * @param streamName - The name of the streamer.
- * @param game - The game/category the streamer is playing (optional).
- * @param startedAt - The timestamp of when the stream started (optional).
- * @returns The message with all placeholders replaced.
+ * @param message The message to replace placeholders in.
+ * @param streamMessage The StreamMessage object to get values from.
+ * @param type Whether the message is for an online or offline stream. Used to determine which timestamp to use.
+ * @param service The platform to get the streamer's URL from. Defaults to 'twitch'. If set to 'both', the URL will be a link to both Twitch and Kick.
+ * @returns The message with placeholders replaced.
  */
-export function messageBuilder(message: string, streamName: string, game?: string, startedAt?: string, service: 'twitch' | 'kick' | 'both' = 'twitch') {
-  const twitchUrl = `https://twitch.tv/${streamName}`
-  const kickUrl = `https://kick.com/${streamName}`
+export function messageBuilder(message: string, streamMessage: StreamMessage, type: 'online' | 'offline', service: 'twitch' | 'kick' | 'both' = 'twitch') {
+  const twitchUrl = `https://twitch.tv/${streamMessage.stream?.name}`
+  const kickUrl = `https://kick.com/${streamMessage.kickStream?.name}`
 
   let urlReplacement: string
+  let nameReplacement: string
 
   switch (service) {
     case 'kick':
       urlReplacement = kickUrl
+      nameReplacement = streamMessage.kickStream?.name || ''
       break
     case 'both':
-      urlReplacement = `${twitchUrl} | ${kickUrl}`
+      urlReplacement = `${twitchUrl} & ${kickUrl}`
+      if (streamMessage.stream?.name === streamMessage.kickStream?.name) {
+        nameReplacement = `${streamMessage.stream?.name || ''}`
+      }
+      else {
+        nameReplacement = `${TWITCH_EMOTE.formatted}${streamMessage.stream?.name || ''} ${KICK_EMOTE.formatted}${streamMessage.kickStream?.name || ''}`
+      }
       break
     case 'twitch':
     default:
       urlReplacement = twitchUrl
+      nameReplacement = streamMessage.stream?.name || ''
       break
   }
 
-  return message.replace(/\{\{name\}\}/gi, streamName)
+  // Determine which timestamp to use based on online/offline status
+  let timestampValue: string
+  if (type === 'offline') {
+    // Use ended_at timestamps for offline messages
+    const endedAt = streamMessage.twitchStreamEndedAt || streamMessage.kickStreamEndedAt
+    timestampValue = endedAt
+      ? Math.floor(new Date(endedAt).getTime() / 1000).toString()
+      : Math.floor(new Date().getTime() / 1000).toString()
+  }
+  else {
+    // Use started_at timestamps for online messages
+    const startedAt = streamMessage.twitchStreamData?.started_at || streamMessage.kickStreamData?.started_at || streamMessage.twitchStreamStartedAt || streamMessage.kickStreamStartedAt
+    timestampValue = startedAt
+      ? Math.floor(new Date(startedAt).getTime() / 1000).toString()
+      : Math.floor(new Date().getTime() / 1000).toString()
+  }
+
+  let game = streamMessage.twitchStreamData?.game_name || streamMessage.kickStreamData?.category.name || ''
+  if (streamMessage.stream?.multiStream?.priority || streamMessage.kickStream?.multiStream?.priority) {
+    const priority = streamMessage.stream?.multiStream?.priority || streamMessage.kickStream?.multiStream?.priority
+    game = priority === 'twitch' ? streamMessage.twitchStreamData?.game_name || streamMessage.kickStreamData?.category?.name || '' : streamMessage.kickStreamData?.category?.name || streamMessage.twitchStreamData?.game_name || ''
+  }
+
+  return message.replace(/\{\{name\}\}/gi, nameReplacement)
+    .replace(/\{\{twitch_name\}\}/gi, streamMessage.stream?.name || '')
+    .replace(/\{\{kick_name\}\}/gi, streamMessage.kickStream?.name || '')
     .replace(/\{\{url\}\}/gi, urlReplacement)
     .replace(/\{\{twitch_url\}\}/gi, twitchUrl)
     .replace(/\{\{kick_url\}\}/gi, kickUrl)
     .replace(/\{\{everyone\}\}/gi, '@everyone')
     .replace(/\{\{here\}\}/gi, '@here')
-    .replace(/\{\{(game|category)\}\}/gi, game || '')
-    .replace(/\{\{timestamp\}\}/gi, `<t:${startedAt ? Math.floor(new Date(startedAt).getTime() / 1000) : Math.floor(new Date().getTime() / 1000)}:R>`)
+    .replace(/\{\{(game|category)\}\}/gi, game)
+    .replace(/\{\{timestamp\}\}/gi, `<t:${timestampValue}:R>`)
 }
 
 /**
@@ -314,9 +352,20 @@ export async function fetchGuildEmojis(guildId: string, discordToken: string) {
 }
 
 export async function fetchBotCommands(discordToken: string, env: Env) {
+  const cacheKey = `discord-commands:${env.DISCORD_APPLICATION_ID}`
+
   try {
+    let commands = await env.KV.get<RESTGetAPIApplicationCommandsResult>(cacheKey, { type: 'json' })
+    if (commands) {
+      return commands
+    }
+
     const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
-    const commands = await rest.get(Routes.applicationCommands(env.DISCORD_APPLICATION_ID)) as RESTGetAPIApplicationCommandsResult
+
+    commands = await rest.get(Routes.applicationCommands(env.DISCORD_APPLICATION_ID)) as RESTGetAPIApplicationCommandsResult
+
+    await env.KV.put(cacheKey, JSON.stringify(commands), { expirationTtl: 300 })
+
     return commands
   }
   catch (error: unknown) {
@@ -332,325 +381,11 @@ export async function fetchBotCommands(discordToken: string, env: Env) {
  * @param env - The environment variables for accessing configuration and services.
  * @returns An object containing the body of the message, any embeds, and any components.
  */
-export function bodyBuilder(streamMessage: StreamMessage, env: Env) {
-  if (!streamMessage)
-    return { content: '', embeds: [], components: [] }
-
-  // ! TEMP this is for testing the new body builder only for the beta server (we can remove this when its ready)
-  if (streamMessage.stream?.guildId === '705928685068222496' || streamMessage.kickStream?.guildId === '705928685068222496') {
-    return betaBodyBuilder(streamMessage, env)
-  }
-
-  const components: APIMessageTopLevelComponent[] = []
-  const embeds: APIEmbed[] = []
-  let content = ''
-
-  // check if we should return an embed
-  if ((!streamMessage.twitchOnline && streamMessage.stream?.cleanup) && (!streamMessage.kickOnline && streamMessage.kickStream?.cleanup)) {
-    return { content: '', embeds: [], components: [] }
-  }
-  else if ((!streamMessage.twitchOnline && streamMessage.stream?.cleanup) && !streamMessage.kickStream) {
-    return { content: '', embeds: [], components: [] }
-  }
-  else if ((!streamMessage.kickOnline && streamMessage.kickStream?.cleanup) && !streamMessage.stream) {
-    return { content: '', embeds: [], components: [] }
-  }
-
-  // build components
-  const buttons: APIButtonComponent[] = []
-  if (streamMessage?.stream) {
-    if (streamMessage.twitchOnline) {
-      buttons.push({
-        type: 2,
-        label: 'Watch Twitch Stream',
-        url: `https://twitch.tv/${streamMessage.stream.name}`,
-        style: 5,
-        emoji: {
-          name: 'twitch',
-          id: '1404661243373031585',
-          animated: false,
-        },
-      })
-    }
-    else if (streamMessage.twitchVod && !streamMessage.stream.cleanup) {
-      buttons.push({
-        type: 2,
-        label: 'Watch Twitch VOD',
-        url: `https://twitch.tv/videos/${streamMessage.twitchVod?.id}`,
-        style: 5,
-        emoji: {
-          name: 'twitch',
-          id: '1404661243373031585',
-          animated: false,
-        },
-      })
-    }
-  }
-
-  if (streamMessage?.kickStream) {
-    if (streamMessage.kickOnline) {
-      buttons.push({
-        type: 2,
-        label: 'Watch Kick Stream',
-        url: `https://kick.com/${streamMessage.kickStream.name}`,
-        style: 5,
-        emoji: {
-          name: 'kick',
-          id: '1404661261030916246',
-          animated: false,
-        },
-      })
-    }
-    else if (streamMessage.kickVod && !streamMessage.kickStream.cleanup) {
-      buttons.push({
-        type: 2,
-        label: 'Watch Kick VOD',
-        url: `https://kick.com/${streamMessage.kickStream.name}/videos/${streamMessage.kickVod?.video.uuid}`,
-        style: 5,
-        emoji: {
-          name: 'kick',
-          id: '1404661261030916246',
-          animated: false,
-        },
-      })
-    }
-  }
-
-  if (buttons.length > 0) {
-    components.push({
-      type: 1,
-      components: buttons,
-    })
-  }
-  // build embeds
-  if (streamMessage?.stream) {
-    if (streamMessage.twitchOnline) {
-      // online embed
-      let title = `${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} is live!`
-      let thumbnail = streamMessage.twitchStreamerData?.offline_image_url ?? ''
-      let timestamp = new Date().toISOString()
-
-      if (streamMessage.twitchStreamData) {
-        title = streamMessage.twitchStreamData.title
-        thumbnail = `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}`
-        timestamp = new Date(streamMessage.twitchStreamData.started_at).toISOString()
-      }
-
-      const embed = {
-        title,
-        color: 0x6441A4,
-        description: `**${streamMessage.stream.name} is live!**`,
-        author: {
-          name: 'Live on Twitch',
-          icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/twitch-logo.png` : undefined,
-        },
-        fields: [
-          {
-            name: 'Game',
-            value: streamMessage.twitchStreamData?.game_name ?? 'No game',
-          },
-        ],
-        url: `https://twitch.tv/${streamMessage.stream.name}`,
-        image: {
-          url: thumbnail,
-        },
-        thumbnail: {
-          url: streamMessage.twitchStreamerData ? streamMessage.twitchStreamerData.profile_image_url : '',
-        },
-        timestamp,
-        footer: {
-          text: 'Online',
-        },
-      }
-
-      embeds.push(embed)
-    }
-    else if (!streamMessage.stream.cleanup) {
-      // offline embed
-      const duration = streamMessage.twitchVod
-        ? streamMessage.twitchVod.duration
-        : streamMessage.twitchStreamEndedAt && streamMessage.twitchStreamStartedAt
-          ? formatDuration(streamMessage.twitchStreamEndedAt.getTime() - streamMessage.twitchStreamStartedAt.getTime())
-          : '0'
-      const timestamp = streamMessage.twitchStreamEndedAt?.toISOString()
-      const backupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}` : ''
-      let title = `${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream.name} is no longer live!`
-      if (streamMessage.twitchStreamData) {
-        title = streamMessage.twitchStreamData.title
-      }
-      const embed = {
-        title,
-        color: 0x6441A4,
-        description: `Streamed for **${duration}**`,
-        author: {
-          name: 'Twitch',
-          icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/twitch-logo.png` : undefined,
-        },
-        url: `https://twitch.tv/${streamMessage.stream.name}`,
-        image: {
-          url: streamMessage.twitchStreamerData?.offline_image_url ? streamMessage.twitchStreamerData.offline_image_url : backupImage,
-        },
-        thumbnail: {
-          url: streamMessage.twitchStreamerData ? streamMessage.twitchStreamerData.profile_image_url : '',
-        },
-        timestamp,
-        footer: {
-          text: 'Last online',
-        },
-      }
-
-      embeds.push(embed)
-    }
-  }
-  if (streamMessage?.kickStream) {
-    if (streamMessage.kickOnline) {
-      // online embed
-      let title = `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream.name} is live!`
-      let thumbnail = streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp'
-      let timestamp = new Date().toISOString()
-      if (streamMessage.kickStreamData) {
-        title = streamMessage.kickStreamData.stream_title
-        thumbnail = `${streamMessage.kickStreamData.thumbnail}?b=${streamMessage.kickStreamData.started_at}&t=${new Date().getTime()}`
-        timestamp = new Date(streamMessage.kickStreamData.started_at).toISOString()
-      }
-      const embed = {
-        title,
-        color: 0x53FC18,
-        description: `**${streamMessage.kickStream.name} is live!**`,
-        author: {
-          name: 'Live on KICK',
-          icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/kick-logo.png` : undefined,
-        },
-        fields: [
-          {
-            name: 'Game',
-            value: streamMessage.kickStreamData?.category.name ?? 'No game',
-          },
-        ],
-        url: `https://kick.com/${streamMessage.kickStream.name}`,
-        image: {
-          url: thumbnail,
-        },
-        thumbnail: {
-          url: streamMessage.kickStreamerData?.user.profile_pic ?? '',
-        },
-        timestamp,
-        footer: {
-          text: 'Online',
-        },
-      }
-      embeds.push(embed)
-    }
-    else if (!streamMessage.kickStream.cleanup) {
-      // offline embed
-      const duration = streamMessage.kickVod && !Number.isNaN(streamMessage.kickVod.duration) && streamMessage.kickVod.duration > 0
-        ? formatDuration(streamMessage.kickVod.duration)
-        : streamMessage.kickStreamEndedAt && streamMessage.kickStreamStartedAt
-          ? formatDuration(streamMessage.kickStreamEndedAt.getTime() - streamMessage.kickStreamStartedAt.getTime())
-          : '0'
-      const timestamp = streamMessage.kickStreamEndedAt?.toISOString()
-      let title = `${streamMessage.kickStreamerData?.user.username ?? streamMessage.kickStream.name} is no longer live!`
-      if (streamMessage.kickStreamData) {
-        title = streamMessage.kickStreamData.stream_title
-      }
-      const embed = {
-        title,
-        color: 0x53FC18,
-        description: `Streamed for **${duration}**`,
-        author: {
-          name: 'Kick',
-          icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/kick-logo.png` : undefined,
-        },
-        url: `https://kick.com/${streamMessage.kickStream.name}`,
-        image: {
-          url: streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp',
-        },
-        thumbnail: {
-          url: streamMessage.kickStreamerData ? streamMessage.kickStreamerData.user.profile_pic : '',
-        },
-        timestamp,
-        footer: {
-          text: 'Last online',
-        },
-      }
-      embeds.push(embed)
-    }
-  }
-
-  // build content message
-  if (streamMessage?.stream) {
-    if (streamMessage.twitchOnline) {
-      const roleMention = streamMessage.stream.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''
-      const message = `${roleMention}${messageBuilder(streamMessage.stream.liveMessage ? streamMessage.stream.liveMessage : '{{name}} is live!', streamMessage.stream.name, streamMessage.twitchStreamData?.game_name, streamMessage.twitchStreamData?.started_at)}`
-      content = message
-    }
-    else if (!streamMessage.stream.cleanup) {
-      const offlineMessage = messageBuilder(streamMessage.stream.offlineMessage ? streamMessage.stream.offlineMessage : '{{name}} is now offline.', streamMessage.stream.name)
-      content = offlineMessage
-    }
-  }
-  if (streamMessage?.kickStream) {
-    if (streamMessage.kickOnline) {
-      const roleMention = streamMessage.kickStream.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
-      const message = `${roleMention}${messageBuilder(streamMessage.kickStream.liveMessage ? streamMessage.kickStream.liveMessage : '{{name}} is live!', streamMessage.kickStream.name, streamMessage.kickStreamData?.category.name, streamMessage.kickStreamData?.started_at, 'kick')}`
-
-      if (content !== '') {
-        content += '\n'
-      }
-      content += message
-    }
-    else if (!streamMessage.kickStream.cleanup) {
-      const offlineMessage = messageBuilder(streamMessage.kickStream?.offlineMessage ? streamMessage.kickStream?.offlineMessage : '{{name}} is now offline.', streamMessage.kickStream.name)
-
-      if (content && content !== offlineMessage) {
-        content += `\n${offlineMessage}`
-      }
-      else if (!content) {
-        content = offlineMessage
-      }
-    }
-  }
-
-  if (streamMessage?.stream && streamMessage?.kickStream && streamMessage.twitchOnline && streamMessage.kickOnline) {
-    // combined online message
-    const roleMention = streamMessage.stream.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''
-    const kickRoleMention = streamMessage.kickStream.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
-
-    if (streamMessage.stream.liveMessage === streamMessage.kickStream.liveMessage) {
-      // we can combine the messages
-      content = [roleMention, kickRoleMention, messageBuilder(
-        streamMessage.stream.liveMessage ? streamMessage.stream.liveMessage : '@everyone {{name}} is now live @ {{url}}',
-        streamMessage.stream.name,
-        streamMessage.twitchStreamData?.game_name,
-        streamMessage.twitchStreamData?.started_at,
-        'both',
-      )].filter(Boolean).join(' ')
-    }
-  }
-  if (streamMessage?.stream && streamMessage?.kickStream && !streamMessage.twitchOnline && !streamMessage.kickOnline) {
-    // combined offline message
-    const twitchOfflineMessage = messageBuilder(streamMessage.stream.offlineMessage ? streamMessage.stream.offlineMessage : '{{name}} is now offline.', streamMessage.stream.name)
-    const kickOfflineMessage = messageBuilder(streamMessage.kickStream?.offlineMessage ? streamMessage.kickStream?.offlineMessage : '{{name}} is now offline.', streamMessage.kickStream.name)
-    if (twitchOfflineMessage === kickOfflineMessage) {
-      content = twitchOfflineMessage
-    }
-  }
-
-  return {
-    content,
-    embeds,
-    components,
-  }
-}
-
-export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPIChannelMessageJSONBody {
+export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPIChannelMessageJSONBody {
   const TWITCH_COLOR = 0x6441A4
   const KICK_COLOR = 0x53FC18
   const MULTI_COLOR = 0xFFF200
   const OFFLINE_COLOR = 0x747F8D
-
-  const KICK_EMOTE = '<:kick:1404661261030916246>'
-  const TWITCH_EMOTE = '<:twitch:1404661243373031585>'
 
   interface Content {
     message?: string
@@ -693,7 +428,6 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
   }
 
   function buildMultiOnlineMessage(streamMessage: StreamMessage, env: Env): Content {
-    // TODO maybe we should let users choose to prioritize twitch or kick data over the other (maybe build this into a /multistream command that has options for enable/disable multi stream + which data to prioritize)
     let message = ' '
     const roleMention = streamMessage.stream?.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''
     const kickRoleMention = streamMessage.kickStream?.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
@@ -704,27 +438,40 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
       const mentions = mentionsArray[0] === mentionsArray[1] ? mentionsArray[0] || '' : mentionsArray.join(' ')
       message = [mentions, messageBuilder(
         streamMessage.stream?.liveMessage ? streamMessage.stream.liveMessage : '{{name}} is now live!',
-        streamMessage.stream?.name || '',
-        streamMessage.twitchStreamData?.game_name,
-        streamMessage.twitchStreamData?.started_at,
+        streamMessage,
+        'online',
         'both',
       )].filter(Boolean).join(' ')
     }
     else {
       // Show both messages on different lines
-      message = `${roleMention} ${messageBuilder(streamMessage.stream?.liveMessage || '{{name}} is now live!', streamMessage.stream?.name || '', streamMessage.twitchStreamData?.game_name, streamMessage.twitchStreamData?.started_at, 'twitch')}\n${kickRoleMention} ${messageBuilder(streamMessage.kickStream?.liveMessage || '{{name}} is now live!', streamMessage.kickStream?.name || '', streamMessage.kickStreamData?.stream_title, streamMessage.kickStreamData?.started_at, 'kick')}`
+      message = `${roleMention} ${messageBuilder(streamMessage.stream?.liveMessage || '{{name}} is now live!', streamMessage, 'online', 'twitch')}\n${kickRoleMention} ${messageBuilder(streamMessage.kickStream?.liveMessage || '{{name}} is now live!', streamMessage, 'online', 'kick')}`
     }
 
-    const title = streamMessage.twitchStreamData?.title || streamMessage.kickStreamData?.stream_title || `${streamMessage.stream?.name} is live!`
-    const description = `${TWITCH_EMOTE} ${KICK_EMOTE} ${streamMessage.stream?.name} is live on Twitch & KICK!`
+    const multiStream = streamMessage.stream?.multiStream || streamMessage.kickStream?.multiStream
+    const priority = multiStream?.priority || 'twitch'
+
+    const noTitle = messageBuilder('{{name}} is now live!', streamMessage, 'online', 'both')
+    const title = priority === 'twitch' ? streamMessage.twitchStreamData?.title || streamMessage.kickStreamData?.stream_title || noTitle : streamMessage.kickStreamData?.stream_title || streamMessage.twitchStreamData?.title || noTitle
+    let description = `${TWITCH_EMOTE.formatted} ${KICK_EMOTE.formatted} ${priority === 'twitch' ? streamMessage.stream?.name : streamMessage.kickStream?.name} is live on Twitch & KICK!`
+    if (streamMessage.stream?.name.toLowerCase() !== streamMessage.kickStream?.name.toLowerCase()) {
+      description = `${TWITCH_EMOTE.formatted}${streamMessage.stream?.name} & ${KICK_EMOTE.formatted}${streamMessage.kickStream?.name} is live on Twitch & KICK!`
+    }
     const color = MULTI_COLOR
     const status = 'Online'
 
-    const game = streamMessage.twitchStreamData?.game_name || streamMessage.kickStreamData?.category?.name || 'No game'
-    const timestamp = Math.floor(new Date(streamMessage.twitchStreamData?.started_at || streamMessage.kickStreamData?.started_at || Date.now()).getTime() / 1000)
-    const image = streamMessage.twitchStreamData
-      ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}`
-      : streamMessage.kickStreamData?.thumbnail || `${env.WEBHOOK_URL}/static/default_image.png`
+    const game = priority === 'twitch' ? streamMessage.twitchStreamData?.game_name || streamMessage.kickStreamData?.category?.name : streamMessage.kickStreamData?.category?.name || streamMessage.twitchStreamData?.game_name
+    const timestamp = priority === 'twitch' ? Math.floor(new Date(streamMessage.twitchStreamData?.started_at || streamMessage.kickStreamData?.started_at || Date.now()).getTime() / 1000) : Math.floor(new Date(streamMessage.kickStreamData?.started_at || streamMessage.twitchStreamData?.started_at || Date.now()).getTime() / 1000)
+
+    const twitchImage = streamMessage.twitchStreamData
+      ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${Date.now()}`
+      : streamMessage.twitchStreamerData?.offline_image_url
+
+    const kickImage = streamMessage.kickStreamData ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${Date.now()}` : streamMessage.kickStreamerData?.offline_banner_image?.src
+
+    const image = priority === 'twitch'
+      ? twitchImage || kickImage || `${env.WEBHOOK_URL}/static/default_image.png`
+      : kickImage || twitchImage || `${env.WEBHOOK_URL}/static/default_image.png`
 
     const buttons: APIButtonComponent[] = []
     // Add both platform buttons
@@ -734,9 +481,9 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
       url: `https://twitch.tv/${streamMessage.stream?.name}`,
       style: 5,
       emoji: {
-        name: 'twitch',
-        id: '1404661243373031585',
-        animated: false,
+        name: TWITCH_EMOTE.name,
+        id: TWITCH_EMOTE.id,
+        animated: TWITCH_EMOTE.animated,
       },
     })
     buttons.push({
@@ -745,9 +492,9 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
       url: `https://kick.com/${streamMessage.kickStream?.name}`,
       style: 5,
       emoji: {
-        name: 'kick',
-        id: '1404661261030916246',
-        animated: false,
+        name: KICK_EMOTE.name,
+        id: KICK_EMOTE.id,
+        animated: KICK_EMOTE.animated,
       },
     })
 
@@ -766,16 +513,24 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
 
   function buildMultiOfflineMessage(streamMessage: StreamMessage, env: Env): Content {
     let message = ''
-    const twitchOfflineMessage = messageBuilder(streamMessage.stream?.offlineMessage ? streamMessage.stream.offlineMessage : '{{name}} is now offline.', streamMessage.stream?.name || '')
-    const kickOfflineMessage = messageBuilder(streamMessage.kickStream?.offlineMessage ? streamMessage.kickStream?.offlineMessage : '{{name}} is now offline.', streamMessage.kickStream?.name || '')
-    if (twitchOfflineMessage === kickOfflineMessage) {
-      message = twitchOfflineMessage
+    if (streamMessage.stream?.offlineMessage === streamMessage.kickStream?.offlineMessage) {
+      message = messageBuilder(streamMessage.stream?.offlineMessage || streamMessage.kickStream?.offlineMessage || '{{name}} is now offline.', streamMessage, 'offline', 'both')
     }
     else {
+      const twitchOfflineMessage = messageBuilder(streamMessage.stream?.offlineMessage ? streamMessage.stream.offlineMessage : '{{name}} is now offline.', streamMessage, 'offline', 'twitch')
+      const kickOfflineMessage = messageBuilder(streamMessage.kickStream?.offlineMessage ? streamMessage.kickStream?.offlineMessage : '{{name}} is now offline.', streamMessage, 'offline', 'kick')
       message = `${twitchOfflineMessage}\n${kickOfflineMessage}`
     }
-    const title = streamMessage.twitchStreamData?.title || `${streamMessage.stream?.name} has ended their streams`
-    const description = `${TWITCH_EMOTE} ${KICK_EMOTE} ${streamMessage.stream?.name} is no longer live on Twitch & KICK!`
+
+    const multiStream = streamMessage.stream?.multiStream || streamMessage.kickStream?.multiStream
+    const priority = multiStream?.priority || 'twitch'
+
+    const noTitle = messageBuilder('{{name}} has ended their streams!', streamMessage, 'offline', 'both')
+    const title = priority === 'twitch' ? streamMessage.twitchStreamData?.title || streamMessage.kickStreamData?.stream_title || noTitle : streamMessage.kickStreamData?.stream_title || streamMessage.twitchStreamData?.title || noTitle
+    let description = `${TWITCH_EMOTE.formatted} ${KICK_EMOTE.formatted} ${priority === 'twitch' ? streamMessage.stream?.name : streamMessage.kickStream?.name} is no longer live on Twitch & KICK!`
+    if (streamMessage.stream?.name.toLowerCase() !== streamMessage.kickStream?.name.toLowerCase()) {
+      description = `${TWITCH_EMOTE.formatted}${streamMessage.stream?.name} & ${KICK_EMOTE.formatted}${streamMessage.kickStream?.name} is no longer live on Twitch & KICK!`
+    }
     const color = OFFLINE_COLOR
     const status = 'Last Online'
 
@@ -791,9 +546,15 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
           ? formatDuration(streamMessage.kickStreamEndedAt.getTime() - streamMessage.kickStreamStartedAt.getTime())
           : '0')
 
-    const duration = twitchDuration > kickDuration ? twitchDuration : kickDuration
-    const timestamp = Math.floor(new Date(streamMessage.twitchStreamEndedAt || streamMessage.kickStreamEndedAt || Date.now()).getTime() / 1000)
-    const image = streamMessage.twitchStreamerData?.offline_image_url || streamMessage.kickStreamerData?.offline_banner_image?.src || `${env.WEBHOOK_URL}/static/default_image.png`
+    const duration = priority === 'twitch' ? twitchDuration : kickDuration
+    const timestamp = priority === 'twitch' ? Math.floor(new Date(streamMessage.twitchStreamEndedAt || streamMessage.kickStreamEndedAt || Date.now()).getTime() / 1000) : Math.floor(new Date(streamMessage.kickStreamEndedAt || streamMessage.twitchStreamEndedAt || Date.now()).getTime() / 1000)
+    const twitchImage = streamMessage.twitchStreamerData?.offline_image_url || 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
+    const kickImage = streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp'
+
+    const image = priority === 'twitch'
+      ? twitchImage || kickImage || `${env.WEBHOOK_URL}/static/default_image.png`
+      : kickImage || twitchImage || `${env.WEBHOOK_URL}/static/default_image.png`
+
     const buttons: APIButtonComponent[] = []
     // Add VOD buttons if available
     if (streamMessage.twitchVod) {
@@ -803,9 +564,9 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
         url: `https://twitch.tv/videos/${streamMessage.twitchVod.id}`,
         style: 5,
         emoji: {
-          name: 'twitch',
-          id: '1404661243373031585',
-          animated: false,
+          name: TWITCH_EMOTE.name,
+          id: TWITCH_EMOTE.id,
+          animated: TWITCH_EMOTE.animated,
         },
       })
     }
@@ -816,9 +577,9 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
         url: `https://kick.com/${streamMessage.kickStream?.name}/videos/${streamMessage.kickVod.video.uuid}`,
         style: 5,
         emoji: {
-          name: 'kick',
-          id: '1404661261030916246',
-          animated: false,
+          name: KICK_EMOTE.name,
+          id: KICK_EMOTE.id,
+          animated: KICK_EMOTE.animated,
         },
       })
     }
@@ -829,9 +590,9 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
       style: 2,
       custom_id: `top-clips:${streamMessage.twitchStreamerData?.id}:${streamMessage.twitchStreamStartedAt?.getTime()}:${streamMessage.twitchStreamEndedAt?.getTime()}`,
       emoji: {
-        name: 'twitch',
-        id: '1404661243373031585',
-        animated: false,
+        name: TWITCH_EMOTE.name,
+        id: TWITCH_EMOTE.id,
+        animated: TWITCH_EMOTE.animated,
       },
     })
     return {
@@ -849,9 +610,9 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
 
   function buildTwitchOnlineMessage(streamMessage: StreamMessage, env: Env): Content {
     const color = TWITCH_COLOR
-    const message = `${streamMessage.stream?.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''}${messageBuilder(streamMessage.stream?.liveMessage ? streamMessage.stream.liveMessage : '{{name}} is live!', streamMessage.stream?.name || '', streamMessage.twitchStreamData?.game_name, streamMessage.twitchStreamData?.started_at)}`
+    const message = `${streamMessage.stream?.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''}${messageBuilder(streamMessage.stream?.liveMessage ? streamMessage.stream.liveMessage : '{{name}} is live!', streamMessage, 'online', 'twitch')}`
     const title = streamMessage.twitchStreamData?.title || `${streamMessage.twitchStreamerData?.display_name} is live!`
-    const description = `${TWITCH_EMOTE} ${streamMessage.twitchStreamerData?.display_name} is live on Twitch!`
+    const description = `${TWITCH_EMOTE.formatted} ${streamMessage.twitchStreamerData?.display_name} is live on Twitch!`
     const game = streamMessage.twitchStreamData?.game_name || 'No game'
     const status = 'Online'
     const timestamp = Math.floor(new Date(streamMessage.twitchStreamData?.started_at || Date.now()).getTime() / 1000)
@@ -863,9 +624,9 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
       url: `https://twitch.tv/${streamMessage.twitchStreamerData?.login}`,
       style: 5,
       emoji: {
-        name: 'twitch',
-        id: '1404661243373031585',
-        animated: false,
+        name: TWITCH_EMOTE.name,
+        id: TWITCH_EMOTE.id,
+        animated: TWITCH_EMOTE.animated,
       },
     })
 
@@ -884,14 +645,14 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
 
   function buildTwitchOfflineMessage(streamMessage: StreamMessage, _env: Env): Content {
     const color = OFFLINE_COLOR
-    const message = messageBuilder(streamMessage.stream?.offlineMessage ? streamMessage.stream.offlineMessage : '{{name}} is now offline.', streamMessage.stream?.name || '')
+    const message = messageBuilder(streamMessage.stream?.offlineMessage ? streamMessage.stream.offlineMessage : '{{name}} is now offline.', streamMessage, 'offline', 'twitch')
     const title = streamMessage.twitchStreamData?.title || `${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream?.name} is no longer live!`
     const duration = streamMessage.twitchVod
       ? streamMessage.twitchVod.duration
       : streamMessage.twitchStreamEndedAt && streamMessage.twitchStreamStartedAt
         ? formatDuration(streamMessage.twitchStreamEndedAt.getTime() - streamMessage.twitchStreamStartedAt.getTime())
         : '0'
-    const description = `${TWITCH_EMOTE} ${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream?.name} is no longer live on Twitch!`
+    const description = `${TWITCH_EMOTE.formatted} ${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream?.name} is no longer live on Twitch!`
     const status = 'Last online'
     const timestamp = Math.floor(new Date(streamMessage.twitchStreamEndedAt || Date.now()).getTime() / 1000)
     const backupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
@@ -905,9 +666,9 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
         url: `https://twitch.tv/videos/${streamMessage.twitchVod.id}`,
         style: 5,
         emoji: {
-          name: 'twitch',
-          id: '1404661243373031585',
-          animated: false,
+          name: TWITCH_EMOTE.name,
+          id: TWITCH_EMOTE.id,
+          animated: TWITCH_EMOTE.animated,
         },
       })
     }
@@ -917,9 +678,9 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
       style: 2,
       custom_id: `top-clips:${streamMessage.twitchStreamerData?.id}:${streamMessage.twitchStreamStartedAt?.getTime()}:${streamMessage.twitchStreamEndedAt?.getTime()}`,
       emoji: {
-        name: 'twitch',
-        id: '1404661243373031585',
-        animated: false,
+        name: TWITCH_EMOTE.name,
+        id: TWITCH_EMOTE.id,
+        animated: TWITCH_EMOTE.animated,
       },
     })
     return {
@@ -937,9 +698,9 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
 
   function buildKickOnlineMessage(streamMessage: StreamMessage, _env: Env): Content {
     const roleMention = streamMessage.kickStream?.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
-    const message = `${roleMention}${messageBuilder(streamMessage.kickStream?.liveMessage ? streamMessage.kickStream.liveMessage : '{{name}} is live!', streamMessage.kickStream?.name || '', streamMessage.kickStreamData?.category.name, streamMessage.kickStreamData?.started_at, 'kick')}`
+    const message = `${roleMention}${messageBuilder(streamMessage.kickStream?.liveMessage ? streamMessage.kickStream.liveMessage : '{{name}} is live!', streamMessage, 'online', 'kick')}`
     const title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream?.name} is live!`
-    const description = `${KICK_EMOTE} ${streamMessage.kickStream?.name ?? streamMessage.kickStreamerData?.slug} is live on KICK!`
+    const description = `${KICK_EMOTE.formatted} ${streamMessage.kickStream?.name ?? streamMessage.kickStreamerData?.slug} is live on KICK!`
     const game = streamMessage.kickStreamData?.category.name || 'No game'
     const status = 'Online'
     const timestamp = Math.floor(new Date(streamMessage.kickStreamData?.started_at || Date.now()).getTime() / 1000)
@@ -952,9 +713,9 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
       url: `https://kick.com/${streamMessage.kickStream?.name}`,
       style: 5,
       emoji: {
-        name: 'kick',
-        id: '1404661261030916246',
-        animated: false,
+        name: KICK_EMOTE.name,
+        id: KICK_EMOTE.id,
+        animated: KICK_EMOTE.animated,
       },
     })
     return {
@@ -980,9 +741,9 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
         url: `https://kick.com/${streamMessage.kickStream?.name}/videos/${streamMessage.kickVod.video.uuid}`,
         style: 5,
         emoji: {
-          name: 'kick',
-          id: '1404661261030916246',
-          animated: false,
+          name: KICK_EMOTE.name,
+          id: KICK_EMOTE.id,
+          animated: KICK_EMOTE.animated,
         },
       })
     }
@@ -993,10 +754,10 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
         ? formatDuration(streamMessage.kickStreamEndedAt.getTime() - streamMessage.kickStreamStartedAt.getTime())
         : '0'
     return {
-      message: messageBuilder(streamMessage.kickStream?.offlineMessage ? streamMessage.kickStream?.offlineMessage : '{{name}} is now offline.', streamMessage.kickStream?.name || ''),
+      message: messageBuilder(streamMessage.kickStream?.offlineMessage ? streamMessage.kickStream?.offlineMessage : '{{name}} is now offline.', streamMessage, 'offline', 'kick'),
       title: streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream?.name} is no longer live!`,
       color: OFFLINE_COLOR,
-      description: `${KICK_EMOTE} ${streamMessage.kickStream?.name ?? streamMessage.kickStreamerData?.slug} is no longer live on KICK!`,
+      description: `${KICK_EMOTE.formatted} ${streamMessage.kickStream?.name ?? streamMessage.kickStreamerData?.slug} is no longer live on KICK!`,
       duration,
       status: '‎Last Online',
       timestamp: Math.floor(new Date(streamMessage.kickStreamEndedAt || Date.now()).getTime() / 1000),
@@ -1100,7 +861,7 @@ export function betaBodyBuilder(streamMessage: StreamMessage, env: Env): RESTPos
       },
       {
         type: 10,
-        content: `-# <a:DinkDonk:1357111617787002962> • ${escapeMarkdown(content.status || 'Online')} • <t:${content.timestamp}>`,
+        content: `-# ${DINKDONK_EMOTE.formatted} • ${escapeMarkdown(content.status || 'Online')} • <t:${content.timestamp}>`,
       },
     ],
   }
@@ -1149,4 +910,84 @@ export function buildSuccessEmbed(message: string, env: Env, embed?: APIEmbed) {
     timestamp: new Date().toISOString(),
     ...embed,
   } satisfies APIEmbed
+}
+
+export async function findBotCommand(env: Env, commandName: string, subCommandGroupName?: string, subCommandName?: string) {
+  const commands = await fetchBotCommands(env.DISCORD_TOKEN, env)
+
+  // Find the main command
+  const command = commands.find(c => c.name === commandName)
+  if (!command)
+    return null
+
+  // No subcommand group requested
+  if (!subCommandGroupName) {
+    // No subcommand either
+    if (!subCommandName)
+      return command
+
+    // Try to find subcommand directly under main command
+    if (command.options) {
+      const sub = command.options.find(o => o.type === 1 && o.name === subCommandName)
+      if (sub)
+        return { ...command, subcommand: sub }
+    }
+
+    return null
+  }
+
+  // Subcommand group requested
+  if (command.options) {
+    const group = command.options.find((o): o is APIApplicationCommandOption & { options: APIApplicationCommandOption[] } => o.type === 2 && o.name === subCommandGroupName)
+    if (group && group.options) {
+      const sub = group.options.find((o): o is APIApplicationCommandOption => o.type === 1 && o.name === subCommandName)
+      if (sub)
+        return { ...command, subcommandGroup: group, subcommand: sub }
+    }
+  }
+
+  return null
+}
+
+export async function findBotCommandMarkdown(env: Env, commandName: string): Promise<string>
+export async function findBotCommandMarkdown(env: Env, commandName: string, subCommandName: string): Promise<string>
+export async function findBotCommandMarkdown(env: Env, commandName: string, subCommandGroupName: string, subCommandName: string): Promise<string>
+
+export async function findBotCommandMarkdown(env: Env, commandName: string, arg2?: string, arg3?: string) {
+  let subCommandGroupName: string | undefined
+  let subCommandName: string | undefined
+
+  if (arg3) {
+    subCommandGroupName = arg2
+    subCommandName = arg3
+  }
+  else if (arg2) {
+    subCommandName = arg2
+  }
+
+  const command = await findBotCommand(env, commandName, subCommandGroupName, subCommandName)
+
+  if (!command) {
+    return `\`/${commandName}${subCommandGroupName ? ` ${subCommandGroupName}` : ''}${subCommandName ? ` ${subCommandName}` : ''}\``
+  }
+
+  if ('subcommand' in command && command.subcommand) {
+    if ('subcommandGroup' in command && command.subcommandGroup) {
+      return chatInputApplicationCommandMention(
+        commandName,
+        command.subcommandGroup.name,
+        command.subcommand.name,
+        command.id,
+      )
+    }
+    else {
+      return chatInputApplicationCommandMention(
+        commandName,
+        command.subcommand.name,
+        command.id,
+      )
+    }
+  }
+
+  return chatInputApplicationCommandMention(commandName, command.id)
 }

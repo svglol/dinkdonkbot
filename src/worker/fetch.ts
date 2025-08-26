@@ -4,8 +4,9 @@ import crypto from 'node:crypto'
 import { ApplicationIntegrationType, ApplicationWebhookEventType, ApplicationWebhookType, InteractionType } from 'discord-api-types/v10'
 import { InteractionResponseType, verifyKey } from 'discord-interactions'
 import { Router } from 'itty-router'
-import { discordInteractionAutoCompleteHandler, discordInteractionHandler, discordInteractionMessageComponentHandler, discordInteractionModalHandler } from '../discord/interactionHandler'
+import { tables, useDB } from '../database/db'
 
+import { discordInteractionAutoCompleteHandler, discordInteractionHandler, discordInteractionMessageComponentHandler, discordInteractionModalHandler } from '../discord/interactionHandler'
 import { kickEventHandler } from '../kick/eventHandler'
 import { getKickChannelV2 } from '../kick/kick'
 import { twitchEventHandler } from '../twitch/eventHandler'
@@ -144,6 +145,41 @@ router.get('/check', async (request, env: Env, ctx: ExecutionContext) => {
   ctx.waitUntil(scheduledCheck(env))
   return new Response('OK', { status: 200 })
 })
+
+// ! temporary route to force setup multistream links for pre-existing streams
+router.get('/link', async (request, env: Env, ctx: ExecutionContext) => {
+  const providedKey = request.headers.get('x-api-key')
+  const allowedKey = env.ACCESS_KEY
+
+  if (providedKey !== allowedKey) {
+    return new Response('Unauthorized', { status: 401 })
+  }
+
+  ctx.waitUntil(linkCheck(env))
+  return new Response('OK', { status: 200 })
+})
+
+async function linkCheck(env: Env) {
+  const streams = await useDB(env).query.streams.findMany({
+    with: { multiStream: true },
+  }).then(streams => streams.filter(stream => !stream.multiStream))
+  const kickStreams = await useDB(env).query.kickStreams.findMany({
+    with: { multiStream: true },
+  }).then(streams => streams.filter(stream => !stream.multiStream))
+
+  for (const stream of streams) {
+    // check if there is a kickStream that would match this stream
+    const kickStream = kickStreams.find(kickStream => stream.name.toLowerCase() === kickStream.name.toLowerCase() && stream.channelId === kickStream.channelId)
+    if (kickStream) {
+      console.warn(`Linking stream ${stream.id} to kickStream ${kickStream.id}`)
+      // create multistream entry
+      await useDB(env).insert(tables.multiStream).values({
+        streamId: stream.id,
+        kickStreamId: kickStream.id,
+      })
+    }
+  }
+}
 
 router.get('/static/:filename', async (request, env: Env) => {
   const filename = request.params.filename

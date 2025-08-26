@@ -1,7 +1,7 @@
-import type { ChannelState } from '../durable/ChannelState'
+import type { LiveStream } from '../server'
 import { and, eq, tables, useDB } from '../database/db'
 import { bodyBuilder, deleteMessage, updateMessage } from '../discord/discord'
-import { getKickLatestVod } from './kick'
+import { getKickChannelV2, getKickLatestVod, getKickLivestream } from './kick'
 
 /**
  * Handles a 'livestream.status.updated' event by sending a live message to all subscribers.
@@ -33,11 +33,33 @@ export async function kickEventHandler(eventType: string, payload: KickLivestrea
  * @param env - The environment variables for accessing configuration and services.
  */
 async function streamOnline(payload: KickLivestreamStatusUpdatedEvent, env: Env) {
+  const broadcasterUserId = payload.broadcaster.user_id
   const broadcasterName = payload.broadcaster.channel_slug
 
-  const durableObjectId = env.CHANNELSTATE.idFromName(broadcasterName.toLowerCase())
-  const durableObject: DurableObjectStub<ChannelState> = env.CHANNELSTATE.get(durableObjectId)
-  return await durableObject.handleStream({ platform: 'kick', payload })
+  const [kickUser, kickLivestream] = await Promise.all([
+    getKickChannelV2(broadcasterName),
+    getKickLivestream(broadcasterUserId, env),
+  ])
+
+  const kickStreams = await useDB(env).query.kickStreams.findMany({
+    where: (kickStreams, { eq }) => eq(kickStreams.broadcasterId, String(payload.broadcaster.user_id)),
+    with: {
+      multiStream: true,
+    },
+  })
+
+  for (const kickStream of kickStreams) {
+    if (kickStream.multiStream) {
+      const durableObjectId = env.LIVESTREAM.idFromName(`multistream:${kickStream.multiStream.id}:${kickStream.multiStream.streamId}:${kickStream.multiStream.kickStreamId}`)
+      const durableObject: DurableObjectStub<LiveStream> = env.LIVESTREAM.get(durableObjectId)
+      await durableObject.handleStream({ platform: 'kick', payload, stream: kickStream, streamerData: kickUser, streamData: kickLivestream })
+    }
+    else {
+      const durableObjectId = env.LIVESTREAM.idFromName(`kick:${kickStream.id}`)
+      const durableObject: DurableObjectStub<LiveStream> = env.LIVESTREAM.get(durableObjectId)
+      await durableObject.handleStream({ platform: 'kick', payload, stream: kickStream, streamerData: kickUser, streamData: kickLivestream })
+    }
+  }
 }
 
 /**

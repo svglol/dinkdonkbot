@@ -5,6 +5,7 @@ import { eq, tables, useDB } from '../database/db'
 import { sendMessage } from '../discord/discord'
 import { getKickSubscriptions, getKickUser, kickSubscribe, kickUnsubscribe } from '../kick/kick'
 import { getClipsLastHour, getSubscriptions, getUserbyID, removeFailedSubscriptions, removeSubscription, subscribe } from '../twitch/twitch'
+import { CLIPPERS_EMOTE } from '../util/discordEmotes'
 
 export default {
   async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext) {
@@ -46,7 +47,7 @@ async function scheduledTwitchClips(env: Env) {
           const unixTimestamp = Math.floor(createdDate.getTime() / 1000)
           const removeEmojis = (str: string) => str.replace(/[^\w\s.,!?'\-":;()&%$#@]/g, '')
           const clipInfo = [
-            `<a:CLIPPERS:1357111588644982997> [**${twitchClip.broadcaster_name} - ${removeEmojis(twitchClip.title)}**](${twitchClip.url}??)`,
+            `${CLIPPERS_EMOTE.formatted} [**${twitchClip.broadcaster_name} - ${removeEmojis(twitchClip.title)}**](${twitchClip.url}??)`,
             `*Created By:* \`${twitchClip.creator_name}\``,
             `*Created At:* <t:${unixTimestamp}:F>`,
           ].join('\n')

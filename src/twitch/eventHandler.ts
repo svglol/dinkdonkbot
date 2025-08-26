@@ -1,7 +1,7 @@
-import type { ChannelState } from '../durable/ChannelState'
+import type { LiveStream } from '../server'
 import { and, eq, tables, useDB } from '../database/db'
 import { bodyBuilder, deleteMessage, updateMessage } from '../discord/discord'
-import { getLatestVOD } from './twitch'
+import { getLatestVOD, getStreamDetails, getStreamerDetails } from './twitch'
 
 /**
  * Handles a Twitch EventSub notification.
@@ -31,11 +31,31 @@ export async function twitchEventHandler(payload: SubscriptionEventResponseData<
  */
 async function streamOnline(payload: SubscriptionEventResponseData<SubscriptionType>, env: Env) {
   const event = payload.event as OnlineEventData
-  const broadcasterName = event.broadcaster_user_name
 
-  const durableObjectId = env.CHANNELSTATE.idFromName(broadcasterName.toLowerCase())
-  const durableObject: DurableObjectStub<ChannelState> = env.CHANNELSTATE.get(durableObjectId)
-  return await durableObject.handleStream({ platform: 'twitch', payload })
+  const [streamerData, streamData] = await Promise.all([
+    getStreamerDetails(event.broadcaster_user_name, env),
+    getStreamDetails(event.broadcaster_user_name, env),
+  ])
+
+  const streams = await useDB(env).query.streams.findMany({
+    where: (streams, { eq }) => eq(streams.broadcasterId, event.broadcaster_user_id),
+    with: {
+      multiStream: true,
+    },
+  })
+
+  for (const stream of streams) {
+    if (stream.multiStream) {
+      const durableObjectId = env.LIVESTREAM.idFromName(`multistream:${stream.multiStream.id}:${stream.multiStream.streamId}:${stream.multiStream.kickStreamId}`)
+      const durableObject: DurableObjectStub<LiveStream> = env.LIVESTREAM.get(durableObjectId)
+      await durableObject.handleStream({ platform: 'twitch', payload, stream, streamData, streamerData })
+    }
+    else {
+      const durableObjectId = env.LIVESTREAM.idFromName(`twitch:${stream.id}`)
+      const durableObject: DurableObjectStub<LiveStream> = env.LIVESTREAM.get(durableObjectId)
+      await durableObject.handleStream({ platform: 'twitch', payload, stream, streamData, streamerData })
+    }
+  }
 }
 
 /**

@@ -1,6 +1,6 @@
 import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIMessageComponentInteraction, APIModalSubmitInteraction, RESTPostAPIApplicationCommandsJSONBody } from 'discord-api-types/v10'
-import type { ChannelState } from './durable/ChannelState'
 import type { HangmanGame } from './durable/HangmanGame'
+import type { LiveStream } from './durable/LiveStream'
 import type { RPSGame } from './durable/RPSGame'
 
 declare global {
@@ -18,10 +18,10 @@ declare global {
     KICK_CLIENT_ID: string
     KICK_CLIENT_SECRET: string
     ACCESS_KEY: string
-    CHANNELSTATE: DurableObjectNamespace<ChannelState>
     ANALYTICS: AnalyticsEngineDataset
     RPSGAME: DurableObjectNamespace<RPSGame>
     HANGMANGAME: DurableObjectNamespace<HangmanGame>
+    LIVESTREAM: DurableObjectNamespace<LiveStream>
   }
 
   interface TwitchToken {

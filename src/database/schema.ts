@@ -80,6 +80,17 @@ export const streamMessages = sqliteTable('stream-messages', {
   index('stream_messages_kickOnline_idx').on(messages.kickOnline),
 ])
 
+export const multiStream = sqliteTable('multistream', {
+  id: integer('id').primaryKey(),
+  streamId: integer('streamId').references(() => streams.id, { onDelete: 'cascade' }).notNull(),
+  kickStreamId: integer('kickStreamId').references(() => kickStreams.id, { onDelete: 'cascade' }).notNull(),
+  priority: text({ enum: ['twitch', 'kick'] }).notNull().default('twitch'),
+}, multiStream => [
+  uniqueIndex('multistream_idIdx').on(multiStream.id),
+  index('multistream_streamIdIdx').on(multiStream.streamId),
+  index('multistream_kickStreamIdIdx').on(multiStream.kickStreamId),
+])
+
 export const streamMessageRelations = relations(streamMessages, ({ one }) => ({
   stream: one(streams, {
     fields: [streamMessages.streamId],
@@ -91,10 +102,29 @@ export const streamMessageRelations = relations(streamMessages, ({ one }) => ({
   }),
 }))
 
-export const kickStreamsRelations = relations(kickStreams, ({ many }) => ({
+export const kickStreamsRelations = relations(kickStreams, ({ many, one }) => ({
   messages: many(streamMessages),
+  multiStream: one(multiStream, {
+    fields: [kickStreams.id],
+    references: [multiStream.kickStreamId],
+  }),
 }))
 
-export const streamsRelations = relations(streams, ({ many }) => ({
+export const streamsRelations = relations(streams, ({ many, one }) => ({
   messages: many(streamMessages),
+  multiStream: one(multiStream, {
+    fields: [streams.id],
+    references: [multiStream.streamId],
+  }),
+}))
+
+export const multiStreamRelations = relations(multiStream, ({ one }) => ({
+  stream: one(streams, {
+    fields: [multiStream.streamId],
+    references: [streams.id],
+  }),
+  kickStream: one(kickStreams, {
+    fields: [multiStream.kickStreamId],
+    references: [kickStreams.id],
+  }),
 }))

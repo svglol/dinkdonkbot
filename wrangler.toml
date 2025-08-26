@@ -27,16 +27,16 @@ directory = "./static"
 binding = "ASSETS"
 
 [[durable_objects.bindings]]
-name = "CHANNELSTATE"
-class_name = "ChannelState"
-
-[[durable_objects.bindings]]
 name = "RPSGAME"
 class_name = "RPSGame"
 
 [[durable_objects.bindings]]
 name = "HANGMANGAME"
 class_name = "HangmanGame"
+
+[[durable_objects.bindings]]
+name = "LIVESTREAM"
+class_name = "LiveStream"
 
 [[migrations]]
 tag = "v1"
@@ -49,6 +49,11 @@ new_classes = [ "RPSGame" ]
 [[migrations]]
 tag = "v3"
 new_classes = [ "HangmanGame" ]
+
+[[migrations]]
+tag = "v4"
+new_classes = [ "LiveStream" ]
+deleted_classes = [ "ChannelState" ]
 
 [[analytics_engine_datasets]]
 binding = "ANALYTICS"

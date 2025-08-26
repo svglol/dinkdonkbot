@@ -1,5 +1,6 @@
 import type { APIApplicationCommand, APIApplicationCommandInteraction } from 'discord-api-types/v10'
 import { isChatInputApplicationCommandInteraction } from 'discord-api-types/utils'
+import { DINKDONK_EMOTE } from '../../util/discordEmotes'
 import { buildErrorEmbed, buildSuccessEmbed, fetchBotCommands, updateInteraction } from '../discord'
 import { interactionEphemeralLoading } from '../interactionHandler'
 
@@ -17,20 +18,31 @@ async function handler(interaction: APIApplicationCommandInteraction, env: Env, 
 }
 
 function formatSlashCommand(command: APIApplicationCommand): string {
-  // If it has options that are subcommands or subcommand groups
+  const lines: string[] = []
+
+  // Top-level command
+  lines.push(`- </${command.name}:${command.id}> - ${command.description}`)
+
   if (command.options && command.options.length > 0) {
-    return [
-      `- </${command.name}:${command.id}> - ${command.description}`,
-      ...command.options.flatMap((option) => {
-        if (option.type === 1) { // Subcommand
-          return [`  • </${command.name} ${option.name}:${command.id}> - ${option.description}`]
-        }
-        return []
-      }),
-    ].join('\n')
+    command.options.forEach((option) => {
+      if (option.type === 1) {
+        // Subcommand
+        lines.push(`  • </${command.name} ${option.name}:${command.id}> - ${option.description}`)
+      }
+      else if (option.type === 2 && option.options) {
+        // Subcommand group
+        option.options.forEach((sub) => {
+          if (sub.type === 1) {
+            lines.push(
+              `  • </${command.name} ${option.name} ${sub.name}:${command.id}> - ${sub.description}`,
+            )
+          }
+        })
+      }
+    })
   }
 
-  return `- </${command.name}:${command.id}> - ${command.description}`
+  return lines.join('\n')
 }
 
 async function listCommands(interaction: APIApplicationCommandInteraction, env: Env) {
@@ -60,7 +72,7 @@ async function listCommands(interaction: APIApplicationCommandInteraction, env: 
   return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
     embeds: [
       buildSuccessEmbed(content, env, {
-        title: '<a:DinkDonk:1357111617787002962> DinkDonk Bot Commands',
+        title: `${DINKDONK_EMOTE.formatted} DinkDonk Bot Commands`,
         color: 0xFFF200,
       }),
     ],
@@ -77,7 +89,7 @@ export async function listAllBotCommands(interaction: APIApplicationCommandInter
   }
   const commands = (await fetchBotCommands(env.DISCORD_TOKEN, env)).filter(c => c.type === 1).sort((a, b) => a.name.localeCompare(b.name))
   const content = commands.length > 0 ? `${commands.map(c => `- </${c.name}:${c.id}> - ${c.description}`).join('\n')}` : '⚠️ No commands found.'
-  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(content, env, { title: '<a:DinkDonk:1357111617787002962> DinkDonk Bot Commands', color: 0xFFF200 })] })
+  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(content, env, { title: `${DINKDONK_EMOTE.formatted} DinkDonk Bot Commands`, color: 0xFFF200 })] })
 }
 
 export default {

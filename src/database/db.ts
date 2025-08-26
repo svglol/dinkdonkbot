@@ -23,9 +23,15 @@ export function isTuple<T>(array: T[]): array is [T, ...T[]] {
   return array.length > 0
 }
 
-export type Stream = typeof schema.streams.$inferSelect
+export type Stream = typeof schema.streams.$inferSelect & {
+  multiStream?: MultiStream | null
+}
 
-export type StreamKick = typeof schema.kickStreams.$inferSelect
+export type StreamKick = typeof schema.kickStreams.$inferSelect & {
+  multiStream?: MultiStream | null
+}
+
+export type MultiStream = typeof schema.multiStream.$inferSelect
 
 export type StreamMessage = typeof schema.streamMessages.$inferSelect & {
   stream?: Stream | null

@@ -1,4 +1,5 @@
 import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
+import { DINKDONK_EMOTE } from '../../util/discordEmotes'
 import { updateInteraction } from '../discord'
 import { interactionEphemeralLoading } from '../interactionHandler'
 
@@ -15,7 +16,7 @@ const DINKDONK_COMMAND = {
  * @returns A promise that resolves to nothing. Updates the interaction with a dinkdonk emote.
  */
 function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
-  ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: '<a:DinkDonk:1357111617787002962>' }))
+  ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${DINKDONK_EMOTE.formatted}` }))
   return interactionEphemeralLoading()
 }
 

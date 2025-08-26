@@ -4,6 +4,7 @@ import { PermissionFlagsBits } from 'discord-api-types/v10'
 import { and, eq, like } from 'drizzle-orm'
 import { tables, useDB } from '../../database/db'
 import { getChannelId, getStreamerDetails, searchStreamers } from '../../twitch/twitch'
+import { CLIPPERS_EMOTE, TWITCH_EMOTE } from '../../util/discordEmotes'
 import { buildErrorEmbed, buildSuccessEmbed, checkChannelPermission, updateInteraction } from '../discord'
 import { autoCompleteResponse, interactionEphemeralLoading } from '../interactionHandler'
 
@@ -164,7 +165,7 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
       details += `Channel: <#${subscription.channelId}>\n`
 
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(details, env, {
-        title: `<:twitch:1404661243373031585> Subscribed for Clip Notifications for \`${streamerDetails ? streamerDetails.display_name : streamer}\``,
+        title: `${TWITCH_EMOTE.formatted} Subscribed for Clip Notifications for \`${streamerDetails ? streamerDetails.display_name : streamer}\``,
         ...(streamerDetails?.profile_image_url && {
           thumbnail: { url: streamerDetails.profile_image_url },
         }),
@@ -225,7 +226,7 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
       if (clips.length > 0)
         clipsList = clips.map(stream => `**${stream.streamer}** - <#${stream.channelId}>`).join('\n')
 
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(clipsList, env, { title: `<:twitch:1404661243373031585> Clip Notifications` })] })
+      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(clipsList, env, { title: `${TWITCH_EMOTE.formatted} Clip Notifications` })] })
     }
     case 'help': {
       const helpCard = {
@@ -237,7 +238,7 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
             components: [
               {
                 type: 10,
-                content: '# <a:CLIPPERS:1357111588644982997> Available Commands for Clip Notifications',
+                content: `# ${CLIPPERS_EMOTE.formatted} Available Commands for Clip Notifications`,
               },
               {
                 type: 10,
