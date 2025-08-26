@@ -291,7 +291,7 @@ async function handleTwitchCommand(interaction: APIApplicationCommandInteraction
       if (subscription.roleId)
         details += `Role: <@&${subscription.roleId}>\n`
       if (kickStream && !kickStream.multiStream)
-        details += `\nAutomatically make a multi-stream with Kick Stream: \`${kickStream.name}\`\n`
+        details += `\nAutomatically make a multi-stream with Kick Stream: ${KICK_EMOTE.formatted}\`${kickStream.name}\`\n`
 
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`${details}`, env, {
         title: `${TWITCH_EMOTE.formatted} Subscribed to notifications for \`${subscription.name}\``,

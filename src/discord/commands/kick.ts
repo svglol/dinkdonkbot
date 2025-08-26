@@ -289,7 +289,7 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
       if (subscription.roleId)
         details += `\n Role: <@&${subscription.roleId}>`
       if (stream && !stream.multiStream)
-        details += `\nAutomatically make a multi-stream with Twitch Stream: \`${stream.name}\`\n`
+        details += `\nAutomatically made a multi-stream link with Twitch Stream: ${TWITCH_EMOTE.formatted} \`${stream.name}\`\n`
 
       const kickChannelV2 = await getKickChannelV2(streamer)
 
