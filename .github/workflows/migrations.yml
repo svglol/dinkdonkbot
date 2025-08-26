@@ -31,20 +31,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      # Authenticate Wrangler
-      - name: Authenticate Wrangler
-        env:
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-        run: npx wrangler login --api-token $CF_API_TOKEN
-
       # Log current D1 bookmark
       - name: Log current D1 bookmark
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           BOOKMARK=$(npx wrangler d1 time-travel info DB | grep 'bookmark=' | awk -F'=' '{print $2}' | tr -d '[:space:]')
           echo "Current D1 bookmark: $BOOKMARK"
 
       # Apply D1 migrations
       - name: Apply D1 Migrations
-        run: pnpm db:migrations
         env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: pnpm db:migrations
