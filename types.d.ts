@@ -19,6 +19,9 @@ declare global {
     KICK_CLIENT_SECRET: string
     ACCESS_KEY: string
     DISCORD_GUILD_ID: string
+    ANALYTICS_DATASET: string
+    ACCOUNT_ID: string
+    API_TOKEN: string
     ANALYTICS: AnalyticsEngineDataset
     RPSGAME: DurableObjectNamespace<RPSGame>
     HANGMANGAME: DurableObjectNamespace<HangmanGame>
