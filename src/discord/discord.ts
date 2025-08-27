@@ -1,10 +1,10 @@
-import type { APIApplicationCommandOption, APIButtonComponent, APIEmbed, APIEmbedField, APIInteraction, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
+import type { APIApplicationCommandOption, APIButtonComponent, APIEmbed, APIEmbedField, APIInteraction, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTGetAPIGuildMemberResult, RESTGetAPIGuildRolesResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
 import type { StreamMessage } from '../database/db'
 
 import { chatInputApplicationCommandMention, escapeMarkdown } from '@discordjs/formatters'
 
 import { DiscordAPIError, REST } from '@discordjs/rest'
-import { Routes } from 'discord-api-types/v10'
+import { PermissionFlagsBits, Routes } from 'discord-api-types/v10'
 import { eq, tables, useDB } from '../database/db'
 
 import { KICK_EMOTE, TWITCH_EMOTE } from '../util/discordEmotes'
@@ -301,36 +301,111 @@ export function messageBuilder(message: string, streamMessage: StreamMessage, ty
     .replace(/\{\{timestamp\}\}/gi, `<t:${timestampValue}:R>`)
 }
 
-/**
- * Checks if the bot has permission to post in the specified channel.
- *
- * @param channelId - The ID of the channel to check.
- * @param discordToken - The bot token for authorization.
- * @returns True if the bot has permission to post in the channel, false otherwise.
- */
-export async function checkChannelPermission(channelId: string, discordToken: string) {
-  try {
-    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
-    const channel = await rest.get(Routes.channel(channelId)) as RESTGetAPIChannelResult
-    if (channel) {
-      const message = await rest.post(Routes.channelMessages(channelId), {
-        body: {
-          content: 'Checking I have permission to post in this channel',
-        },
-      }) as RESTPostAPIChannelMessageResult
+// /**
+//  * Checks if the bot has permission to post in the specified channel.
+//  *
+//  * @param channelId - The ID of the channel to check.
+//  * @param discordToken - The bot token for authorization.
+//  * @returns True if the bot has permission to post in the channel, false otherwise.
+//  */
+// export async function checkChannelPermission(channelId: string, discordToken: string) {
+//   try {
+//     const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
+//     const channel = await rest.get(Routes.channel(channelId)) as RESTGetAPIChannelResult
+//     if (channel) {
+//       const message = await rest.post(Routes.channelMessages(channelId), {
+//         body: {
+//           content: 'Checking I have permission to post in this channel',
+//         },
+//       }) as RESTPostAPIChannelMessageResult
 
-      if (message) {
-        await rest.delete(Routes.channelMessage(channelId, message.id))
-        return true
-      }
-      else {
-        return false
+//       if (message) {
+//         await rest.delete(Routes.channelMessage(channelId, message.id))
+//         return true
+//       }
+//       else {
+//         return false
+//       }
+//     }
+//   }
+//   catch (error: unknown) {
+//     console.error('Error checking send message permission:', error)
+//     return false
+//   }
+// }
+
+export async function calculateChannelPermissions(guildId: string, channelId: string, botUserId: string, token: string, permissionsToCheck?: bigint[]) {
+  const rest = new REST({ version: '10' }).setToken(token)
+
+  try {
+    const channel = await rest.get(Routes.channel(channelId)) as RESTGetAPIChannelResult
+
+    if (channel.type !== 0 && channel.type !== 5) {
+      return { permissions: 0n, checks: {} }
+    }
+
+    const member = await rest.get(Routes.guildMember(guildId, botUserId)) as RESTGetAPIGuildMemberResult
+    const guildRoles = await rest.get(Routes.guildRoles(guildId)) as RESTGetAPIGuildRolesResult
+
+    let basePermissions = 0n
+    const everyoneRole = guildRoles.find(r => r.id === guildId)
+    if (everyoneRole) {
+      basePermissions |= BigInt(everyoneRole.permissions)
+    }
+
+    // Calculate base permissions from roles
+    for (const roleId of member.roles) {
+      const role = guildRoles.find(r => r.id === roleId)
+      if (role) {
+        basePermissions |= BigInt(role.permissions)
       }
     }
+
+    let finalPermissions = basePermissions
+
+    if (channel.permission_overwrites) {
+      const everyoneOverwrite = channel.permission_overwrites.find(
+        overwrite => overwrite.id === guildId && overwrite.type === 0,
+      )
+      if (everyoneOverwrite) {
+        finalPermissions &= ~BigInt(everyoneOverwrite.deny)
+        finalPermissions |= BigInt(everyoneOverwrite.allow)
+      }
+      for (const overwrite of channel.permission_overwrites) {
+        if (overwrite.id === botUserId && overwrite.type === 1) {
+          // User-specific overwrite
+          finalPermissions &= ~BigInt(overwrite.deny)
+          finalPermissions |= BigInt(overwrite.allow)
+        }
+        else if (member.roles.includes(overwrite.id) && overwrite.type === 0) {
+          // Role overwrite
+          finalPermissions &= ~BigInt(overwrite.deny)
+          finalPermissions |= BigInt(overwrite.allow)
+        }
+      }
+    }
+
+    // Check specific permissions if provided
+    const checks: Record<string, boolean> = {}
+    const hasPermission = (permission: bigint) => {
+      return (finalPermissions & BigInt(permission)) === BigInt(permission)
+    }
+    function getPermissionName(permission: bigint): string {
+      const entry = Object.entries(PermissionFlagsBits).find(([_, value]) => value === permission)
+      return entry ? entry[0] : `Unknown_${permission.toString()}`
+    }
+    if (permissionsToCheck) {
+      permissionsToCheck.forEach((permission) => {
+        const permissionName = getPermissionName(permission)
+        checks[permissionName] = hasPermission(permission)
+      })
+    }
+
+    return { permissions: finalPermissions, checks }
   }
-  catch (error: unknown) {
-    console.error('Error checking send message permission:', error)
-    return false
+  catch (error) {
+    console.error('Error calculating permissions:', error)
+    return { permissions: 0n, checks: {} }
   }
 }
 

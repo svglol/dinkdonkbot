@@ -7,7 +7,7 @@ import { tables, useDB } from '../../database/db'
 import { getKickChannel, getKickChannelV2, getKickLatestVod, getKickLivestream, getKickUser, kickSubscribe, kickUnsubscribe } from '../../kick/kick'
 import { getLatestVOD, getStreamDetails, getStreamerDetails } from '../../twitch/twitch'
 import { KICK_EMOTE, TWITCH_EMOTE } from '../../util/discordEmotes'
-import { bodyBuilder, buildErrorEmbed, buildSuccessEmbed, checkChannelPermission, findBotCommandMarkdown, sendMessage, updateInteraction } from '../discord'
+import { bodyBuilder, buildErrorEmbed, buildSuccessEmbed, calculateChannelPermissions, findBotCommandMarkdown, sendMessage, updateInteraction } from '../discord'
 import { autoCompleteResponse, interactionEphemeralLoading } from '../interactionHandler'
 
 const KICK_COMMAND = {
@@ -239,9 +239,16 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
       const kickUser = await getKickUser(Number(kickChannel.broadcaster_user_id), env)
 
       // check if we have permission to post in this discord channel
-      const hasPermission = await checkChannelPermission(channel, env.DISCORD_TOKEN)
-      if (!hasPermission)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`Dinkdonk Bot does not have the required permissions to post in <#${channel}>`, env)] })
+      const permissions = await calculateChannelPermissions(interaction.guild_id!, channel!, env.DISCORD_APPLICATION_ID, env.DISCORD_TOKEN, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.MentionEveryone])
+      const missingPermissions = Object.entries(permissions.checks)
+        .filter(([_, hasPermission]) => !hasPermission)
+        .map(([permissionName]) => permissionName)
+
+      if (missingPermissions.length > 0) {
+        const permissionError = `Dinkdonk Bot does not have the required permissions use <#${channel}>.\nMissing permissions: ${missingPermissions.join(', ')}`
+        console.error(permissionError)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(permissionError, env)] })
+      }
 
       // subscribe to event sub for this channel
       const subscribed = await kickSubscribe(kickChannel.broadcaster_user_id, env)
@@ -348,16 +355,20 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
       if (channel) {
         const channelValue = String('value' in channel ? channel.value as string : '')
         if (dbStream.channelId !== channelValue) {
-          const hasPermission = await checkChannelPermission(String('value' in channel ? channel.value as string : ''), env.DISCORD_TOKEN)
-          if (hasPermission) {
-            if (dbStream.multiStream) {
-              await useDB(env).delete(tables.multiStream).where(eq(tables.multiStream.streamId, dbStream.id))
-            }
-            await useDB(env).update(tables.kickStreams).set({ channelId: channelValue }).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
+          const permissions = await calculateChannelPermissions(interaction.guild_id!, channelValue!, env.DISCORD_APPLICATION_ID, env.DISCORD_TOKEN, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.MentionEveryone])
+          const missingPermissions = Object.entries(permissions.checks)
+            .filter(([_, hasPermission]) => !hasPermission)
+            .map(([permissionName]) => permissionName)
+
+          if (missingPermissions.length > 0) {
+            const permissionError = `Dinkdonk Bot does not have the required permissions use <#${channelValue}>.\nMissing permissions: ${missingPermissions.join(', ')}`
+            console.error(permissionError)
+            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(permissionError, env)] })
           }
-          else {
-            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This bot does not have permission to send messages in this channel', env)] })
+          if (dbStream.multiStream) {
+            await useDB(env).delete(tables.multiStream).where(eq(tables.multiStream.streamId, dbStream.id))
           }
+          await useDB(env).update(tables.kickStreams).set({ channelId: channelValue }).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
         }
       }
       const role = edit.options.find(option => option.name === 'ping-role')

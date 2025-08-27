@@ -5,7 +5,7 @@ import { and, eq, like } from 'drizzle-orm'
 import { tables, useDB } from '../../database/db'
 import { getChannelId, getStreamerDetails, searchStreamers } from '../../twitch/twitch'
 import { CLIPPERS_EMOTE, TWITCH_EMOTE } from '../../util/discordEmotes'
-import { buildErrorEmbed, buildSuccessEmbed, checkChannelPermission, findBotCommandMarkdown, updateInteraction } from '../discord'
+import { buildErrorEmbed, buildSuccessEmbed, calculateChannelPermissions, findBotCommandMarkdown, updateInteraction } from '../discord'
 import { autoCompleteResponse, interactionEphemeralLoading } from '../interactionHandler'
 
 const TWITCH_CLIPS_COMMAND = {
@@ -134,9 +134,16 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
 
       // check if we have permission to post in this discord channel
-      const hasPermission = await checkChannelPermission(channel, env.DISCORD_TOKEN)
-      if (!hasPermission)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`Dinkdonk Bot does not have the required permissions to post in <#${channel}>`, env)] })
+      const permissions = await calculateChannelPermissions(interaction.guild_id!, channel, env.DISCORD_APPLICATION_ID, env.DISCORD_TOKEN, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.MentionEveryone])
+      const missingPermissions = Object.entries(permissions.checks)
+        .filter(([_, hasPermission]) => !hasPermission)
+        .map(([permissionName]) => permissionName)
+
+      if (missingPermissions.length > 0) {
+        const permissionError = `Dinkdonk Bot does not have the required permissions use <#${channel}>.\nMissing permissions: ${missingPermissions.join(', ')}`
+        console.error(permissionError)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(permissionError, env)] })
+      }
 
       // check if already subscribed to this channel
       const subscriptions = await useDB(env).query.clips.findMany({
@@ -209,13 +216,19 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
 
       const channel = edit.options.find(option => option.name === 'discord-channel')
       if (channel) {
-        const hasPermission = await checkChannelPermission(String('value' in channel ? channel.value as string : ''), env.DISCORD_TOKEN)
-        if (hasPermission) {
-          await useDB(env).update(tables.clips).set({ channelId: String('value' in channel ? channel.value : '') }).where(and(like(tables.clips.streamer, streamer), eq(tables.clips.guildId, server)))
+        const channelValue = String('value' in channel ? channel.value : '')
+        const permissions = await calculateChannelPermissions(interaction.guild_id!, channelValue, env.DISCORD_APPLICATION_ID, env.DISCORD_TOKEN, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.MentionEveryone])
+        const missingPermissions = Object.entries(permissions.checks)
+          .filter(([_, hasPermission]) => !hasPermission)
+          .map(([permissionName]) => permissionName)
+
+        if (missingPermissions.length > 0) {
+          const permissionError = `Dinkdonk Bot does not have the required permissions use <#${channelValue}>.\nMissing permissions: ${missingPermissions.join(', ')}`
+          console.error(permissionError)
+          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(permissionError, env)] })
         }
-        else {
-          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This bot does not have permission to send messages in this channel', env)] })
-        }
+
+        await useDB(env).update(tables.clips).set({ channelId: channelValue }).where(and(like(tables.clips.streamer, streamer), eq(tables.clips.guildId, server)))
       }
 
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`Edited \`${streamer}\` for clip notifications`, env)] })
