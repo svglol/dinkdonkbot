@@ -7,7 +7,7 @@ import { DiscordAPIError, REST } from '@discordjs/rest'
 import { Routes } from 'discord-api-types/v10'
 import { eq, tables, useDB } from '../database/db'
 
-import { DINKDONK_EMOTE, KICK_EMOTE, TWITCH_EMOTE } from '../util/discordEmotes'
+import { KICK_EMOTE, TWITCH_EMOTE } from '../util/discordEmotes'
 import { formatDuration } from '../util/formatDuration'
 
 /**
@@ -398,7 +398,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     game?: string | undefined
     duration?: string | undefined
     status?: string
-    timestamp?: number
+    timestamp?: string
     thumbnail?: string
     image?: string
     buttons?: APIButtonComponent[]
@@ -412,7 +412,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     game: undefined,
     duration: undefined,
     status: '‎ ',
-    timestamp: new Date().getTime() / 1000,
+    timestamp: new Date().toISOString(),
     thumbnail: streamMessage.twitchStreamerData?.profile_image_url || streamMessage.kickStreamerData?.user.profile_pic || `${env.WEBHOOK_URL}/static/default_profile.png`,
     image: `${env.WEBHOOK_URL}/static/default_image.png`,
     buttons: [],
@@ -464,7 +464,9 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     const status = 'Online'
 
     const game = priority === 'twitch' ? streamMessage.twitchStreamData?.game_name || streamMessage.kickStreamData?.category?.name : streamMessage.kickStreamData?.category?.name || streamMessage.twitchStreamData?.game_name
-    const timestamp = priority === 'twitch' ? Math.floor(new Date(streamMessage.twitchStreamData?.started_at || streamMessage.kickStreamData?.started_at || Date.now()).getTime() / 1000) : Math.floor(new Date(streamMessage.kickStreamData?.started_at || streamMessage.twitchStreamData?.started_at || Date.now()).getTime() / 1000)
+    const timestamp = priority === 'twitch'
+      ? new Date(streamMessage.twitchStreamData?.started_at || streamMessage.kickStreamData?.started_at || Date.now()).toISOString()
+      : new Date(streamMessage.kickStreamData?.started_at || streamMessage.twitchStreamData?.started_at || Date.now()).toISOString()
 
     const twitchImage = streamMessage.twitchStreamData
       ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${Date.now()}`
@@ -550,7 +552,9 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
           : '0')
 
     const duration = priority === 'twitch' ? twitchDuration : kickDuration
-    const timestamp = priority === 'twitch' ? Math.floor(new Date(streamMessage.twitchStreamEndedAt || streamMessage.kickStreamEndedAt || Date.now()).getTime() / 1000) : Math.floor(new Date(streamMessage.kickStreamEndedAt || streamMessage.twitchStreamEndedAt || Date.now()).getTime() / 1000)
+    const timestamp = priority === 'twitch'
+      ? new Date(streamMessage.twitchStreamEndedAt || streamMessage.kickStreamEndedAt || Date.now()).toISOString()
+      : new Date(streamMessage.kickStreamEndedAt || streamMessage.twitchStreamEndedAt || Date.now()).toISOString()
     const twitchImage = streamMessage.twitchStreamerData?.offline_image_url || 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
     const kickImage = streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp'
 
@@ -618,7 +622,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     const description = `${TWITCH_EMOTE.formatted} ${streamMessage.twitchStreamerData?.display_name} is live on Twitch!`
     const game = streamMessage.twitchStreamData?.game_name || 'No game'
     const status = 'Online'
-    const timestamp = Math.floor(new Date(streamMessage.twitchStreamData?.started_at || Date.now()).getTime() / 1000)
+    const timestamp = new Date(streamMessage.twitchStreamData?.started_at || Date.now()).toISOString()
     const image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : streamMessage.twitchStreamerData?.offline_image_url || streamMessage.twitchStreamerData?.profile_image_url || `${env.WEBHOOK_URL}/static/default_profile.png`
     const buttons: APIButtonComponent[] = []
     buttons.push({
@@ -657,7 +661,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
         : '0'
     const description = `${TWITCH_EMOTE.formatted} ${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream?.name} is no longer live on Twitch!`
     const status = 'Last online'
-    const timestamp = Math.floor(new Date(streamMessage.twitchStreamEndedAt || Date.now()).getTime() / 1000)
+    const timestamp = new Date(streamMessage.twitchStreamEndedAt || Date.now()).toISOString()
     const backupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
     const image = streamMessage.twitchStreamerData?.offline_image_url || backupImage
 
@@ -706,7 +710,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     const description = `${KICK_EMOTE.formatted} ${streamMessage.kickStream?.name ?? streamMessage.kickStreamerData?.slug} is live on KICK!`
     const game = streamMessage.kickStreamData?.category.name || 'No game'
     const status = 'Online'
-    const timestamp = Math.floor(new Date(streamMessage.kickStreamData?.started_at || Date.now()).getTime() / 1000)
+    const timestamp = new Date(streamMessage.kickStreamData?.started_at || Date.now()).toISOString()
     const image = streamMessage.kickStreamData?.thumbnail ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${new Date().getTime()}` : 'https://kick.com/img/default-channel-banners/offline.webp'
     const buttons: APIButtonComponent[] = []
 
@@ -763,7 +767,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
       description: `${KICK_EMOTE.formatted} ${streamMessage.kickStream?.name ?? streamMessage.kickStreamerData?.slug} is no longer live on KICK!`,
       duration,
       status: '‎Last Online',
-      timestamp: Math.floor(new Date(streamMessage.kickStreamEndedAt || Date.now()).getTime() / 1000),
+      timestamp: new Date(streamMessage.kickStreamEndedAt || Date.now()).toISOString(),
       image: streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp' || `${env.WEBHOOK_URL}/static/default_image.png`,
       buttons,
     }
@@ -822,11 +826,6 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     }
   }
 
-  const messageComponent = {
-    type: 10,
-    content: escapeMarkdown(content.message || '‎ '),
-  }
-
   function fixedEscapeMarkdown(text: string) {
     text = escapeMarkdown(text)
     if (text.startsWith('#')) {
@@ -835,53 +834,27 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     return text
   }
 
-  const container = {
-    type: 17,
-    accent_color: content.color,
-    components: [
-      {
-        type: 9,
-        components: [
-          {
-            type: 10,
-            content: `### ${content.description}`,
-          },
-          {
-            type: 10,
-            content: `## ${fixedEscapeMarkdown(content.title || 'No title')}`,
-          },
-          {
-            type: 10,
-            content: `${content.duration ? `\n**Streamed for**\n${content.duration}` : ''}${content.game ? `\n**Category**\n${escapeMarkdown(content.game)}` : ''}` || '‎ ', // empty character if both are empty
-          },
-        ],
-        accessory: {
-          type: 11,
-          media: {
-            url: content.thumbnail,
-          },
-        },
-      },
-      {
-        type: 12,
-        items: [
-          {
-            media: { url: content.image },
-          },
-        ],
-      },
-      {
-        type: 10,
-        content: `-# ${DINKDONK_EMOTE.formatted} • ${escapeMarkdown(content.status || 'Online')} • <t:${content.timestamp}>`,
-      },
-    ],
-  }
+  const embed = {
+    title: fixedEscapeMarkdown(content.title || 'No title'),
+    author: {
+      name: fixedEscapeMarkdown(content.description || 'No description'),
+    },
+    description: `${content.duration ? `\n**Streamed for**\n${content.duration}` : ''}${content.game ? `\n**Category**\n${escapeMarkdown(content.game)}` : ''}` || '‎ ',
+    color: content.color || MULTI_COLOR,
+    thumbnail: {
+      url: content.thumbnail || `${env.WEBHOOK_URL}/static/default_profile.png`,
+    },
+    image: {
+      url: content.image || `${env.WEBHOOK_URL}/static/default_image.png`,
+    },
+    footer: {
+      text: content.status || '‎ ',
+      icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
+    },
+    timestamp: content.timestamp || new Date().toISOString(),
+  } satisfies APIEmbed
 
   const components: APIMessageTopLevelComponent[] = []
-  if ((content.message ?? '').length > 0) {
-    components.push(messageComponent)
-  }
-  components.push(container)
   if ((content.buttons ?? []).length > 0) {
     components.push({
       type: 1,
@@ -890,8 +863,9 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
   }
 
   return {
+    content: content.message,
     components,
-    flags: 1 << 15,
+    embeds: [embed],
   }
 }
 
