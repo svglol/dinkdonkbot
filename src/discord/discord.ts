@@ -9,6 +9,7 @@ import { eq, tables, useDB } from '../database/db'
 
 import { KICK_EMOTE, TWITCH_EMOTE } from '../util/discordEmotes'
 import { formatDuration } from '../util/formatDuration'
+import twitch from './commands/twitch'
 
 /**
  * Sends a message to the specified channel.
@@ -401,6 +402,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     timestamp?: string
     thumbnail?: string
     image?: string
+    url?: string
     buttons?: APIButtonComponent[]
   }
 
@@ -415,6 +417,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     timestamp: new Date().toISOString(),
     thumbnail: streamMessage.twitchStreamerData?.profile_image_url || streamMessage.kickStreamerData?.user.profile_pic || `${env.WEBHOOK_URL}/static/default_profile.png`,
     image: `${env.WEBHOOK_URL}/static/default_image.png`,
+    url: streamMessage.stream ? `https://twitch.tv/${streamMessage.twitchStreamerData?.login}` : `https://kick.com/${streamMessage.kickStreamerData?.slug}`,
     buttons: [],
   }
 
@@ -478,6 +481,10 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
       ? twitchImage || kickImage || `${env.WEBHOOK_URL}/static/default_image.png`
       : kickImage || twitchImage || `${env.WEBHOOK_URL}/static/default_image.png`
 
+    const url = priority === 'twitch'
+      ? `https://twitch.tv/${streamMessage.stream?.name}`
+      : `https://kick.com/${streamMessage.kickStream?.name}`
+
     const buttons: APIButtonComponent[] = []
     // Add both platform buttons
     buttons.push({
@@ -513,6 +520,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
       timestamp,
       image,
       buttons,
+      url,
     }
   }
 
@@ -561,6 +569,10 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     const image = priority === 'twitch'
       ? twitchImage || kickImage || `${env.WEBHOOK_URL}/static/default_image.png`
       : kickImage || twitchImage || `${env.WEBHOOK_URL}/static/default_image.png`
+
+    const url = priority === 'twitch'
+      ? `https://twitch.tv/${streamMessage.stream?.name}`
+      : `https://kick.com/${streamMessage.kickStream?.name}`
 
     const buttons: APIButtonComponent[] = []
     // Add VOD buttons if available
@@ -612,6 +624,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
       timestamp,
       image,
       buttons,
+      url,
     }
   }
 
@@ -624,6 +637,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     const status = 'Online'
     const timestamp = new Date(streamMessage.twitchStreamData?.started_at || Date.now()).toISOString()
     const image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : streamMessage.twitchStreamerData?.offline_image_url || streamMessage.twitchStreamerData?.profile_image_url || `${env.WEBHOOK_URL}/static/default_profile.png`
+    const url = `https://twitch.tv/${streamMessage.stream?.name}`
     const buttons: APIButtonComponent[] = []
     buttons.push({
       type: 2,
@@ -647,6 +661,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
       timestamp,
       image,
       buttons,
+      url,
     }
   }
 
@@ -664,6 +679,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     const timestamp = new Date(streamMessage.twitchStreamEndedAt || Date.now()).toISOString()
     const backupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
     const image = streamMessage.twitchStreamerData?.offline_image_url || backupImage
+    const url = `https://twitch.tv/${streamMessage.stream?.name}`
 
     const buttons: APIButtonComponent[] = []
     if (streamMessage.twitchVod) {
@@ -700,6 +716,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
       timestamp,
       image,
       buttons,
+      url,
     }
   }
 
@@ -712,6 +729,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     const status = 'Online'
     const timestamp = new Date(streamMessage.kickStreamData?.started_at || Date.now()).toISOString()
     const image = streamMessage.kickStreamData?.thumbnail ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${new Date().getTime()}` : 'https://kick.com/img/default-channel-banners/offline.webp'
+    const url = `https://kick.com/${streamMessage.kickStream?.name}`
     const buttons: APIButtonComponent[] = []
 
     buttons.push({
@@ -736,6 +754,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
       timestamp,
       image,
       buttons,
+      url,
     }
   }
 
@@ -770,6 +789,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
       timestamp: new Date(streamMessage.kickStreamEndedAt || Date.now()).toISOString(),
       image: streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp' || `${env.WEBHOOK_URL}/static/default_image.png`,
       buttons,
+      url: `https://kick.com/${streamMessage.kickStream?.name}`,
     }
   }
 
@@ -851,7 +871,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
 
   const embed = {
     title: fixedEscapeMarkdown(content.title || 'No title'),
-    description: fixedEscapeMarkdown(content.description || 'No description'),
+    description: `**${fixedEscapeMarkdown(content.description || 'No description')}**`,
     fields,
     color: content.color || MULTI_COLOR,
     thumbnail: {
@@ -864,6 +884,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
       text: content.status || '‎ ',
       icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
     },
+    url: content.url || undefined,
     timestamp: content.timestamp || new Date().toISOString(),
   } satisfies APIEmbed
 
