@@ -1,7 +1,7 @@
 import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
 import { DINKDONK_EMOTE } from '../../util/discordEmotes'
 import { updateInteraction } from '../discord'
-import { interactionEphemeralLoading } from '../interactionHandler'
+import { interactionLoading } from '../interactionHandler'
 
 const DINKDONK_COMMAND = {
   name: 'dinkdonk',
@@ -17,7 +17,7 @@ const DINKDONK_COMMAND = {
  */
 function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
   ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${DINKDONK_EMOTE.formatted}` }))
-  return interactionEphemeralLoading()
+  return interactionLoading()
 }
 
 export default {
