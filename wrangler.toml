@@ -69,3 +69,4 @@ dataset = "dinkdonk_bot_events"
 # WEBHOOK_URL
 # KICK_CLIENT_ID
 # KICK_CLIENT_SECRET
+# DISCORD_GUILD_ID
