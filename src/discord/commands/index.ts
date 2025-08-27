@@ -1,23 +1,23 @@
-import * as commands from './commands'
-import * as dinkdonk from './dinkdonk'
-import * as emote from './emote'
-import * as coinflip from './games/coinflip'
-import * as hangman from './games/hangman'
-import * as roll from './games/roll'
-import * as rps from './games/rps'
-import * as help from './help'
-import * as invite from './invite'
-import * as kick from './kick'
-import * as multistream from './multistream'
-import * as randomemote from './randomemote'
-import * as stealEmote from './stealEmote'
-import * as time from './time'
-import * as timestamp from './timestamp'
-import * as twitch from './twitch'
-import * as twitchClips from './twitchClips'
-import * as weather from './weather'
+import commands from './commands'
+import dinkdonk from './dinkdonk'
+import emote from './emote'
+import coinflip from './games/coinflip'
+import hangman from './games/hangman'
+import roll from './games/roll'
+import rps from './games/rps'
+import help from './help'
+import invite from './invite'
+import kick from './kick'
+import multistream from './multistream'
+import randomemote from './randomemote'
+import stealEmote from './stealEmote'
+import time from './time'
+import timestamp from './timestamp'
+import twitch from './twitch'
+import twitchClips from './twitchClips'
+import weather from './weather'
 
-export const COMMANDS: Array<{ default: DiscordAPIApplicationCommand }> = [
+export const COMMANDS: Array<DiscordAPIApplicationCommand> = [
   dinkdonk,
   invite,
   help,
@@ -38,22 +38,4 @@ export const COMMANDS: Array<{ default: DiscordAPIApplicationCommand }> = [
   multistream,
 ]
 
-// Registration
-export const COMMAND_DEFINITIONS = COMMANDS.map(c => c.default.command)
-
-// Handler lookup
-export function findHandlerByName(name: string) {
-  return COMMANDS.find(c => c.default.command.name.toLowerCase() === name.toLowerCase())?.default.handler
-}
-
-export function findModalSubmitHandlerByName(name: string) {
-  return COMMANDS.map(c => c.default.modalSubmitHandlers?.[name.toLowerCase()]).find(Boolean)
-}
-
-export function findAutoCompleteHandlerByName(name: string) {
-  return COMMANDS.find(c => c.default.command.name.toLowerCase() === name.toLowerCase())?.default.autoCompleteHandler
-}
-
-export function findMessageComponentHandlerByName(name: string) {
-  return COMMANDS.map(c => c.default.messageComponentHandlers?.[name.toLowerCase()]).find(Boolean)
-}
+export const COMMAND_DEFINITIONS = COMMANDS.filter(c => c && c.command).map(c => c.command)

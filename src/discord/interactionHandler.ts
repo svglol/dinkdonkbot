@@ -3,8 +3,8 @@ import { escapeMarkdown } from '@discordjs/formatters'
 import { ButtonStyle, ComponentType } from 'discord-api-types/v10'
 import { InteractionResponseFlags, InteractionResponseType } from 'discord-interactions'
 import { getClips } from '../twitch/twitch'
+import { findAutoCompleteHandlerByName, findHandlerByName, findMessageComponentHandlerByName, findModalSubmitHandlerByName, getSubcommandInfo } from '../util/commandsHelper'
 import { JsonResponse } from '../util/jsonResponse'
-import * as commands from './commands'
 import { buildErrorEmbed, updateInteraction } from './discord'
 
 /**
@@ -28,9 +28,10 @@ export async function discordInteractionHandler(interaction: APIApplicationComma
     return interactionEphemeralLoading()
   }
 
-  const handler = commands.findHandlerByName(interaction.data.name.toLowerCase())
+  const handler = findHandlerByName(interaction.data.name.toLowerCase())
   if (handler) {
-    env.ANALYTICS.writeDataPoint({ blobs: ['command_used', interaction.data.name], doubles: [1], indexes: [interaction.guild_id ?? ''] })
+    const { commandName, subcommandGroup, subcommand } = getSubcommandInfo(interaction)
+    env.ANALYTICS.writeDataPoint({ blobs: ['command_used', commandName, subcommandGroup ?? '', subcommand ?? ''], doubles: [1], indexes: [interaction.guild_id ?? ''] })
     return handler(interaction, env, ctx)
   }
   else {
@@ -55,7 +56,7 @@ export async function discordInteractionHandler(interaction: APIApplicationComma
  * @returns A response to Discord, or a promise that resolves to one.
  */
 export async function discordInteractionAutoCompleteHandler(interaction: APIApplicationCommandAutocompleteInteraction, env: Env, ctx: ExecutionContext) {
-  const handler = commands.findAutoCompleteHandlerByName(interaction.data.name.toLowerCase())
+  const handler = findAutoCompleteHandlerByName(interaction.data.name.toLowerCase())
   if (handler) {
     return handler(interaction, env, ctx)
   }
@@ -79,7 +80,7 @@ export async function discordInteractionAutoCompleteHandler(interaction: APIAppl
  * @returns A response to Discord, or a promise that resolves to one.
  */
 export async function discordInteractionModalHandler(interaction: APIModalSubmitInteraction, env: Env, ctx: ExecutionContext) {
-  const handler = commands.findModalSubmitHandlerByName(interaction.data.custom_id.toLowerCase())
+  const handler = findModalSubmitHandlerByName(interaction.data.custom_id.toLowerCase())
   if (handler) {
     return handler(interaction, env, ctx)
   }
@@ -103,7 +104,7 @@ export async function discordInteractionModalHandler(interaction: APIModalSubmit
  * @returns A response to Discord, or a promise that resolves to one.
  */
 export async function discordInteractionMessageComponentHandler(interaction: APIMessageComponentInteraction, env: Env, ctx: ExecutionContext) {
-  const handler = commands.findMessageComponentHandlerByName(interaction.data.custom_id.toLowerCase())
+  const handler = findMessageComponentHandlerByName(interaction.data.custom_id.toLowerCase())
   if (handler) {
     return handler(interaction, env, ctx)
   }

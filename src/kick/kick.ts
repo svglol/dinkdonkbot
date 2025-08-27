@@ -408,3 +408,13 @@ export async function getKickLatestVod(startedAt: string, slug: string) {
     return null
   }
 }
+
+export async function getKickStatus(env: Env) {
+  const response = await fetch(`${baseUrl}/events/subscriptions`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${await getKickToken(env)}`,
+    },
+  })
+  return response
+}

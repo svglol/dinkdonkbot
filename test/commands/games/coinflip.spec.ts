@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { COMMAND_DEFINITIONS, findAutoCompleteHandlerByName, findHandlerByName, findMessageComponentHandlerByName, findModalSubmitHandlerByName } from '../../../src/discord/commands'
+import { COMMAND_DEFINITIONS } from '../../../src/discord/commands'
+import { findAutoCompleteHandlerByName, findHandlerByName, findMessageComponentHandlerByName, findModalSubmitHandlerByName } from '../../../src/util/commandsHelper'
 
 describe('coinflip', () => {
   it('should have command defined', () => {

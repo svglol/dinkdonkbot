@@ -622,3 +622,13 @@ export async function searchStreamers(query: string, env: Env, limit = 25) {
     return []
   }
 }
+
+export async function getTwitchStatus(env: Env) {
+  const res = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+    headers: {
+      'Client-ID': env.TWITCH_CLIENT_ID,
+      'Authorization': `Bearer ${await getToken(env)}`,
+    },
+  })
+  return res
+}
