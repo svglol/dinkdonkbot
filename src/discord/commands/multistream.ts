@@ -41,7 +41,7 @@ const MULTISTREAM_COMMAND = {
       }, {
         type: 5,
         name: 'late-merge',
-        description: 'If on will always merge notifications even if one of the multistreams goes live after the 15 second period',
+        description: 'If on, always merge notifications even after the 15 second grace period',
         required: false,
       }],
     },
@@ -104,7 +104,7 @@ const MULTISTREAM_COMMAND = {
       }, {
         type: 5,
         name: 'late-merge',
-        description: 'If on will always merge notifications even if one of the multistreams goes live after the 15 second grace period',
+        description: 'If on, always merge notifications even after the 15 second grace period',
         required: false,
       }],
     },
