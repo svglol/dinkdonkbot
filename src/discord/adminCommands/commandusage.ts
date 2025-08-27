@@ -43,7 +43,7 @@ async function handleUsageCommand(interaction: APIApplicationCommandInteraction,
 
   try {
     // Query Analytics Engine for command usage stats
-    const usageStats = await getCommandUsageStats(env, days, interaction.guild_id)
+    const usageStats = await getCommandUsageStats(env, days)
 
     if (usageStats.length === 0) {
       return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
@@ -66,7 +66,7 @@ async function handleUsageCommand(interaction: APIApplicationCommandInteraction,
   }
 }
 
-async function getCommandUsageStats(env: Env, days: number, guildId?: string): Promise<CommandUsageStat[]> {
+async function getCommandUsageStats(env: Env, days: number): Promise<CommandUsageStat[]> {
   // SQL query to get command usage stats
   const query = `
      SELECT
@@ -78,7 +78,6 @@ async function getCommandUsageStats(env: Env, days: number, guildId?: string): P
      WHERE 
        blob1 = 'command_used'
        AND timestamp > NOW() - INTERVAL '${days}' DAY
-       ${guildId ? `AND index1 = '${guildId}'` : ''}
      GROUP BY command_name, subcommand_group, subcommand
      ORDER BY usage_count DESC, command_name ASC
    `
