@@ -21,15 +21,16 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4.1.0
 
-      # Set up Node.js
+      # Set up Node.js with caching
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20.19.4
+          cache: pnpm
 
       # Install dependencies
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       # Log current D1 bookmark
       - name: Log current D1 bookmark

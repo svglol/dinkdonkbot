@@ -14,7 +14,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.19.4
-      - run: pnpm install
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - run: pnpm run lint
 
   typecheck:
@@ -25,7 +26,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.19.4
-      - run: pnpm install
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - run: pnpm run typecheck
 
   test:
@@ -37,7 +39,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.19.4
-      - run: pnpm install
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - run: pnpm run test
         env:
           DISCORD_APPLICATION_ID: ${{ secrets.DISCORD_APPLICATION_ID }}
@@ -58,7 +61,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.19.4
-      - run: pnpm install
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - run: pnpm run register
         env:
           DISCORD_APPLICATION_ID: ${{ secrets.DISCORD_APPLICATION_ID }}
