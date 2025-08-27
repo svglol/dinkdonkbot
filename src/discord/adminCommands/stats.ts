@@ -2,6 +2,8 @@ import type { APIApplicationCommandInteraction, RESTGetAPICurrentUserGuildsResul
 import { REST } from '@discordjs/rest'
 import { PermissionFlagsBits, Routes } from 'discord-api-types/v10'
 import { useDB } from '../../database/db'
+import { getKickSubscriptions } from '../../kick/kick'
+import { getSubscriptions } from '../../twitch/twitch'
 import { DINKDONK_EMOTE } from '../../util/discordEmotes'
 import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '../discord'
 import { interactionEphemeralLoading } from '../interactionHandler'
@@ -38,13 +40,26 @@ async function handleStatsCommand(interaction: APIApplicationCommandInteraction,
   const multistreams = await useDB(env).query.multiStream.findMany()
   const multistreamCount = multistreams.length
 
+  const twitchSubscriptions = await getSubscriptions(env)
+  const kickSubscriptions = await getKickSubscriptions(env)
+  const uniqueTwitchSubscriptions = new Set(twitchSubscriptions?.data
+    .filter(sub => sub.status === 'enabled')
+    .map(sub => sub.condition.broadcaster_user_id),
+  )
+  const uniqueKickSubscriptions = new Set(kickSubscriptions?.data
+    .map(sub => sub.broadcaster_user_id),
+  )
+
   const content = `
-- Discord Server count: ${serverCount}
-- Twitch Stream count: ${streamCount}
-- Kick Stream count: ${kickStreamCount}
-- Clip count: ${clipCount}
-- Multistream count: ${multistreamCount}
- `
+- Connected Discord Servers: ${serverCount}
+- Stored Twitch Streams (DB): ${streamCount}
+- Active Twitch Webhook Subscriptions (API): ${uniqueTwitchSubscriptions.size}
+- Twitch Subscriptions Total Cost (API): ${twitchSubscriptions?.total_cost}
+- Stored Kick Streams (DB): ${kickStreamCount}
+- Active Kick Webhook Subscriptions (API): ${uniqueKickSubscriptions.size}
+- Stored Clips (DB): ${clipCount}
+- Stored Multistream Configurations (DB): ${multistreamCount}
+`
 
   return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(content, env, { title: `${DINKDONK_EMOTE.formatted} Stats`, color: 0xFFF200 })] })
 }
