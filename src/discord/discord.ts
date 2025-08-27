@@ -370,9 +370,15 @@ export async function calculateChannelPermissions(guildId: string, channelId: st
 
     return { permissions: finalPermissions, checks }
   }
-  catch (error) {
+  catch (error: DiscordAPIError | unknown) {
+    if (error instanceof DiscordAPIError) {
+      if (error.code === 50001) {
+        console.error(`Bot lacks access to channel ${channelId}`)
+        return { permissions: 0n, checks: { ViewChannel: false } }
+      }
+    }
     console.error('Error calculating permissions:', error)
-    return { permissions: 0n, checks: {} }
+    return { permissions: 0n, checks: { Erorr: false } }
   }
 }
 
