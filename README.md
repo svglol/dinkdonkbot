@@ -16,7 +16,7 @@ A powerful Discord bot for Twitch & Kick notifications, emote management, and in
 - **Utility Commands**: Weather, time, dice rolling, and timestamp generation
 
 ## Get Started
-[![Add DinkDonk Bot](https://img.shields.io/badge/Add%20to-Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/oauth2/authorize?client_id=1227866873220173824&permissions=8797166895104&scope=applications.commands+bot)
+[![Add DinkDonk Bot](https://img.shields.io/badge/Add%20to-Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/application-directory/1227866873220173824)
 [![Documentation](https://img.shields.io/badge/Read-Documentation-blue?style=for-the-badge&logo=gitbook&logoColor=white)](https://svglol.github.io/dinkdonkbot/)
 [![Join Discord Server](https://img.shields.io/badge/Join%20Discord-Server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/NuY7Tnrb6F)
 [![Ko-fi](https://img.shields.io/badge/Support%20us-fc4c58?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/svglol)
