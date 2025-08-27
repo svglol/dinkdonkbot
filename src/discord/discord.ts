@@ -9,7 +9,6 @@ import { eq, tables, useDB } from '../database/db'
 
 import { KICK_EMOTE, TWITCH_EMOTE } from '../util/discordEmotes'
 import { formatDuration } from '../util/formatDuration'
-import twitch from './commands/twitch'
 
 /**
  * Sends a message to the specified channel.
@@ -858,7 +857,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
 
   if (content.game) {
     fields.push({
-      name: 'Game',
+      name: 'Category',
       value: fixedEscapeMarkdown(content.game),
     })
   }
