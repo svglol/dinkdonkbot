@@ -22,26 +22,35 @@ function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: E
 async function handleStatsCommand(interaction: APIApplicationCommandInteraction, env: Env) {
   if (interaction.guild_id !== env.DISCORD_GUILD_ID)
     return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in the correct server', env)] })
-  // number of guilds
-  const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
-  const guilds = await rest.get(Routes.userGuilds()) as RESTGetAPICurrentUserGuildsResult
-  const serverCount = guilds.length
 
-  // twitch
-  const streams = await useDB(env).query.streams.findMany()
+  const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+  const db = useDB(env)
+
+  // Run all async operations concurrently
+  const [
+    guilds,
+    streams,
+    kickStreams,
+    clips,
+    multistreams,
+    twitchSubscriptions,
+    kickSubscriptions,
+  ] = await Promise.all([
+    rest.get(Routes.userGuilds()) as Promise<RESTGetAPICurrentUserGuildsResult>,
+    db.query.streams.findMany(),
+    db.query.kickStreams.findMany(),
+    db.query.clips.findMany(),
+    db.query.multiStream.findMany(),
+    getSubscriptions(env),
+    getKickSubscriptions(env),
+  ])
+
+  const serverCount = guilds.length
   const streamCount = streams.length
-  // kick
-  const kickStreams = await useDB(env).query.kickStreams.findMany()
   const kickStreamCount = kickStreams.length
-  // clips
-  const clips = await useDB(env).query.clips.findMany()
   const clipCount = clips.length
-  // multistreams
-  const multistreams = await useDB(env).query.multiStream.findMany()
   const multistreamCount = multistreams.length
 
-  const twitchSubscriptions = await getSubscriptions(env)
-  const kickSubscriptions = await getKickSubscriptions(env)
   const uniqueTwitchSubscriptions = new Set(twitchSubscriptions?.data
     .filter(sub => sub.status === 'enabled')
     .map(sub => sub.condition.broadcaster_user_id),
