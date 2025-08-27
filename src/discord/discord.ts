@@ -301,39 +301,6 @@ export function messageBuilder(message: string, streamMessage: StreamMessage, ty
     .replace(/\{\{timestamp\}\}/gi, `<t:${timestampValue}:R>`)
 }
 
-// /**
-//  * Checks if the bot has permission to post in the specified channel.
-//  *
-//  * @param channelId - The ID of the channel to check.
-//  * @param discordToken - The bot token for authorization.
-//  * @returns True if the bot has permission to post in the channel, false otherwise.
-//  */
-// export async function checkChannelPermission(channelId: string, discordToken: string) {
-//   try {
-//     const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
-//     const channel = await rest.get(Routes.channel(channelId)) as RESTGetAPIChannelResult
-//     if (channel) {
-//       const message = await rest.post(Routes.channelMessages(channelId), {
-//         body: {
-//           content: 'Checking I have permission to post in this channel',
-//         },
-//       }) as RESTPostAPIChannelMessageResult
-
-//       if (message) {
-//         await rest.delete(Routes.channelMessage(channelId, message.id))
-//         return true
-//       }
-//       else {
-//         return false
-//       }
-//     }
-//   }
-//   catch (error: unknown) {
-//     console.error('Error checking send message permission:', error)
-//     return false
-//   }
-// }
-
 export async function calculateChannelPermissions(guildId: string, channelId: string, botUserId: string, token: string, permissionsToCheck?: bigint[]) {
   const rest = new REST({ version: '10' }).setToken(token)
 
