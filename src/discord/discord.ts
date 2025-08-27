@@ -1,4 +1,4 @@
-import type { APIApplicationCommandOption, APIButtonComponent, APIEmbed, APIInteraction, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
+import type { APIApplicationCommandOption, APIButtonComponent, APIEmbed, APIEmbedField, APIInteraction, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
 import type { StreamMessage } from '../database/db'
 
 import { chatInputApplicationCommandMention, escapeMarkdown } from '@discordjs/formatters'
@@ -834,12 +834,25 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     return text
   }
 
+  const fields: APIEmbedField[] = []
+
+  if (content.game) {
+    fields.push({
+      name: 'Game',
+      value: fixedEscapeMarkdown(content.game),
+    })
+  }
+  if (content.duration) {
+    fields.push({
+      name: 'Streamed for',
+      value: fixedEscapeMarkdown(content.duration),
+    })
+  }
+
   const embed = {
     title: fixedEscapeMarkdown(content.title || 'No title'),
-    author: {
-      name: fixedEscapeMarkdown(content.description || 'No description'),
-    },
-    description: `${content.duration ? `\n**Streamed for**\n${content.duration}` : ''}${content.game ? `\n**Category**\n${escapeMarkdown(content.game)}` : ''}` || '‎ ',
+    description: fixedEscapeMarkdown(content.description || 'No description'),
+    fields,
     color: content.color || MULTI_COLOR,
     thumbnail: {
       url: content.thumbnail || `${env.WEBHOOK_URL}/static/default_profile.png`,
