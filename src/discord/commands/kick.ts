@@ -109,6 +109,10 @@ const KICK_COMMAND = {
         name: 'ping-role',
         description: 'What role/who to @ when the streamer goes live',
       }, {
+        type: 5,
+        name: 'remove-ping-role',
+        description: 'Remove the current ping role (cannot be used with ping-role)',
+      }, {
         type: 3,
         name: 'live-message',
         description: 'The message to post when the streamer goes live',
@@ -167,7 +171,8 @@ export async function getKickHelpMessage(env: Env) {
 **Command variables**
 > \`<streamer>\` – The name of the streamer to add  
 > \`<discord-channel>\` – The Discord channel to post to when the streamer goes live  
-> \`<ping-role>\` – What role to @ when the streamer goes live  
+> \`<ping-role>\` – What role to @ when the streamer goes live
+ > \`<remove-ping-role>\` – Remove the current ping role (only in edit mode)    
 > \`<live-message>\` – The message to post when the streamer goes live  
 > \`<offline-message>\` – The message to post when the streamer goes offline  
 > \`<cleanup>\` – Delete notifications once the streamer goes offline  
@@ -372,14 +377,26 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
         }
       }
       const role = edit.options.find(option => option.name === 'ping-role')
-      let roleId: string | undefined
-      if (role) {
-        roleId = 'value' in role ? role.value as string : undefined
-        if (roleId === server)
-          roleId = undefined
+      const removePingRole = edit.options.find(option => option.name === 'remove-ping-role')
+
+      // Validate that both options aren't used together
+      if (role && removePingRole && 'value' in removePingRole && removePingRole.value) {
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+          embeds: [buildErrorEmbed('Cannot use both ping-role and remove-ping-role options at the same time', env)],
+        })
       }
-      if (roleId)
-        await useDB(env).update(tables.kickStreams).set({ roleId }).where(and(like(tables.kickStreams.name, streamer), eq(tables.kickStreams.guildId, interaction.guild_id)))
+
+      if (removePingRole && 'value' in removePingRole && removePingRole.value) {
+        // User wants to remove the ping role
+        await useDB(env).update(tables.streams).set({ roleId: null }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+      }
+      else if (role && 'value' in role) {
+        // User wants to set/change the ping role
+        const roleValue = String(role.value)
+        const roleId = roleValue === server ? undefined : roleValue
+
+        await useDB(env).update(tables.streams).set({ roleId }).where(and(like(tables.streams.name, streamer), eq(tables.streams.guildId, interaction.guild_id)))
+      }
 
       const message = edit.options.find(option => option.name === 'live-message')
       if (message)
@@ -408,7 +425,7 @@ async function handleKickCommand(interaction: APIApplicationCommandInteraction, 
       details += `Offline Message: \`${subscription.offlineMessage}\`\n`
       details += `Cleanup: \`${subscription.cleanup}\`\n`
       if (subscription.roleId)
-        details += `\n Role: <@&${subscription.roleId}>`
+        details += `Ping Role: <@&${subscription.roleId}>`
 
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`${details}`, env, { title: `${KICK_EMOTE.formatted} Edited notifications for \`${streamer}\`` })] })
     }
