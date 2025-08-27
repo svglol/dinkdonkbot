@@ -81,10 +81,11 @@ export const streamMessages = sqliteTable('stream-messages', {
 ])
 
 export const multiStream = sqliteTable('multistream', {
-  id: integer('id').primaryKey(),
+  id: integer('id').primaryKey({ autoIncrement: true }),
   streamId: integer('streamId').references(() => streams.id, { onDelete: 'cascade' }).notNull(),
   kickStreamId: integer('kickStreamId').references(() => kickStreams.id, { onDelete: 'cascade' }).notNull(),
   priority: text({ enum: ['twitch', 'kick'] }).notNull().default('twitch'),
+  lateMerge: integer('lateMerge', { mode: 'boolean' }).notNull().default(true),
 }, multiStream => [
   uniqueIndex('multistream_idIdx').on(multiStream.id),
   index('multistream_streamIdIdx').on(multiStream.streamId),

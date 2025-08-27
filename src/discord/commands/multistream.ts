@@ -38,6 +38,11 @@ const MULTISTREAM_COMMAND = {
           { name: 'Twitch', value: 'twitch' },
           { name: 'Kick', value: 'kick' },
         ],
+      }, {
+        type: 5,
+        name: 'late-merge',
+        description: 'If on will always merge notifications even if one of the multistreams goes live after the 15 second period',
+        required: false,
       }],
     },
     {
@@ -96,6 +101,11 @@ const MULTISTREAM_COMMAND = {
           { name: 'Twitch', value: 'twitch' },
           { name: 'Kick', value: 'kick' },
         ],
+      }, {
+        type: 5,
+        name: 'late-merge',
+        description: 'If on will always merge notifications even if one of the multistreams goes live after the 15 second grace period',
+        required: false,
       }],
     },
   ],
@@ -110,11 +120,12 @@ To use this feature:
 - Make sure both are configured to post to the same Discord channel.
 - When one stream goes live, the bot will wait up to 15 seconds for the other to start before sending a notification.
 - You can set a priority to decide which platform’s data the message should use first.
+- With the late merge option on, the bot will always try to merge notifications even if one of the streams goes live after the 15 second grace period.
 
 **Multistream commands**
-- ${await findBotCommandMarkdown(env, 'multistream', 'link')} - <twitch-streamer> <kick-streamer> <priority> - Setup a multistream connection between a Twitch & Kick Channel
+- ${await findBotCommandMarkdown(env, 'multistream', 'link')} - <twitch-streamer> <kick-streamer> <priority> <late-merge> - Setup a multistream connection between a Twitch & Kick Channel
 - ${await findBotCommandMarkdown(env, 'multistream', 'unlink')} - <twitch-streamer> <kick-streamer> - Remove a multistream connection between a Twitch & Kick Channel
-- ${await findBotCommandMarkdown(env, 'multistream', 'edit')} <twitch-streamer> <kick-streamer> <priority> - Edit a multistream connection
+- ${await findBotCommandMarkdown(env, 'multistream', 'edit')} <twitch-streamer> <kick-streamer> <priority> <late-merge> - Edit a multistream connection
 - ${await findBotCommandMarkdown(env, 'multistream', 'list')} - List your currently set up multistreams
 - ${await findBotCommandMarkdown(env, 'multistream', 'help')} - Show help for the multistream command
 
@@ -122,6 +133,7 @@ To use this feature:
 > \`<twitch-streamer>\` - The name of the Twitch streamer to add (you must already have a Twitch Alert setup)
 > \`<kick-streamer>\` - The name of the Kick streamer to add (you must already have a Kick Alert setup)
 > \`<priority>\` - Which platforms data should be used first in embeds (Twitch or Kick)
+> \`<late-merge>\`- If one of the multistreams goes live after the 15 second delay, still merge the notifications.
 `
 }
 
@@ -154,6 +166,9 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
       const priorityOption = link.options.find(option => option.name === 'priority')
       const priority = priorityOption && 'value' in priorityOption ? (priorityOption.value as 'twitch' | 'kick') : 'twitch'
 
+      const lateMergeOption = link.options.find(option => option.name === 'late-merge')
+      const lateMerge = lateMergeOption && 'value' in lateMergeOption ? lateMergeOption.value as boolean : true
+
       const streams = await useDB(env).query.streams.findMany({
         where: (streams, { eq }) => eq(streams.guildId, interaction.guild_id),
         with: {
@@ -185,11 +200,12 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
           streamId: twitchStream.id,
           kickStreamId: kickStream.id,
           priority,
+          lateMerge,
         })
 
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
           embeds: [
-            buildSuccessEmbed(`Priority: ${priority}`, env, {
+            buildSuccessEmbed(`Priority: ${priority}\n Late Merge: ${lateMerge ? 'Enabled' : 'Disabled'}`, env, {
               title: `Successfully linked ${TWITCH_EMOTE.formatted}\`${twitchStream.name}\` + ${KICK_EMOTE.formatted}\`${kickStream.name}\``,
             }),
           ],
@@ -259,11 +275,11 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
       const multiStreams = streams.filter(stream => stream.multiStream).flatMap(stream => stream.multiStream)
 
       if (multiStreams.length > 0) {
-        const list = multiStreams.map(multistream => `${TWITCH_EMOTE.formatted}\`${multistream.stream.name}\` ${KICK_EMOTE.formatted}\`${multistream.kickStream.name}\` ${'Priority: '}${multistream.priority === 'twitch' ? TWITCH_EMOTE.formatted : KICK_EMOTE.formatted}`).join('\n')
+        const list = multiStreams.map(multistream => `${TWITCH_EMOTE.formatted}\`${multistream.stream.name}\` ${KICK_EMOTE.formatted}\`${multistream.kickStream.name}\` ${'Priority: '}${multistream.priority === 'twitch' ? TWITCH_EMOTE.formatted : KICK_EMOTE.formatted} Late Merge: ${multistream.lateMerge ? 'Enabled' : 'Disabled'}`).join('\n')
         return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(list, env, { title: 'Multistream Links', color: 0xFFF200 })] })
       }
       else {
-        return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('No multistream links found', env)] })
+        return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('No multistream links found!', env)] })
       }
     }
     case 'edit': {
@@ -280,11 +296,14 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
       const priorityOption = edit.options.find(option => option.name === 'priority')
       const priority = priorityOption && 'value' in priorityOption ? (priorityOption.value as 'twitch' | 'kick') : undefined
 
+      const lateMergeOption = edit.options.find(option => option.name === 'late-merge')
+      const lateMerge = lateMergeOption && 'value' in lateMergeOption ? lateMergeOption.value as boolean : undefined
+
       if (!twitchStreamer && !kickStreamer)
         return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You must specify either a Twitch or Kick streamer to edit', env)] })
 
-      if (!priority)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You must specify a priority to update', env)] })
+      if (!priority && lateMerge === undefined)
+        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You must specify a priority or late merge to update', env)] })
 
       let multiStreamToEdit: MultiStream | null = null
       let streamerName = ''
@@ -332,12 +351,12 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
         })
       }
 
-      // Update the multistream priority
-      await useDB(env).update(tables.multiStream).set({ priority }).where(eq(tables.multiStream.id, multiStreamToEdit.id))
+      // Update the multistream settings
+      await useDB(env).update(tables.multiStream).set({ priority, lateMerge }).where(eq(tables.multiStream.id, multiStreamToEdit.id))
 
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
         embeds: [
-          buildSuccessEmbed(`Priority updated to: ${priority}`, env, {
+          buildSuccessEmbed(`${priority ? `Priority updated to: ${priority}` : ''}  ${lateMerge !== undefined ? `Late merge updated to: ${lateMerge}` : ''}`, env, {
             title: `Successfully updated \`${streamerName}\` multistream settings`,
           }),
         ],

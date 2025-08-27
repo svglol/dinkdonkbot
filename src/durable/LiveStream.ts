@@ -1,7 +1,7 @@
 import type { MultiStream, Stream, StreamKick, StreamMessage } from '../database/db'
 import { DurableObject } from 'cloudflare:workers'
-import { eq, tables, useDB } from '../database/db'
-import { bodyBuilder, sendMessage } from '../discord/discord'
+import { and, eq, tables, useDB } from '../database/db'
+import { bodyBuilder, sendMessage, updateMessage } from '../discord/discord'
 
 interface PersistedState {
   twitchLive: boolean
@@ -295,6 +295,47 @@ export class LiveStream extends DurableObject {
     try {
       const event = payload.event as OnlineEventData
       if (!this.streamMessage) {
+        // multistream late merging
+        const multiStream = this.stream?.multiStream || this.kickStream?.multiStream
+        if (multiStream && multiStream?.lateMerge) {
+          // check if there is an applicable streamMessage we can merge with (kick stream from multistream)
+          const streamMessage = await useDB(this.env).query.streamMessages.findFirst({
+            where: and(eq(tables.streamMessages.kickStreamId, multiStream.kickStreamId), eq(tables.streamMessages.kickOnline, true)),
+            with: {
+              stream: { with: { multiStream: true } },
+              kickStream: { with: { multiStream: true } },
+            },
+          })
+
+          if (streamMessage) {
+            // update existing stream message with new data
+            await useDB(this.env).update(tables.streamMessages).set({
+              streamId: this.stream?.id ?? null,
+              twitchStreamId: event.id,
+              twitchOnline: true,
+              twitchStreamStartedAt: new Date(event.started_at),
+              twitchStreamerData: streamerData,
+              twitchStreamData: streamData,
+            }).where(eq(tables.streamMessages.id, streamMessage.id))
+
+            const updatedMessageWithStreams = await useDB(this.env).query.streamMessages.findFirst({
+              where: eq(tables.streamMessages.id, streamMessage.id),
+              with: {
+                stream: true,
+                kickStream: true,
+              },
+            })
+            if (updatedMessageWithStreams) {
+            // then we can update the existing discord message instead of sending a new one and close the durable object
+              const discordMessage = bodyBuilder(updatedMessageWithStreams, this.env)
+              await updateMessage(updatedMessageWithStreams.discordChannelId, updatedMessageWithStreams?.discordMessageId ?? '', this.env.DISCORD_TOKEN, discordMessage)
+
+              this.reset()
+              return
+            }
+          }
+        }
+
         // No stream message (we need to create a new one)
         const inserted = await useDB(this.env).insert(tables.streamMessages).values({
           discordChannelId: this.stream?.channelId ?? '',
@@ -344,6 +385,46 @@ export class LiveStream extends DurableObject {
   async updateKickStreamMessages(payload: KickLivestreamStatusUpdatedEvent, streamerData?: KickChannelV2 | null, streamData?: KickLiveStream | null) {
     try {
       if (!this.streamMessage) {
+        // multistream late merging
+        const multiStream = this.stream?.multiStream || this.kickStream?.multiStream
+        if (multiStream && multiStream?.lateMerge) {
+          // check if there is an applicable streamMessage we can merge with (twitch stream from multistream)
+          const streamMessage = await useDB(this.env).query.streamMessages.findFirst({
+            where: and(eq(tables.streamMessages.streamId, multiStream.streamId), eq(tables.streamMessages.twitchOnline, true)),
+            with: {
+              stream: { with: { multiStream: true } },
+              kickStream: { with: { multiStream: true } },
+            },
+          })
+
+          if (streamMessage) {
+            // update existing stream message with new data
+            await useDB(this.env).update(tables.streamMessages).set({
+              kickStreamId: this.kickStream?.id ?? null,
+              kickOnline: true,
+              kickStreamStartedAt: new Date(payload.started_at),
+              kickStreamData: streamData,
+              kickStreamerData: streamerData,
+            }).where(eq(tables.streamMessages.id, streamMessage.id))
+
+            const updatedMessageWithStreams = await useDB(this.env).query.streamMessages.findFirst({
+              where: eq(tables.streamMessages.id, streamMessage.id),
+              with: {
+                stream: true,
+                kickStream: true,
+              },
+            })
+            if (updatedMessageWithStreams) {
+            // then we can update the existing discord message instead of sending a new one and close the durable object
+              const discordMessage = bodyBuilder(updatedMessageWithStreams, this.env)
+              await updateMessage(updatedMessageWithStreams.discordChannelId, updatedMessageWithStreams?.discordMessageId ?? '', this.env.DISCORD_TOKEN, discordMessage)
+
+              this.reset()
+              return
+            }
+          }
+        }
+
         const inserted = await useDB(this.env).insert(tables.streamMessages).values({
           discordChannelId: this.kickStream?.channelId ?? '',
           kickStreamId: this.kickStream?.id ?? null,
