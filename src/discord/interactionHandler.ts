@@ -190,7 +190,7 @@ export function autoCompleteResponse(options: { name: string, value: string }[])
 }
 async function handleTopClipsCommand(interaction: APIMessageComponentInteraction, env: Env, broadcasterId: string, startDate: Date, endDate: Date) {
   const clips = await getClips(broadcasterId, startDate, endDate, env)
-  if (clips && clips.data.length > 0) {
+  if (clips && clips.data && clips.data.length > 0) {
     const components: APIMessageTopLevelComponent[] = []
 
     for (const clip of clips.data) {
