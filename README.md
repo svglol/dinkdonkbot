@@ -5,12 +5,15 @@
 [![CI](https://github.com/svglol/dinkdonkbot/actions/workflows/ci.yml/badge.svg)](https://github.com/svglol/dinkdonkbot/actions/workflows/ci.yml)
 [![Discord](https://img.shields.io/badge/Join-Discord-5865F2?style=flat&logo=discord&logoColor=white)](https://discord.gg/NuY7Tnrb6F)
 
-A powerful Discord bot for Twitch & Kick notifications and emote management, running on Cloudflare Workers.
+A powerful Discord bot for Twitch & Kick notifications, emote management, and interactive games, running on Cloudflare Workers.
 
 ## Features
 - **Live Stream Alerts**: Get instant notifications when your favorite Twitch & Kick streamers go live
-- **Clip Highlights**: Stay updated with the best moments from your favorite streamers
-- **Emote Uploader**: Easily add emotes from 7TV or other Discord servers to your own server
+- **Multistream Support**: Merge Twitch and Kick notifications for streamers who broadcast on both platforms
+- **Clip Highlights**: Stay updated with the best moments from your favorite streamers posted hourly
+- **Emote Management**: Easily add emotes from 7TV or other Discord servers to your own server
+- **Interactive Games**: Play hangman, rock paper scissors, and more with your community
+- **Utility Commands**: Weather, time, dice rolling, and timestamp generation
 
 ## Get Started
 [![Add DinkDonk Bot](https://img.shields.io/badge/Add%20to-Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/oauth2/authorize?client_id=1227866873220173824&permissions=8797166895104&scope=applications.commands+bot)
@@ -21,37 +24,64 @@ A powerful Discord bot for Twitch & Kick notifications and emote management, run
 ## Commands
 
 ### 🟪 Twitch Stream Alerts
-- `/twitch add <streamer> <discord-channel> [ping-role] [live-message] [offline-message]` - Add streamer notifications
-- `/twitch remove <streamer>` - Stop notifications for a streamer
-- `/twitch edit <streamer> [discord-channel] [ping-role] [live-message] [offline-message]` - Update settings
-- `/twitch list` - View all subscribed streamers
-- `/twitch test <streamer> [global]` - Preview notification appearance
-- `/twitch details <streamer>` - See detailed streamer settings
-- `/twitch help` - Display command instructions
+- `/twitch add <streamer> <discord-channel> [ping-role] [live-message] [offline-message] [cleanup]` - Add a Twitch streamer to receive notifications for going online
+- `/twitch remove <streamer>` - Remove a Twitch streamer from receiving notifications for going online or offline
+- `/twitch edit <streamer> [discord-channel] [ping-role] [remove-ping-role] [live-message] [offline-message] [cleanup]` - Edit a Twitch streamer's settings
+- `/twitch list` - List the Twitch streamers that you are subscribed to
+- `/twitch test <streamer> [message-type] [multistream] [global]` - Test the notification for a streamer (online/offline)
+- `/twitch details <streamer>` - Show the details for a streamer you are subscribed to
+- `/twitch help` - Show help for the Twitch command and its subcommands
 
 ### 🟩 Kick Stream Alerts
-- `/kick add <streamer> <discord-channel> [ping-role] [live-message] [offline-message]` - Add streamer notifications
-- `/kick remove <streamer>` - Stop notifications for a streamer
-- `/kick edit <streamer> [discord-channel] [ping-role] [live-message] [offline-message]` - Update settings
-- `/kick list` - View all subscribed streamers
-- `/kick test <streamer> [global]` - Preview notification appearance
-- `/kick details <streamer>` - See detailed streamer settings
-- `/kick help` - Display command instructions
+- `/kick add <streamer> <discord-channel> [ping-role] [live-message] [offline-message] [cleanup]` - Add a Kick streamer to receive notifications for going online
+- `/kick remove <streamer>` - Remove a Kick streamer from receiving notifications for going online
+- `/kick edit <streamer> [discord-channel] [ping-role] [remove-ping-role]  [live-message] [offline-message] [cleanup]` - Edit a Kick streamer's settings
+- `/kick list` - View your subscribed Kick streamers
+- `/kick test <streamer> [message-type] [multistream] [global]` - Test the notification for a streamer (online/offline)
+- `/kick details <streamer>` - Show the details for a streamer you are subscribed to
+- `/kick help` - Show help for the Kick command
+
+### 🔗 Multistream Notifications
+- `/multistream link <twitch-streamer> <kick-streamer> [priority] [late-merge]` - Setup a multistream connection between a Twitch & Kick channel
+- `/multistream unlink [twitch-streamer] [kick-streamer]` - Remove a multistream connection between a Twitch & Kick channel
+- `/multistream edit [twitch-streamer] [kick-streamer] [priority] [late-merge]` - Edit a multistream setup settings
+- `/multistream list` - List your currently set up multistreams
+- `/multistream help` - Show help for the multistream command
 
 ### 🎬 Twitch Clip Highlights
-- `/clips add <streamer> <discord-channel>` - Subscribe to a streamer's clips
-- `/clips remove <streamer>` - Unsubscribe from clip notifications
-- `/clips edit <streamer> <discord-channel>` - Change clip notification channel
-- `/clips list` - View all clip subscriptions
-- `/clips help` - Get help with clip commands
+- `/clips add <streamer> <discord-channel>` - Subscribe to Twitch clips from a streamer to be posted hourly
+- `/clips remove <streamer>` - Unsubscribe from Twitch clips from a streamer
+- `/clips edit <streamer> <discord-channel>` - Update the settings for a Twitch clip subscription
+- `/clips list` - View your subscribed Twitch clip channels
+- `/clips help` - Show help for the Twitch clips command
 
 ### 🥳 Emote Management
-- `/emote add <url_or_emoji>` - Add emotes from other servers or 7TV to your own server
-- Context Menu - `emote steal` - Steal an emote from a message
+- `/emote add <url_or_emoji>` - Add an emote from another Discord server or 7TV
+- `/emote help` - Show help for the emote command
+- **Context Menu** - `Steal Emote/Sticker` - Steal an emote or sticker from a message
 
-### ✨ Additional Commands
-- `/invite` - Generate an invite link to add DinkDonk Bot to another Discord server
-- `/dinkdonk` - Get DinkDonked
+### 🎮 Games & Fun
+- `/hangman` - Create a community game of hangman
+- `/rps <opponent>` - Challenge someone to a game of rock paper scissors
+- `/coinflip` - Flip a coin
+- `/roll [dice] [sides]` - Roll some dice (1-10 dice, 2-1000 sides each)
+- `/randomemote` - Post a random emote from the current server
+- `/dinkdonk` - Get dinkdonked
+
+### 🔧 Utility Commands
+- `/weather <location>` - Get the current weather for a location
+- `/time <location>` - Get the current time for a location
+- `/timestamp <date> <time> <utc_offset> [style]` - Create a Discord timestamp for a specific date/time and UTC offset
+
+### ℹ️ Bot Information
+- `/help` - Show help for DinkDonk Bot
+- `/commands` - List all commands for DinkDonk Bot
+- `/invite` - Get an invite link to add the bot to your server
 
 ## Development
 This bot is built using Cloudflare Workers and is based on the [Discord Cloudflare Sample App](https://github.com/discord/cloudflare-sample-app).
+
+## Support
+Need help or have questions? Join our [Discord server](https://discord.gg/NuY7Tnrb6F) or check out the [documentation](https://svglol.github.io/dinkdonkbot/).
+
+If you find DinkDonk Bot useful, consider [supporting us on Ko-fi](https://ko-fi.com/svglol)!
