@@ -18,6 +18,7 @@
           dark:text-gray-200
         "
       ><slot name="title" /></span>
+
       <span
         class="
           mt-4 text-sm font-semibold whitespace-pre-line text-gray-500
@@ -46,6 +47,14 @@
         dark:text-gray-200
       "
     ><slot name="title" /></span>
+    <span
+      class="
+        mt-4 font-semibold whitespace-pre-line text-gray-700
+        dark:text-gray-300
+      "
+    >
+      <slot name="description" />
+    </span>
     <span
       class="
         mt-4 text-sm font-semibold whitespace-pre-line text-gray-500
