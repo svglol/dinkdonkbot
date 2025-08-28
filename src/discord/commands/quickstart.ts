@@ -30,16 +30,16 @@ async function handler(interaction: APIApplicationCommandInteraction, env: Env, 
   const message = `Welcome! Let's get you set up with stream notifications in 3 easy steps.
 ### Step 1: Add a Streamer
 Add a Twitch or Kick streamer and choose which channel to post notifications in.  
-${TWITCH_EMOTE.formatted} Twitch: ${twitchAddCommand || '/twitch add <streamer> <channel>'}  
-${KICK_EMOTE.formatted} Kick: ${kickAddCommand || '/kick add <streamer> <channel>'}
+${TWITCH_EMOTE.formatted} Twitch: ${twitchAddCommand || '/stream twitch add <streamer> <channel>'}  
+${KICK_EMOTE.formatted} Kick: ${kickAddCommand || '/stream kick add <streamer> <channel>'}
 ### Step 2: Test Your Notification (Optional)
 Send a test notification to preview how your alerts will look.  
-${twitchTestCommand || '/twitch test <streamer>'}  
-${kickTestCommand || '/kick test <streamer>'}
+${twitchTestCommand || '/stream twitch test <streamer>'}  
+${kickTestCommand || '/stream kick test <streamer>'}
 ### Step 3: Multistream Notifications
 Link Twitch & Kick streamers together to combine notifications into one, reducing spam.  
 -# Note: You must have both Twitch and Kick alerts set up for this to work, and both need to be configured to post to the same channel.
-${multistreamCommand || '/multistream link <twitch-streamer> <kick-streamer>'}
+${multistreamCommand || '/stream multistream link <twitch-streamer> <kick-streamer>'}
 ### Step 4: Explore More Features
 Enhance your server with extra tools and fun commands.  
 - Clips: Get hourly highlights with ${clipsCommand || '/clips add <streamer> <channel>'} 
