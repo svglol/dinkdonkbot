@@ -6,17 +6,9 @@ import { buildErrorEmbed, updateInteraction } from '../../discord'
 import { autoCompleteResponse, interactionEphemeralLoading } from '../../interactionHandler'
 import { handleStreamHelpCommand, handleStreamHelpMessageComponent, STREAM_HELP_COMMAND } from './help'
 import { handleKickAutoComplete, handleKickCommands, KICK_SUBCOMMANDS } from './kick'
+import { handleStreamListCommand, handleStreamListMessageComponent, STREAM_LIST_COMMAND } from './list'
 import { handleMultistreamAutoComplete, handleMultistreamCommands, MULTISTREAM_SUBCOMMANDS } from './multistream'
 import { handleTwitchAutoComplete, handleTwitchCommands, TWITCH_SUBCOMMANDS } from './twitch'
-
-// // TODO  combined list command
-// // TODO list command might need buttons for pagination
-// const LIST_COMMAND = {
-//   type: 1,
-//   name: 'list',
-//   description: 'List your subscribed streamers',
-//   dm_permission: false,
-// }
 
 // // TODO move test commands to its own file and not part of kick/twitch subcommand groups
 
@@ -26,7 +18,7 @@ export const STREAM_COMMAND = {
   type: 1,
   default_member_permissions: PermissionFlagsBits.Administrator.toString(),
   dm_permission: false,
-  options: [TWITCH_SUBCOMMANDS, KICK_SUBCOMMANDS, MULTISTREAM_SUBCOMMANDS, STREAM_HELP_COMMAND],
+  options: [TWITCH_SUBCOMMANDS, KICK_SUBCOMMANDS, MULTISTREAM_SUBCOMMANDS, STREAM_HELP_COMMAND, STREAM_LIST_COMMAND],
 }
 
 async function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
@@ -47,6 +39,8 @@ async function handleStream(interaction: APIApplicationCommandInteraction, env: 
       return await handleKickCommands(interaction, option, env)
     case 'multistream':
       return await handleMultistreamCommands(interaction, option, env)
+    case 'list':
+      return await handleStreamListCommand(interaction, env)
     case 'help':
       return await handleStreamHelpCommand(interaction, env)
     default:
@@ -73,5 +67,5 @@ export default {
   command: STREAM_COMMAND,
   handler,
   autoCompleteHandler,
-  messageComponentHandlers: { stream_help_page_select: handleStreamHelpMessageComponent },
+  messageComponentHandlers: { stream_help_page_select: handleStreamHelpMessageComponent, stream_type_select: handleStreamListMessageComponent, stream_prev_page: handleStreamListMessageComponent, stream_next_page: handleStreamListMessageComponent },
 } satisfies DiscordAPIApplicationCommand
