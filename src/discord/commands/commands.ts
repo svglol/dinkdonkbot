@@ -156,7 +156,7 @@ ${messageCommands.length} command${messageCommands.length !== 1 ? 's' : ''} avai
       id: 'page_slash',
       title: 'Slash Commands',
       emoji: '💬',
-      content: `## 💬 **Slash Commands**\n${slashCommands.map(formatSlashCommand).join('\n')}`,
+      content: `${slashCommands.map(formatSlashCommand).join('\n')}`,
     })
   }
 
@@ -166,7 +166,7 @@ ${messageCommands.length} command${messageCommands.length !== 1 ? 's' : ''} avai
       id: 'page_user',
       title: 'User Commands',
       emoji: '👤',
-      content: `## 👤 **User Commands**\nRight-click on any user and select "Apps" to access these commands:\n${userCommands.map(c => `- **${c.name}**`).join('\n')}`,
+      content: `Right-click on any user and select "Apps" to access these commands:\n${userCommands.map(c => `- **${c.name}**`).join('\n')}`,
     })
   }
 
@@ -176,7 +176,7 @@ ${messageCommands.length} command${messageCommands.length !== 1 ? 's' : ''} avai
       id: 'page_message',
       title: 'Message Commands',
       emoji: '📝',
-      content: `## 📝 **Message Commands**\nRight-click on any message and select "Apps" to access these commands:\n${messageCommands.map(c => `- **${c.name}**`).join('\n')}`,
+      content: `Right-click on any message and select "Apps" to access these commands:\n${messageCommands.map(c => `- **${c.name}**`).join('\n')}`,
     })
   }
 
@@ -289,11 +289,7 @@ async function listCommands(interaction: APIApplicationCommandInteraction | APIM
           components: [
             {
               type: 10,
-              content: '## DinkDonk Bot Commands',
-            },
-            {
-              type: 10,
-              content: `-# ${currentPage.pageNumber === 1 ? '' : `${currentPage.title} - `}${currentPage.pageNumber} / ${currentPage.totalPages}`,
+              content: `## DinkDonk Bot Commands\n## ${currentPage.emoji} ${currentPage.title}\n-# ${currentPage.pageNumber} / ${currentPage.totalPages}`,
             },
             {
               type: 10,
