@@ -280,12 +280,6 @@ async function listCommands(interaction: APIApplicationCommandInteraction | APIM
 
     const navigationComponents = createNavigationComponents(pageGroups, pageId)
 
-    // Create title with page info
-    let title = '# DinkDonk Bot Commands'
-    if (currentPage.totalPages > 1) {
-      title += ` - ${currentPage.title} (${currentPage.pageNumber}/${currentPage.totalPages})`
-    }
-
     const commandsCard = {
       type: 17,
       accent_color: 0xFFF200,
@@ -295,7 +289,11 @@ async function listCommands(interaction: APIApplicationCommandInteraction | APIM
           components: [
             {
               type: 10,
-              content: title,
+              content: '## DinkDonk Bot Commands',
+            },
+            {
+              type: 10,
+              content: `-# ${currentPage.pageNumber === 1 ? '' : `${currentPage.title} - `}${currentPage.pageNumber} / ${currentPage.totalPages}`,
             },
             {
               type: 10,
