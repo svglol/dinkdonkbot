@@ -10,7 +10,7 @@ import { autoCompleteResponse } from '../../../interactionHandler'
 export const KICK_REMOVE_COMMAND = {
   type: 1,
   name: 'remove',
-  description: 'Remove a Kick streamer from receiving notifications for going online',
+  description: 'Remove a Kick streamer alert subscription',
   dm_permission: false,
   options: [{
     type: 3,

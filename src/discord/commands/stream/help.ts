@@ -14,7 +14,7 @@ async function getHelpPages(env: Env): Promise<Record<string, string>> {
   return {
     page_index: `## 📖 Overview
 ### ${TWITCH_EMOTE.formatted} Twitch Stream Alerts
-Set up Twitch stream notifications for your Discord server. Get notified when your favorite streamers go live  with customizable messages and ping roles.
+Set up Twitch stream notifications for your Discord server. Get notified when your favorite streamers go live with customizable messages and ping roles.
 ### ${KICK_EMOTE.formatted} Kick Stream Alerts  
 Set up Kick stream notifications for your Discord server. Get notified when your favorite streamers go live with customizable messages and ping roles.
 ### 📺 Multistream Alerts

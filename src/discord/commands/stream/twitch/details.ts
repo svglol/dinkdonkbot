@@ -8,7 +8,7 @@ import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '../../../
 export const TWITCH_DETAILS_COMMAND = {
   type: 1,
   name: 'details',
-  description: 'Show Twitch streamer details',
+  description: 'Show the current configuration for a Twitch streamer',
   options: [{ type: 3, name: 'streamer', description: 'Streamer name', required: true, autocomplete: true }],
 }
 

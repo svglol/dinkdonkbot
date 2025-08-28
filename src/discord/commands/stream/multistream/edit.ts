@@ -10,7 +10,7 @@ import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '../../../
 export const MULTISTREAM_EDIT_COMMAND = {
   type: 1,
   name: 'edit',
-  description: 'Edit a multistream setup',
+  description: 'Edit a multistream link',
   options: [
     { type: 3, name: 'twitch-streamer', description: 'Twitch streamer to edit', required: false, autocomplete: true },
     { type: 3, name: 'kick-streamer', description: 'Kick streamer to edit', required: false, autocomplete: true },

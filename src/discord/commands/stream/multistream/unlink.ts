@@ -10,7 +10,7 @@ import { autoCompleteResponse } from '../../../interactionHandler'
 export const MULTISTREAM_UNLINK_COMMAND = {
   type: 1,
   name: 'unlink',
-  description: 'Remove a multistream connection between a Twitch & Kick Channel',
+  description: 'Unlink a Twitch and Kick streamer, so they no longer merge alerts into one message',
   options: [
     { type: 3, name: 'twitch-streamer', description: 'Twitch streamer to remove', required: false, autocomplete: true },
     { type: 3, name: 'kick-streamer', description: 'Kick streamer to remove', required: false, autocomplete: true },

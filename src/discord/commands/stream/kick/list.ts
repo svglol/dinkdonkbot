@@ -7,7 +7,7 @@ import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '../../../
 export const KICK_LIST_COMMAND = {
   type: 1,
   name: 'list',
-  description: 'View your subscribed Kick streamers',
+  description: 'View all of your Kick stream alerts',
   dm_permission: false,
 }
 

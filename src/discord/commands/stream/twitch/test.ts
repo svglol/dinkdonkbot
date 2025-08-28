@@ -10,7 +10,7 @@ import { bodyBuilder, buildErrorEmbed, buildSuccessEmbed, sendMessage, updateInt
 export const TWITCH_TEST_COMMAND = {
   type: 1,
   name: 'test',
-  description: 'Test a Twitch notification',
+  description: 'Test a Twitch stream alert',
   options: [
     { type: 3, name: 'streamer', description: 'Streamer name', required: true, autocomplete: true },
     {

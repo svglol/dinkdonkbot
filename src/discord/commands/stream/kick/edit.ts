@@ -9,7 +9,7 @@ import { buildErrorEmbed, buildSuccessEmbed, calculateChannelPermissions, update
 export const KICK_EDIT_COMMAND = {
   type: 1,
   name: 'edit',
-  description: 'Edit a Kick streamer\'s settings',
+  description: 'Edit config for a Kick streamer alert',
   dm_permission: false,
   options: [{
     type: 3,

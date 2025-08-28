@@ -7,7 +7,7 @@ import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '../../../
 export const MULTISTREAM_LIST_COMMAND = {
   type: 1,
   name: 'list',
-  description: 'List your currently set up multistreams',
+  description: 'View all of your multistream links',
   dm_permission: false,
 }
 

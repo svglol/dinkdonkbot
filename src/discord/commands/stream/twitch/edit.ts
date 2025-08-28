@@ -9,7 +9,7 @@ import { buildErrorEmbed, buildSuccessEmbed, calculateChannelPermissions, update
 export const TWITCH_EDIT_COMMAND = {
   type: 1,
   name: 'edit',
-  description: 'Edit a Twitch streamer\'s settings',
+  description: 'Edit config for a Twitch streamer alert',
   options: [
     { type: 3, name: 'streamer', description: 'Streamer name', required: true, autocomplete: true },
     { type: 7, name: 'discord-channel', description: 'Discord channel', channel_types: [0] },

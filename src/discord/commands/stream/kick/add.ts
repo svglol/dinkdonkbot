@@ -9,7 +9,7 @@ import { buildErrorEmbed, buildSuccessEmbed, calculateChannelPermissions, update
 export const KICK_ADD_COMMAND = {
   type: 1,
   name: 'add',
-  description: 'Add a Kick streamer to receive notifications for going online',
+  description: 'Add a Kick streamer to receive alerts for going live',
   dm_permission: false,
   options: [{
     type: 3,

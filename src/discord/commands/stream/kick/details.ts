@@ -8,7 +8,7 @@ import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '../../../
 export const KICK_DETAILS_COMMAND = {
   type: 1,
   name: 'details',
-  description: 'Show the details for a streamer you are subscribed to',
+  description: 'Show the current configuration for a Kick streamer',
   dm_permission: false,
   options: [{
     type: 3,

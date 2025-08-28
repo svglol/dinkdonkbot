@@ -9,7 +9,7 @@ import { autoCompleteResponse } from '../../../interactionHandler'
 export const MULTISTREAM_LINK_COMMAND = {
   type: 1,
   name: 'link',
-  description: 'Setup a multistream connection between a Twitch & Kick Channel',
+  description: 'Link a Twitch and Kick streamer to merge alerts into one message',
   options: [
     { type: 3, name: 'twitch-streamer', description: 'Twitch streamer (must have Twitch alert)', required: true, autocomplete: true },
     { type: 3, name: 'kick-streamer', description: 'Kick streamer (must have Kick alert)', required: true, autocomplete: true },

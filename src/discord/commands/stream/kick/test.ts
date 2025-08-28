@@ -10,7 +10,7 @@ import { bodyBuilder, buildErrorEmbed, buildSuccessEmbed, sendMessage, updateInt
 export const KICK_TEST_COMMAND = {
   type: 1,
   name: 'test',
-  description: 'Test the notification for a streamer',
+  description: 'Test a Kick stream alert',
   dm_permission: false,
   options: [{
     type: 3,

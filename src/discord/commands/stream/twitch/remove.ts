@@ -10,7 +10,7 @@ import { autoCompleteResponse } from '../../../interactionHandler'
 export const TWITCH_REMOVE_COMMAND = {
   type: 1,
   name: 'remove',
-  description: 'Remove a Twitch streamer',
+  description: 'Remove a Twitch streamer alert subscription',
   options: [{ type: 3, name: 'streamer', description: 'Streamer name', required: true, autocomplete: true }],
 }
 

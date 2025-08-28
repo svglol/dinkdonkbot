@@ -7,7 +7,7 @@ import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '../../../
 export const TWITCH_LIST_COMMAND = {
   type: 1,
   name: 'list',
-  description: 'View your subscribed Twitch streamers',
+  description: 'View all of your Twitch stream alerts',
   dm_permission: false,
 }
 
