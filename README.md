@@ -21,6 +21,39 @@ A powerful Discord bot for Twitch & Kick notifications, emote management, and in
 [![Join Discord Server](https://img.shields.io/badge/Join%20Discord-Server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/NuY7Tnrb6F)
 [![Ko-fi](https://img.shields.io/badge/Support%20us-fc4c58?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/svglol)
 
+---
+
+## Quickstart
+Get started in **4 easy steps** with the `/quickstart` command in your Discord server:
+
+### Step 1: Install the Bot
+Add DinkDonk Bot to your Discord server using [this link](https://discord.com/application-directory/1227866873220173824).
+
+### Step 2: Add a Streamer
+Add a Twitch or Kick streamer and choose which channel to post notifications in.
+- Twitch: `/twitch add <streamer> <channel>`
+- Kick: `/kick add <streamer> <channel>`
+
+### Step 3: Test Your Notification *(Optional)*
+Preview what notifications will look like before going live.
+- `/twitch test <streamer>`
+- `/kick test <streamer>`
+
+### Step 4: Multistream Notifications
+Link Twitch & Kick streamers together to reduce spam by merging notifications.
+*Note: You must have both Twitch and Kick alerts set up for this to work, and both need to post to the same channel.*
+- `/multistream link <twitch-streamer> <kick-streamer>`
+
+### Step 5: Explore More Features
+- **Clips**: Get hourly highlights with `/clips add`
+- **Emotes**: Add emotes from other servers with `/emote add`
+- **Games**: Play `/hangman`, `/rps`, `/coinflip`, and more
+
+### Need Help?
+Use `/help` for detailed commands or join our [Discord server](https://discord.gg/NuY7Tnrb6F) for support!
+
+---
+
 ## Commands
 
 ### 🟪 Twitch Stream Alerts

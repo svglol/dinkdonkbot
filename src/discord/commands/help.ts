@@ -16,7 +16,8 @@ const HELP_COMMAND = {
 async function getHelpPages(env: Env): Promise<Record<string, string>> {
   return {
     page_index: `## 📖 Help Overview
-
+### 🚀 Quickstart
+Use the ${await findBotCommandMarkdown(env, 'quickstart')} command to set up the bot and notifications in a few easy steps. Perfect for new users who want a guided setup.
 ### ${TWITCH_EMOTE.formatted} Twitch Stream Alerts
 Set up Twitch stream notifications for your Discord server. Get notified when your favorite streamers go live or offline with customizable messages and ping roles.
 ### ${KICK_EMOTE.formatted} Kick Stream Alerts  

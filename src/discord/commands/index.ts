@@ -9,6 +9,7 @@ import help from './help'
 import invite from './invite'
 import kick from './kick'
 import multistream from './multistream'
+import quickstart from './quickstart'
 import randomemote from './randomemote'
 import stealEmote from './stealEmote'
 import time from './time'
@@ -36,6 +37,7 @@ export const COMMANDS: Array<DiscordAPIApplicationCommand> = [
   hangman,
   commands,
   multistream,
+  quickstart,
 ]
 
 export const COMMAND_DEFINITIONS = COMMANDS.filter(c => c && c.command).map(c => c.command)
