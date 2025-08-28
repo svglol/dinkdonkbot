@@ -267,7 +267,7 @@ function getCurrentPage(pageGroups: PageGroup[], pageId: string): PaginatedPage 
   return group.pages.find(p => p.pageNumber === pageNumber) || group.pages[0] || null
 }
 
-async function listCommands(interaction: APIApplicationCommandInteraction | APIMessageComponentInteraction, env: Env, pageId: string = 'page_slash_1') {
+async function listCommands(interaction: APIApplicationCommandInteraction | APIMessageComponentInteraction, env: Env, pageId: string = 'page_overview_1') {
   try {
     const pageGroups = await getAllPageGroups(env)
     const currentPage = getCurrentPage(pageGroups, pageId)
