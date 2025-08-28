@@ -4,6 +4,7 @@ import { PermissionFlagsBits } from 'discord-api-types/v10'
 
 import { buildErrorEmbed, updateInteraction } from '../../discord'
 import { autoCompleteResponse, interactionEphemeralLoading } from '../../interactionHandler'
+import { handleStreamHelpCommand, handleStreamHelpMessageComponent, STREAM_HELP_COMMAND } from './help'
 import { handleKickAutoComplete, handleKickCommands, KICK_SUBCOMMANDS } from './kick'
 import { handleMultistreamAutoComplete, handleMultistreamCommands, MULTISTREAM_SUBCOMMANDS } from './multistream'
 import { handleTwitchAutoComplete, handleTwitchCommands, TWITCH_SUBCOMMANDS } from './twitch'
@@ -17,16 +18,6 @@ import { handleTwitchAutoComplete, handleTwitchCommands, TWITCH_SUBCOMMANDS } fr
 //   dm_permission: false,
 // }
 
-// // combined help command
-// // TODO help command might need select for pagination
-// // TODO message variables should be its own page
-// const HELP_COMMAND = {
-//   type: 1,
-//   name: 'help',
-//   description: 'Show help for the stream command',
-//   dm_permission: false,
-// }
-
 // // TODO move test commands to its own file and not part of kick/twitch subcommand groups
 
 export const STREAM_COMMAND = {
@@ -35,7 +26,7 @@ export const STREAM_COMMAND = {
   type: 1,
   default_member_permissions: PermissionFlagsBits.Administrator.toString(),
   dm_permission: false,
-  options: [TWITCH_SUBCOMMANDS, KICK_SUBCOMMANDS, MULTISTREAM_SUBCOMMANDS],
+  options: [TWITCH_SUBCOMMANDS, KICK_SUBCOMMANDS, MULTISTREAM_SUBCOMMANDS, STREAM_HELP_COMMAND],
 }
 
 async function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
@@ -56,6 +47,8 @@ async function handleStream(interaction: APIApplicationCommandInteraction, env: 
       return await handleKickCommands(interaction, option, env)
     case 'multistream':
       return await handleMultistreamCommands(interaction, option, env)
+    case 'help':
+      return await handleStreamHelpCommand(interaction, env)
     default:
       return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`${option.name} command is not implemented yet`, env)] })
   }
@@ -80,4 +73,5 @@ export default {
   command: STREAM_COMMAND,
   handler,
   autoCompleteHandler,
+  messageComponentHandlers: { stream_help_page_select: handleStreamHelpMessageComponent },
 } satisfies DiscordAPIApplicationCommand

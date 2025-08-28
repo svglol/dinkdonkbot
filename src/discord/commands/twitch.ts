@@ -6,42 +6,42 @@ import { interactionEphemeralLoading } from '../interactionHandler'
 
 const TWITCH_COMMAND = {
   name: 'twitch',
-  description: 'Twitch command has moved to /streams twitch',
+  description: 'Twitch command has moved to /stream twitch',
   type: 1,
   options: [
     {
       name: 'add',
-      description: 'Twitch add command has moved to /streams twitch add',
+      description: 'Twitch add command has moved to /stream twitch add',
       type: 1,
     },
     {
       name: 'test',
-      description: 'Twitch test command has moved to /streams twitch test',
+      description: 'Twitch test command has moved to /stream twitch test',
       type: 1,
     },
     {
       name: 'remove',
-      description: 'Twitch remove command has moved to /streams twitch remove',
+      description: 'Twitch remove command has moved to /stream twitch remove',
       type: 1,
     },
     {
       name: 'edit',
-      description: 'Twitch edit command has moved to /streams twitch edit',
+      description: 'Twitch edit command has moved to /stream twitch edit',
       type: 1,
     },
     {
       name: 'list',
-      description: 'Twitch list command has moved to /streams twitch list',
+      description: 'Twitch list command has moved to /stream twitch list',
       type: 1,
     },
     {
       name: 'details',
-      description: 'Twitch details command has moved to /streams twitch details',
+      description: 'Twitch details command has moved to /stream twitch details',
       type: 1,
     },
     {
       name: 'help',
-      description: 'Twitch help command has moved to /streams twitch help',
+      description: 'Twitch help command has moved to /stream help',
       type: 1,
     },
   ],
@@ -84,7 +84,7 @@ async function handleCommand(interaction: APIApplicationCommandInteraction, env:
         break
       }
       case 'help':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'twitch', 'help')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'help')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'twitch', 'help')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'help')}` }))
         break
       }
       default:

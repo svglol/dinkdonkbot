@@ -6,31 +6,31 @@ import { interactionEphemeralLoading } from '../interactionHandler'
 
 const MULTISTREAM_COMMAND = {
   name: 'multistream',
-  description: 'Multistream command has moved to /streams multistream',
+  description: 'Multistream command has moved to /stream multistream',
   options: [
     {
       name: 'link',
-      description: 'Multistream link command has moved to /streams multistream link',
+      description: 'Multistream link command has moved to /stream multistream link',
       type: 1,
     },
     {
       name: 'edit',
-      description: 'Multistream edit command has moved to /streams multistream edit',
+      description: 'Multistream edit command has moved to /stream multistream edit',
       type: 1,
     },
     {
       name: 'help',
-      description: 'Multistream help command has moved to /streams multistream help',
+      description: 'Multistream help command has moved to /stream help',
       type: 1,
     },
     {
       name: 'unlink',
-      description: 'Multistream unlink command has moved to /streams multistream unlink',
+      description: 'Multistream unlink command has moved to /stream multistream unlink',
       type: 1,
     },
     {
       name: 'list',
-      description: 'Multistream list command has moved to /streams multistream list',
+      description: 'Multistream list command has moved to /stream multistream list',
       type: 1,
     },
   ],
@@ -65,7 +65,7 @@ async function handleCommand(interaction: APIApplicationCommandInteraction, env:
         break
       }
       case 'help':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'multistream', 'help')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'multistream', 'help')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'multistream', 'help')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'help')}` }))
         break
       }
       default:

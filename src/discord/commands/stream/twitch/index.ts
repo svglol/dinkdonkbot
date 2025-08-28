@@ -5,7 +5,6 @@ import { autoCompleteResponse } from '../../../interactionHandler'
 import { handleTwitchAddAutoComplete, handleTwitchAddCommand, TWITCH_ADD_COMMAND } from './add'
 import { handleTwitchDetailsCommand, TWITCH_DETAILS_COMMAND } from './details'
 import { handleTwitchEditCommand, TWITCH_EDIT_COMMAND } from './edit'
-import { handleTwitchHelpCommand, TWITCH_HELP_COMMAND } from './help'
 import { handleTwitchListCommand, TWITCH_LIST_COMMAND } from './list'
 import { handleTwitchDBAutoComplete, handleTwitchRemoveCommand, TWITCH_REMOVE_COMMAND } from './remove'
 import { handleTwitchTestCommand, TWITCH_TEST_COMMAND } from './test'
@@ -21,7 +20,6 @@ export const TWITCH_SUBCOMMANDS = {
     TWITCH_DETAILS_COMMAND,
     TWITCH_TEST_COMMAND,
     TWITCH_LIST_COMMAND,
-    TWITCH_HELP_COMMAND,
   ],
 }
 
@@ -47,9 +45,6 @@ export async function handleTwitchCommands(interaction: APIApplicationCommandInt
         }
         case 'list':{
           return handleTwitchListCommand(interaction, subCommand, env)
-        }
-        case 'help':{
-          return handleTwitchHelpCommand(interaction, subCommand, env)
         }
         default:
           return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Not implemented yet', env)] })

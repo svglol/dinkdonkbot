@@ -5,7 +5,6 @@ import { autoCompleteResponse } from '../../../interactionHandler'
 import { handleKickAddCommand, KICK_ADD_COMMAND } from './add'
 import { handleKickDetailsCommand, KICK_DETAILS_COMMAND } from './details'
 import { handleKickEditCommand, KICK_EDIT_COMMAND } from './edit'
-import { handleKickHelpCommand, KICK_HELP_COMMAND } from './help'
 import { handleKickListCommand, KICK_LIST_COMMAND } from './list'
 import { handleKickDBAutoComplete, handleKickRemoveCommand, KICK_REMOVE_COMMAND } from './remove'
 import { handleKickTestCommand, KICK_TEST_COMMAND } from './test'
@@ -21,7 +20,6 @@ export const KICK_SUBCOMMANDS = {
     KICK_EDIT_COMMAND,
     KICK_TEST_COMMAND,
     KICK_LIST_COMMAND,
-    KICK_HELP_COMMAND,
   ],
 }
 
@@ -47,9 +45,6 @@ export async function handleKickCommands(interaction: APIApplicationCommandInter
         }
         case 'list':{
           return handleKickListCommand(interaction, subCommand, env)
-        }
-        case 'help':{
-          return handleKickHelpCommand(interaction, subCommand, env)
         }
         default:
           return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Not implemented yet', env)] })
