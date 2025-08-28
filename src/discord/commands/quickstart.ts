@@ -16,11 +16,11 @@ const QUICKSTART_COMMAND = {
  * @returns A promise that resolves to nothing. Updates the interaction with a quickstart guide.
  */
 async function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
-  const twitchAddCommand = await findBotCommandMarkdown(env, 'twitch', 'add')
-  const kickAddCommand = await findBotCommandMarkdown(env, 'kick', 'add')
-  const twitchTestCommand = await findBotCommandMarkdown(env, 'twitch', 'test')
-  const kickTestCommand = await findBotCommandMarkdown(env, 'kick', 'test')
-  const multistreamCommand = await findBotCommandMarkdown(env, 'multistream', 'link')
+  const twitchAddCommand = await findBotCommandMarkdown(env, 'stream', 'twitch', 'add')
+  const kickAddCommand = await findBotCommandMarkdown(env, 'stream', 'kick', 'add')
+  const twitchTestCommand = await findBotCommandMarkdown(env, 'stream', 'twitch', 'test')
+  const kickTestCommand = await findBotCommandMarkdown(env, 'stream', 'kick', 'test')
+  const multistreamCommand = await findBotCommandMarkdown(env, 'stream', 'multistream', 'link')
   const helpCommand = await findBotCommandMarkdown(env, 'help')
   const clipsCommand = await findBotCommandMarkdown(env, 'clips', 'add')
   const emoteCommand = await findBotCommandMarkdown(env, 'emote', 'add')

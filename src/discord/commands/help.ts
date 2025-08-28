@@ -3,9 +3,9 @@ import { CLIPPERS_EMOTE, DISCORD_EMOTE, GITHUB_EMOTE, KICK_EMOTE, TWITCH_EMOTE }
 import { findBotCommandMarkdown, updateInteraction } from '../discord'
 import { deferedUpdate, interactionEphemeralLoading } from '../interactionHandler'
 import { getEmoteHelpMessage } from './emote'
-import { getKickHelpMessage } from './kick'
-import { getMultistreamHelpMessage } from './multistream'
-import { getTwitchHelpMessage } from './twitch'
+import { getKickHelpMessage } from './stream/kick/help'
+import { getMultistreamHelpMessage } from './stream/multistream/help'
+import { getTwitchHelpMessage } from './stream/twitch/help'
 import { getClipsHelpMessage } from './twitchClips'
 
 const HELP_COMMAND = {
