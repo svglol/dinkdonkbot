@@ -24,7 +24,7 @@ Set up Twitch stream notifications for your Discord server. Get notified when yo
 - ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'add')} <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Add a Twitch streamer to receive notifications for going online or offline
 - ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'edit')} <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Edit a Twitch streamer’s settings  
 - ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'remove')} <streamer> - Remove a Twitch streamer from receiving notifications for going online or offline  
-- ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'list')} - List the Twitch streamers that you are subscribed to  
+- ${await findBotCommandMarkdown(env, 'stream', 'list')} - List the Twitch streamers that you are subscribed to  
 - ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'test')} <streamer> <message-type> <multistream> <global> - Test the notification for a streamer
 - ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'details')} <streamer> - Show the details for a streamer you are subscribed to  
 
@@ -44,7 +44,7 @@ Set up Kick stream notifications for your Discord server. Get notified when your
 - ${await findBotCommandMarkdown(env, 'stream', 'kick', 'add')} <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Add a Kick streamer to receive notifications for going online or offline
 - ${await findBotCommandMarkdown(env, 'stream', 'kick', 'edit')} <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Edit a Kick streamer’s settings  
 - ${await findBotCommandMarkdown(env, 'stream', 'kick', 'remove')} <streamer> - Remove a Kick streamer from receiving notifications for going online or offline  
-- ${await findBotCommandMarkdown(env, 'stream', 'kick', 'list')} - List the Kick streamers that you are subscribed to  
+- ${await findBotCommandMarkdown(env, 'stream', 'list')} - List the Kick streamers that you are subscribed to  
 - ${await findBotCommandMarkdown(env, 'stream', 'kick', 'test')} <streamer> <global> <message-type> <multistream> - Test the notification for a streamer
 - ${await findBotCommandMarkdown(env, 'stream', 'kick', 'details')} <streamer> - Show the details for a streamer you are subscribed to  
 
@@ -72,7 +72,7 @@ To use this feature:
 - ${await findBotCommandMarkdown(env, 'stream', 'multistream', 'link')} - <twitch-streamer> <kick-streamer> <priority> <late-merge> - Setup a multistream connection between a Twitch & Kick Channel
 - ${await findBotCommandMarkdown(env, 'stream', 'multistream', 'unlink')} - <twitch-streamer> <kick-streamer> - Remove a multistream connection between a Twitch & Kick Channel
 - ${await findBotCommandMarkdown(env, 'stream', 'multistream', 'edit')} <twitch-streamer> <kick-streamer> <priority> <late-merge> - Edit a multistream connection
-- ${await findBotCommandMarkdown(env, 'stream', 'multistream', 'list')} - List your currently set up multistreams
+- ${await findBotCommandMarkdown(env, 'stream', 'list')} - List your currently set up multistreams
  \n
 **Command Parameters**
 > \`<twitch-streamer>\` - The name of the Twitch streamer to add (you must already have a Twitch Alert setup)
