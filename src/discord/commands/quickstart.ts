@@ -30,23 +30,23 @@ async function handler(interaction: APIApplicationCommandInteraction, env: Env, 
   const message = `Welcome! Let's get you set up with stream notifications in 3 easy steps.
 ### Step 1: Add a Streamer
 Add a Twitch or Kick streamer and choose which channel to post notifications in.  
-${TWITCH_EMOTE.formatted} Twitch: ${twitchAddCommand || '/stream twitch add <streamer> <channel>'}  
-${KICK_EMOTE.formatted} Kick: ${kickAddCommand || '/stream kick add <streamer> <channel>'}
+${TWITCH_EMOTE.formatted} Twitch: ${twitchAddCommand}  
+${KICK_EMOTE.formatted} Kick: ${kickAddCommand}
 ### Step 2: Test Your Notification (Optional)
 Send a test notification to preview how your alerts will look.  
-${twitchTestCommand || '/stream twitch test <streamer>'}  
-${kickTestCommand || '/stream kick test <streamer>'}
+${twitchTestCommand}  
+${kickTestCommand}
 ### Step 3: Multistream Notifications
 Link Twitch & Kick streamers together to combine notifications into one, reducing spam.  
 -# Note: You must have both Twitch and Kick alerts set up for this to work, and both need to be configured to post to the same channel.
-${multistreamCommand || '/stream multistream link <twitch-streamer> <kick-streamer>'}
+${multistreamCommand}
 ### Step 4: Explore More Features
 Enhance your server with extra tools and fun commands.  
-- Clips: Get hourly highlights with ${clipsCommand || '/clips add <streamer> <channel>'} 
-- Emotes: Add emotes from other servers with ${emoteCommand || '/emote add <url_or_emoji>'} 
-- Games: Try ${hangmanCommand || '/hangman'} or ${rpsCommand || '/rps <opponent>'} for community fun  
+- Clips: Get hourly highlights with ${clipsCommand} 
+- Emotes: Add emotes from other servers with ${emoteCommand} 
+- Games: Try ${hangmanCommand} or ${rpsCommand} for community fun  
 ### Need Help?
-Use ${helpCommand || '/help'} for detailed commands or join our [Discord server](https://discord.gg/NuY7Tnrb6F) for support!`
+Use ${helpCommand} for detailed commands or join our [Discord server](https://discord.gg/NuY7Tnrb6F) for support!`
 
   ctx.waitUntil(
     updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
