@@ -19,7 +19,7 @@ describe('multistream', () => {
     expect(findMessageComponentHandlerByName('multistream')).toBeUndefined()
   })
 
-  it('should have a autocomplete handler defined', () => {
-    expect(findAutoCompleteHandlerByName('multistream')).toBeDefined()
+  it('should not have a autocomplete handler defined', () => {
+    expect(findAutoCompleteHandlerByName('multistream')).toBeUndefined()
   })
 })

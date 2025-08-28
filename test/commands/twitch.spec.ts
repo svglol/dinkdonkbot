@@ -19,7 +19,7 @@ describe('twitch', () => {
     expect(findMessageComponentHandlerByName('twitch')).toBeUndefined()
   })
 
-  it('should have a autocomplete handler defined', () => {
-    expect(findAutoCompleteHandlerByName('twitch')).toBeDefined()
+  it('should not have a autocomplete handler defined', () => {
+    expect(findAutoCompleteHandlerByName('twitch')).toBeUndefined()
   })
 })
