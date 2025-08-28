@@ -31,7 +31,8 @@ export async function discordInteractionHandler(interaction: APIApplicationComma
   const handler = findHandlerByName(interaction.data.name.toLowerCase())
   if (handler) {
     const { commandName, subcommandGroup, subcommand } = getSubcommandInfo(interaction)
-    env.ANALYTICS.writeDataPoint({ blobs: ['command_used', commandName, subcommandGroup ?? '', subcommand ?? ''], doubles: [1], indexes: [interaction.guild_id ?? ''] })
+    const userId = interaction.member?.user.id || interaction.user?.id
+    env.ANALYTICS.writeDataPoint({ blobs: ['command_used', commandName, subcommandGroup ?? '', subcommand ?? '', userId ?? ''], doubles: [1], indexes: [interaction.guild_id ?? ''] })
     return handler(interaction, env, ctx)
   }
   else {
