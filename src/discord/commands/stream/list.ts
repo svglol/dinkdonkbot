@@ -208,23 +208,12 @@ async function listStreams(interaction: APIApplicationCommandInteraction | APIMe
     accent_color: 0xFFF200,
     components: [
       {
-        type: 9,
-        components: [
-          {
-            type: 10,
-            content: `## Stream Alerts\n### ${currentPage.emoji.formatted} ${currentPage.title}`,
-          },
-          {
-            type: 10,
-            content: currentPage.content,
-          },
-        ],
-        accessory: {
-          type: 11,
-          media: {
-            url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
-          },
-        },
+        type: 10,
+        content: `## Stream Alerts\n### ${currentPage.emoji.formatted} ${currentPage.title}`,
+      },
+      {
+        type: 10,
+        content: currentPage.content,
       },
       ...components,
     ],
