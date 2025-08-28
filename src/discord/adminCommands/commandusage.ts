@@ -67,7 +67,14 @@ async function handleUsageCommand(interaction: APIApplicationCommandInteraction,
 }
 
 async function getCommandUsageStats(env: Env, days: number): Promise<CommandUsageStat[]> {
-  // SQL query to get command usage stats
+  // Define server IDs to ignore (your test servers)
+  const ignoredServerIds = [
+    '1408708836579082321',
+    '705928685068222496',
+  ]
+
+  const serverIdList = ignoredServerIds.map(id => `'${id}'`).join(', ')
+
   const query = `
      SELECT
        blob2 AS command_name,
@@ -78,11 +85,11 @@ async function getCommandUsageStats(env: Env, days: number): Promise<CommandUsag
      WHERE 
        blob1 = 'command_used'
        AND timestamp > NOW() - INTERVAL '${days}' DAY
+       AND index1 NOT IN (${serverIdList})
      GROUP BY command_name, subcommand_group, subcommand
      ORDER BY usage_count DESC, command_name ASC
    `
 
-  // Build the API endpoint URL
   const API = `https://api.cloudflare.com/client/v4/accounts/${env.ACCOUNT_ID}/analytics_engine/sql`
 
   const queryResponse = await fetch(API, {
