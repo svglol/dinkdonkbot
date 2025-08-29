@@ -44,8 +44,11 @@ export async function handleKickDetailsCommand(interaction: APIApplicationComman
   message += `Cleanup: \`${stream.cleanup}\`\n`
   if (stream.roleId)
     message += `Role: <@&${stream.roleId}>\n`
-  if (stream.multiStream)
-    message += `Multistream linked to: ${TWITCH_EMOTE.formatted}\`${stream.multiStream.stream.name}\``
+  if (stream.multiStream) {
+    message += `\nMultistream linked to: ${TWITCH_EMOTE.formatted}\`${stream.multiStream.stream.name}\`\n`
+    message += `Multistream Priority: \`${stream.multiStream.priority}\`\n`
+    message += `Multistream Late Merge: \`${stream.multiStream.lateMerge}\`\n`
+  }
 
-  return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(message, env, { title: `${KICK_EMOTE.formatted} Kick streamer details` })] })
+  return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(message, env, { title: `${KICK_EMOTE.formatted}Kick Stream Alert Details` })] })
 }

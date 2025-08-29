@@ -35,8 +35,11 @@ export async function handleTwitchDetailsCommand(interaction: APIApplicationComm
   message += `Cleanup: \`${stream.cleanup}\`\n`
   if (stream.roleId)
     message += `Role: <@&${stream.roleId}>\n`
-  if (stream.multiStream)
-    message += `Multistream linked to: ${KICK_EMOTE.formatted}:\`${stream.multiStream.kickStream.name}\``
+  if (stream.multiStream) {
+    message += `\nMultistream linked to: ${KICK_EMOTE.formatted}\`${stream.multiStream.kickStream.name}\`\n`
+    message += `Multistream Priority: \`${stream.multiStream.priority}\`\n`
+    message += `Multistream Late Merge: \`${stream.multiStream.lateMerge}\`\n`
+  }
 
-  return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(message, env, { title: `${TWITCH_EMOTE.formatted} Twitch Stream Notification Details` })] })
+  return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(message, env, { title: `${TWITCH_EMOTE.formatted} Twitch Stream Alert Details` })] })
 }
