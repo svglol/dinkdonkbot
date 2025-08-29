@@ -113,7 +113,7 @@ export async function deleteMessage(channelId: string, messageId: string, discor
  * @throws If there is an error updating the interaction.
  */
 export async function updateInteraction(interaction: APIInteraction, env: Env, body: RESTPatchAPIChannelMessageJSONBody) {
-  const urls = [`https://discord.com/api/v10/webhooks/${env.DISCORD_APPLICATION_ID}/${interaction.token}/messages/@original`, `${env.DISCORD_PROXY}/api/webhooks/${env.DISCORD_APPLICATION_ID}/${interaction.token}`]
+  const urls = [`https://discord.com/api/v10/webhooks/${env.DISCORD_APPLICATION_ID}/${interaction.token}/messages/@original`, `${env.DISCORD_PROXY}/api/webhooks/${env.DISCORD_APPLICATION_ID}/${interaction.token}/messages/@original`]
   for (const url of urls) {
     try {
       const update = await fetch(url, {
