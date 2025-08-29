@@ -49,46 +49,46 @@ const KICK_COMMAND = {
 
 async function handleCommand(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
   if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction)) {
-    ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] }))
+    ctx.waitUntil(updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] }))
     return interactionEphemeralLoading()
   }
   const option = interaction.data.options?.[0]
   if (!option) {
-    ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] }))
+    ctx.waitUntil(updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] }))
     return interactionEphemeralLoading()
   }
   if (option.type === ApplicationCommandOptionType.Subcommand) {
     switch (option.name) {
       case 'add':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'kick', 'add')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'kick', 'add')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'kick', 'add')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'kick', 'add')}` }))
         break
       }
       case 'remove':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'kick', 'remove')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'kick', 'remove')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'kick', 'remove')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'kick', 'remove')}` }))
         break
       }
       case 'edit':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'kick', 'edit')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'kick', 'edit')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'kick', 'edit')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'kick', 'edit')}` }))
         break
       }
       case 'details':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'kick', 'details')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'kick', 'details')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'kick', 'details')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'kick', 'details')}` }))
         break
       }
       case 'test':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'kick', 'test')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'kick', 'test')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'kick', 'test')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'kick', 'test')}` }))
         break
       }
       case 'list':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'kick', 'list')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'kick', 'list')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'kick', 'list')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'kick', 'list')}` }))
         break
       }
       case 'help':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'kick', 'help')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'help')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'kick', 'help')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'help')}` }))
         break
       }
       default:
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'kick')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'kick')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'kick')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'kick')}` }))
         break
     }
   }

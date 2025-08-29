@@ -49,46 +49,46 @@ const TWITCH_COMMAND = {
 
 async function handleCommand(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
   if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction)) {
-    ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] }))
+    ctx.waitUntil(updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] }))
     return interactionEphemeralLoading()
   }
   const option = interaction.data.options?.[0]
   if (!option) {
-    ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] }))
+    ctx.waitUntil(updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] }))
     return interactionEphemeralLoading()
   }
   if (option.type === ApplicationCommandOptionType.Subcommand) {
     switch (option.name) {
       case 'add':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'twitch', 'add')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'add')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'twitch', 'add')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'add')}` }))
         break
       }
       case 'remove':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'twitch', 'remove')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'remove')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'twitch', 'remove')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'remove')}` }))
         break
       }
       case 'edit':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'twitch', 'edit')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'edit')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'twitch', 'edit')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'edit')}` }))
         break
       }
       case 'details':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'twitch', 'details')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'details')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'twitch', 'details')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'details')}` }))
         break
       }
       case 'test':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'twitch', 'test')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'test')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'twitch', 'test')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'test')}` }))
         break
       }
       case 'list':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'twitch', 'list')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'list')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'twitch', 'list')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'twitch', 'list')}` }))
         break
       }
       case 'help':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'twitch', 'help')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'help')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'twitch', 'help')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'help')}` }))
         break
       }
       default:
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'twitch')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'twitch')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'twitch')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'twitch')}` }))
         break
     }
   }

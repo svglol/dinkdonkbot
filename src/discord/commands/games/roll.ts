@@ -38,7 +38,7 @@ async function handler(interaction: APIApplicationCommandInteraction, env: Env, 
 
 async function roll(interaction: APIApplicationCommandInteraction, env: Env) {
   if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction))
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
 
   let diceCount = 1
   let sides = 6
@@ -56,7 +56,7 @@ async function roll(interaction: APIApplicationCommandInteraction, env: Env) {
 
   const content = `🎲 <@${userID}> rolled ${diceCount}d${sides}: **${rolls.map(r => `${r}/${sides}`).join(' ')}**${diceCount > 1 ? ` (total: ${rolls.reduce((a, b) => a + b, 0)})` : ''}`
 
-  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content })
+  return updateInteraction(interaction, env, { content })
 }
 
 export default {

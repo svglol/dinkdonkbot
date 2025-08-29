@@ -273,7 +273,7 @@ async function listCommands(interaction: APIApplicationCommandInteraction | APIM
     const currentPage = getCurrentPage(pageGroups, pageId)
 
     if (!currentPage) {
-      return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+      return updateInteraction(interaction, env, {
         embeds: [buildErrorEmbed('Page not found', env)],
       })
     }
@@ -307,14 +307,14 @@ async function listCommands(interaction: APIApplicationCommandInteraction | APIM
       ],
     } satisfies APIMessageTopLevelComponent
 
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return updateInteraction(interaction, env, {
       flags: 1 << 15,
       components: [commandsCard],
     })
   }
   catch (error) {
     console.error('Error listing commands:', error)
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return updateInteraction(interaction, env, {
       embeds: [buildErrorEmbed('Failed to fetch commands', env)],
     })
   }

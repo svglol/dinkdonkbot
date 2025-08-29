@@ -31,27 +31,27 @@ function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: E
 
 async function handleStealEmoteCommand(interaction: APIApplicationCommandInteraction, env: Env) {
   if (!interaction.data || !isContextMenuApplicationCommandInteraction(interaction))
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
 
   if (!isGuildInteraction(interaction))
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
 
   if (!interaction.data.resolved || !interaction.data.target_id)
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
 
   if (!('messages' in interaction.data.resolved)) {
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Could not find the message to steal an emote from', env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Could not find the message to steal an emote from', env)] })
   }
 
   const messageId = interaction.data.target_id
   const message = interaction.data.resolved?.messages[messageId]
   if (!message) {
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Could not find the message to steal an emote from', env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Could not find the message to steal an emote from', env)] })
   }
   const emote = message.content.match(/<a?:\w+:\d+>/)?.[0]
   const sticker = message.sticker_items && message.sticker_items.length > 0 ? message.sticker_items[0] : undefined
   if (!emote && !sticker) {
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Could not find an emote or sticker in the message to steal', env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Could not find an emote or sticker in the message to steal', env)] })
   }
 
   if (emote && (emote.startsWith('<a:') || emote.startsWith('<:'))) {
@@ -67,7 +67,7 @@ async function handleStealEmoteCommand(interaction: APIApplicationCommandInterac
       // Check if the emote already exists in the guild
       const emojis = await fetchGuildEmojis(interaction.guild_id, env.DISCORD_TOKEN)
       if (emojis.some(emoji => emoji.id === id)) {
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`Emote already exists on this server: <${isAnimated ? 'a' : ''}:${name}:${id}>`, env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`Emote already exists on this server: <${isAnimated ? 'a' : ''}:${name}:${id}>`, env)] })
       }
     }
     catch (error) {
@@ -77,10 +77,10 @@ async function handleStealEmoteCommand(interaction: APIApplicationCommandInterac
     try {
       const imageBuffer = await fetchEmoteImageBuffer(emoteUrl)
       const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, cleanName, imageBuffer)
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`Emote added: <${isAnimated ? 'a' : ''}:${cleanName}:${discordEmote.id}>`, env)] })
+      return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(`Emote added: <${isAnimated ? 'a' : ''}:${cleanName}:${discordEmote.id}>`, env)] })
     }
     catch (error) {
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`${error}`, env)] })
+      return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`${error}`, env)] })
     }
   }
   else if (sticker) {
@@ -97,24 +97,24 @@ async function handleStealEmoteCommand(interaction: APIApplicationCommandInterac
           extension = 'gif'
           break
         case StickerFormatType.Lottie:
-          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+          return await updateInteraction(interaction, env, {
             embeds: [buildErrorEmbed(`Lottie stickers cannot be stolen or re-uploaded.`, env)],
           })
         default:
-          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+          return await updateInteraction(interaction, env, {
             embeds: [buildErrorEmbed(`Unsupported sticker format.`, env)],
           })
       }
       const imageBuffer = await fetchEmoteImageBuffer(`https://cdn.discordapp.com/stickers/${sticker.id}.${extension}`)
       const discordSticker = await uploadSticker(interaction.guild_id, env.DISCORD_TOKEN, sticker.name, imageBuffer, extension, sticker.name, sticker.name)
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`Sticker added: \`${discordSticker.name}\``, env)] })
+      return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(`Sticker added: \`${discordSticker.name}\``, env)] })
     }
     catch (error) {
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`${error}`, env)] })
+      return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`${error}`, env)] })
     }
   }
 
-  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Something went wrong when trying to steal the emote', env)] })
+  return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Something went wrong when trying to steal the emote', env)] })
 }
 
 export default {

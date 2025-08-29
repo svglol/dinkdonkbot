@@ -27,12 +27,12 @@ function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: E
 
 async function handleWeatherCommand(interaction: APIApplicationCommandInteraction, env: Env) {
   if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
 
   const locationOption = interaction.data.options?.find(option => option.name === 'location')
   const location = locationOption && 'value' in locationOption ? locationOption.value as string : undefined
   if (!location)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Location must be provided', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Location must be provided', env)] })
 
   let lat: number, lon: number, displayName: string, countryCode: string
 
@@ -44,7 +44,7 @@ async function handleWeatherCommand(interaction: APIApplicationCommandInteractio
     countryCode = geoData[0].address.country_code
   }
   catch {
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`Unable to find location: \`${location}\``, env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`Unable to find location: \`${location}\``, env)] })
   }
 
   const tzMatch = tzlookup(lat, lon)
@@ -104,7 +104,7 @@ async function handleWeatherCommand(interaction: APIApplicationCommandInteractio
     const minTempF = (minTempC * 9 / 5 + 32).toFixed(1)
     const windMph = (windKmh * 0.621371).toFixed(1)
 
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return updateInteraction(interaction, env, {
       embeds: [
         buildSuccessEmbed('', env, {
           title: `${countryCodeToFlagEmoji(countryCode)} Currently ${tempC} °C / ${tempF} °F in ${displayName}`,
@@ -123,9 +123,9 @@ async function handleWeatherCommand(interaction: APIApplicationCommandInteractio
 
   catch (error: unknown) {
     if (error instanceof Error) {
-      return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(error.message, env)] })
+      return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(error.message, env)] })
     }
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`Unable to fetch weather for: \`${displayName}\``, env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`Unable to fetch weather for: \`${displayName}\``, env)] })
   }
 }
 

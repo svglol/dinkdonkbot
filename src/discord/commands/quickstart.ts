@@ -49,7 +49,7 @@ Enhance your server with extra tools and fun commands.
 Use ${helpCommand} for detailed commands or join our [Discord server](https://discord.gg/NuY7Tnrb6F) for support!`
 
   ctx.waitUntil(
-    updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    updateInteraction(interaction, env, {
       embeds: [buildSuccessEmbed(message, env, { title: `${DINKDONK_EMOTE.formatted} DinkDonk Bot Quickstart`, color: 0xFFF200 })],
     }),
   )

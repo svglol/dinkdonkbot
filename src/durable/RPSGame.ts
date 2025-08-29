@@ -94,7 +94,7 @@ export class RPSGame extends DurableObject {
       const RPSCard = this.buildComponents(false, false, true)
 
       if (this.interaction) {
-        await updateInteraction(this.interaction, this.env.DISCORD_APPLICATION_ID, {
+        await updateInteraction(this.interaction, this.env, {
           flags: 1 << 15,
           components: [RPSCard],
         })
@@ -153,22 +153,22 @@ export class RPSGame extends DurableObject {
   async startGame(interaction: APIApplicationCommandInteraction) {
     this.interaction = interaction
     if (!isGuildInteraction(interaction))
-      return await updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in a server', this.env)] })
+      return await updateInteraction(interaction, this.env, { embeds: [buildErrorEmbed('This command can only be used in a server', this.env)] })
     if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction) || !interaction.data.options)
-      return await updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', this.env)] })
+      return await updateInteraction(interaction, this.env, { embeds: [buildErrorEmbed('Invalid interaction', this.env)] })
 
     this.playerA = interaction.member.user.id
 
     // get other player
     const opponent = interaction.data.options.find(option => option.name === 'opponent')
     if (!opponent || !('value' in opponent))
-      return await updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Failed to get opponent', this.env)] })
+      return await updateInteraction(interaction, this.env, { embeds: [buildErrorEmbed('Failed to get opponent', this.env)] })
     this.playerB = String(opponent.value).match(/\d+/)?.[0] ?? null
     if (!this.playerB)
-      return await updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Failed to get opponent', this.env)] })
+      return await updateInteraction(interaction, this.env, { embeds: [buildErrorEmbed('Failed to get opponent', this.env)] })
 
     if (this.playerB === this.playerA)
-      return await updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You cannot play against yourself', this.env)] })
+      return await updateInteraction(interaction, this.env, { embeds: [buildErrorEmbed('You cannot play against yourself', this.env)] })
 
     // if its the bot
     if (this.playerB === this.env.DISCORD_APPLICATION_ID) {
@@ -180,7 +180,7 @@ export class RPSGame extends DurableObject {
 
     const RPSCard = this.buildComponents(true, false)
 
-    return updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, {
+    return updateInteraction(interaction, this.env, {
       flags: 1 << 15,
       components: [RPSCard],
     })
@@ -193,7 +193,7 @@ export class RPSGame extends DurableObject {
       return deferedUpdate()
 
     if (interaction.member.user.id !== this.playerB && interaction.member.user.id !== this.playerA) {
-      this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`This is not your game!\n If you want to challenge someone else, use the ${await findBotCommandMarkdown(this.env, 'rps')} command`, this.env)] }))
+      this.state.waitUntil(updateInteraction(interaction, this.env, { embeds: [buildErrorEmbed(`This is not your game!\n If you want to challenge someone else, use the ${await findBotCommandMarkdown(this.env, 'rps')} command`, this.env)] }))
       return interactionEphemeralLoading()
     }
 
@@ -208,7 +208,7 @@ export class RPSGame extends DurableObject {
     if (!this.playerAChoice || !this.playerBChoice) {
       // still waiting for both players to make a move (but we update the ui anyway)
       const RPSCard = this.buildComponents(true, false)
-      this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, {
+      this.state.waitUntil(updateInteraction(interaction, this.env, {
         flags: 1 << 15,
         components: [RPSCard],
       }))
@@ -227,7 +227,7 @@ export class RPSGame extends DurableObject {
     await this.scheduleAlarm()
     await this.saveState()
 
-    this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, {
+    this.state.waitUntil(updateInteraction(interaction, this.env, {
       flags: 1 << 15,
       components: [RPSCard],
     }))
@@ -241,7 +241,7 @@ export class RPSGame extends DurableObject {
     if (!interaction.data || !isMessageComponentInteraction(interaction))
       return deferedUpdate()
     if (interaction.member.user.id !== this.playerB && interaction.member.user.id !== this.playerA) {
-      this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`This is not your game!\n If you want to challenge someone else, use the ${await findBotCommandMarkdown(this.env, 'rps')} command`, this.env)] }))
+      this.state.waitUntil(updateInteraction(interaction, this.env, { embeds: [buildErrorEmbed(`This is not your game!\n If you want to challenge someone else, use the ${await findBotCommandMarkdown(this.env, 'rps')} command`, this.env)] }))
       return interactionEphemeralLoading()
     }
 
@@ -256,7 +256,7 @@ export class RPSGame extends DurableObject {
     await this.clearAlarm()
     await this.scheduleAlarm()
     const rpsCard = this.buildComponents(true, false)
-    this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, {
+    this.state.waitUntil(updateInteraction(interaction, this.env, {
       components: [rpsCard],
       flags: 1 << 15,
     }))

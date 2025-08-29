@@ -38,38 +38,38 @@ const MULTISTREAM_COMMAND = {
 
 async function handleCommand(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
   if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction)) {
-    ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] }))
+    ctx.waitUntil(updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] }))
     return interactionEphemeralLoading()
   }
   const option = interaction.data.options?.[0]
   if (!option) {
-    ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] }))
+    ctx.waitUntil(updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] }))
     return interactionEphemeralLoading()
   }
   if (option.type === ApplicationCommandOptionType.Subcommand) {
     switch (option.name) {
       case 'link':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'multistream', 'link')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'multistream', 'link')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'multistream', 'link')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'multistream', 'link')}` }))
         break
       }
       case 'unlink':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'multistream', 'unlink')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'multistream', 'unlink')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'multistream', 'unlink')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'multistream', 'unlink')}` }))
         break
       }
       case 'edit':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'multistream', 'edit')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'multistream', 'edit')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'multistream', 'edit')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'multistream', 'edit')}` }))
         break
       }
       case 'list':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'multistream', 'list')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'multistream', 'list')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'multistream', 'list')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'multistream', 'list')}` }))
         break
       }
       case 'help':{
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'multistream', 'help')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'help')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'multistream', 'help')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'help')}` }))
         break
       }
       default:
-        ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${await findBotCommandMarkdown(env, 'multistream')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'multistream')}` }))
+        ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'multistream')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'multistream')}` }))
         break
     }
   }

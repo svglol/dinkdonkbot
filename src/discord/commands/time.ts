@@ -27,15 +27,15 @@ function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: E
 
 async function handleTimeCommand(interaction: APIApplicationCommandInteraction, env: Env) {
   if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
   if (!interaction.data.options)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
   const locationOption = interaction.data.options.find(option => option.name === 'location')
   if (!locationOption)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Location must be provided', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Location must be provided', env)] })
   const location = 'value' in locationOption ? locationOption.value as string : undefined
   if (!location)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Location must be provided', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Location must be provided', env)] })
 
   let lat: number
   let lon: number
@@ -50,7 +50,7 @@ async function handleTimeCommand(interaction: APIApplicationCommandInteraction, 
   }
   // eslint-disable-next-line unused-imports/no-unused-vars
   catch (error: unknown) {
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`Unable to find location: \`${location}\``, env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`Unable to find location: \`${location}\``, env)] })
   }
 
   const tzMatch = tzlookup(lat, lon)
@@ -61,10 +61,10 @@ async function handleTimeCommand(interaction: APIApplicationCommandInteraction, 
   const dateString = formatInTimeZone(date, tzMatch, 'EEEE, MMMM do, yyyy') // Thursday, August 14th, 2025
 
   if (time) {
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`**Time**: \`${time}\`\n**Date**: \`${dateString}\`\n**Timezone**: \`${tzMatch} ${offset}\``, env, { title: `${countryCodeToFlagEmoji(countryCode)} ${displayName}` })] })
+    return updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(`**Time**: \`${time}\`\n**Date**: \`${dateString}\`\n**Timezone**: \`${tzMatch} ${offset}\``, env, { title: `${countryCodeToFlagEmoji(countryCode)} ${displayName}` })] })
   }
 
-  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Unable to get time for that location', env)] })
+  return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Unable to get time for that location', env)] })
 }
 
 function countryCodeToFlagEmoji(countryCode: string) {

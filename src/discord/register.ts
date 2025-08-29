@@ -8,7 +8,7 @@ import { COMMAND_DEFINITIONS } from './commands'
 dotenv.config({ path: '.dev.vars' })
 
 const token = process.env.DISCORD_TOKEN
-const applicationId = process.env.DISCORD_APPLICATION_ID
+const applicationId = process.env
 const adminGuildId = process.env.DISCORD_GUILD_ID // admin server ID
 
 if (!token)

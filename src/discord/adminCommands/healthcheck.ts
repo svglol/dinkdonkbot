@@ -20,7 +20,7 @@ function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: E
 
 async function handleHealthCheckCommand(interaction: APIApplicationCommandInteraction, env: Env) {
   if (interaction.guild_id !== env.DISCORD_GUILD_ID)
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in the correct server', env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in the correct server', env)] })
   let kvStatus = '❌'
   try {
     const kvTest = await env.KV.get('twitch-token')
@@ -74,7 +74,7 @@ async function handleHealthCheckCommand(interaction: APIApplicationCommandIntera
 - Kick API: ${kickStatus}
 - Discord API: ${discordStatus}
 `
-  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(content, env, { title: `${DINKDONK_EMOTE.formatted} Healthcheck`, color: 0xFFF200 })] })
+  return updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(content, env, { title: `${DINKDONK_EMOTE.formatted} Healthcheck`, color: 0xFFF200 })] })
 }
 
 export default {

@@ -23,7 +23,7 @@ const HANGMAN_COMMAND = {
  */
 function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
   if (!isGuildInteraction(interaction)) {
-    ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] }))
+    ctx.waitUntil(updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] }))
     return interactionEphemeralLoading()
   }
   return new JsonResponse({

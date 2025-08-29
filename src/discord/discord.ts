@@ -108,24 +108,29 @@ export async function deleteMessage(channelId: string, messageId: string, discor
  * Updates the original response message for a Discord interaction.
  *
  * @param interaction The interaction object containing the token to identify the interaction.
- * @param dicordApplicationId The ID of the Discord application.
+ * @param env The environment variables from Cloudflare.
  * @param body The new content of the message as a DiscordBody object.
  * @throws If there is an error updating the interaction.
  */
-export async function updateInteraction(interaction: APIInteraction, dicordApplicationId: string, body: RESTPatchAPIChannelMessageJSONBody) {
-  try {
-    const update = await fetch(`https://discord.com/api/v10/webhooks/${dicordApplicationId}/${interaction.token}/messages/@original`, {
-      method: 'PATCH',
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-    if (!update.ok)
-      throw new Error(`Failed to update interaction: ${await update.text()}`)
-  }
-  catch (error) {
-    console.error('Error updating interaction:', error)
+export async function updateInteraction(interaction: APIInteraction, env: Env, body: RESTPatchAPIChannelMessageJSONBody) {
+  const urls = [`https://discord.com/api/v10/webhooks/${env.DISCORD_APPLICATION_ID}/${interaction.token}/messages/@original`, `${env.DISCORD_PROXY}/api/webhooks/${env.DISCORD_APPLICATION_ID}/${interaction.token}`]
+  for (const url of urls) {
+    try {
+      const update = await fetch(url, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      if (!update.ok)
+        throw new Error(`Failed to update interaction: ${await update.text()}`)
+
+      return await update.json()
+    }
+    catch (error) {
+      console.error('Error updating interaction:', error)
+    }
   }
 }
 

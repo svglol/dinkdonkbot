@@ -33,9 +33,9 @@ function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: E
 
 async function handleUsageCommand(interaction: APIApplicationCommandInteraction, env: Env) {
   if (interaction.guild_id !== env.DISCORD_GUILD_ID)
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in the correct server', env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in the correct server', env)] })
   if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
 
   // Get the days parameter, default to 7 days - options can be undefined for commands with all optional parameters
   const daysOption = interaction.data.options?.find(option => option.name === 'days')
@@ -46,7 +46,7 @@ async function handleUsageCommand(interaction: APIApplicationCommandInteraction,
     const usageStats = await getCommandUsageStats(env, days)
 
     if (usageStats.length === 0) {
-      return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+      return updateInteraction(interaction, env, {
         embeds: [buildErrorEmbed('No command usage stats found', env)],
       })
     }
@@ -54,20 +54,27 @@ async function handleUsageCommand(interaction: APIApplicationCommandInteraction,
     // Format the response
     const response = formatUsageStats(usageStats, days)
 
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return updateInteraction(interaction, env, {
       embeds: [buildSuccessEmbed(response, env, { title: `${DINKDONK_EMOTE.formatted} Command Usage Stats`, color: 0xFFF200 })],
     })
   }
   catch (error) {
     console.error('Error getting command usage stats:', error)
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return updateInteraction(interaction, env, {
       embeds: [buildErrorEmbed(`Error getting command usage stats` + `\n${error}`, env)],
     })
   }
 }
 
 async function getCommandUsageStats(env: Env, days: number): Promise<CommandUsageStat[]> {
-  // SQL query to get command usage stats
+  // Define server IDs to ignore (your test servers)
+  const ignoredServerIds = [
+    '1408708836579082321',
+    '705928685068222496',
+  ]
+
+  const serverIdList = ignoredServerIds.map(id => `'${id}'`).join(', ')
+
   const query = `
      SELECT
        blob2 AS command_name,
@@ -78,11 +85,11 @@ async function getCommandUsageStats(env: Env, days: number): Promise<CommandUsag
      WHERE 
        blob1 = 'command_used'
        AND timestamp > NOW() - INTERVAL '${days}' DAY
+       AND index1 NOT IN (${serverIdList})
      GROUP BY command_name, subcommand_group, subcommand
      ORDER BY usage_count DESC, command_name ASC
    `
 
-  // Build the API endpoint URL
   const API = `https://api.cloudflare.com/client/v4/accounts/${env.ACCOUNT_ID}/analytics_engine/sql`
 
   const queryResponse = await fetch(API, {
