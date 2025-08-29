@@ -43,11 +43,11 @@ export const KICK_ADD_COMMAND = {
 
 export async function handleKickAddCommand(interaction: APIApplicationCommandInteraction, command: APIApplicationCommandInteractionDataSubcommandOption, env: Env) {
   if (!isGuildInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
   const server = interaction.guild_id
   const add = command
   if (add.type !== ApplicationCommandOptionType.Subcommand)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
 
   const streamer = add.options?.find(option => option.name === 'streamer')?.value as string | undefined
   const channel = add.options?.find(option => option.name === 'discord-channel')?.value as string | undefined
@@ -58,7 +58,7 @@ export async function handleKickAddCommand(interaction: APIApplicationCommandInt
 
   // make sure we have all arguments we need
   if (!server || !streamer || !channel)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Missing required arguments', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Missing required arguments', env)] })
 
   // make nessary checks all at once to increase performance
   const [subscriptions, kickChannel, permissions] = await Promise.all([
@@ -71,11 +71,11 @@ export async function handleKickAddCommand(interaction: APIApplicationCommandInt
 
   // check if already subscribed to this channel
   if (subscriptions.length > 0)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You're already subscribed to notifications for \`${streamer}\` on this server`, env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`You're already subscribed to notifications for \`${streamer}\` on this server`, env)] })
 
   // check if kick channel exists
   if (!kickChannel)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`Kick channel with name:\`${streamer}\` could not be found`, env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`Kick channel with name:\`${streamer}\` could not be found`, env)] })
 
   const kickUser = await getKickUser(Number(kickChannel.broadcaster_user_id), env)
 
@@ -87,13 +87,13 @@ export async function handleKickAddCommand(interaction: APIApplicationCommandInt
   if (missingPermissions.length > 0) {
     const permissionError = `Dinkdonk Bot does not have the required permissions use <#${channel}>.\nMissing permissions: ${missingPermissions.join(', ')}`
     console.error(permissionError)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(permissionError, env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(permissionError, env)] })
   }
 
   // subscribe to event sub for this channel
   const subscribed = await kickSubscribe(kickChannel.broadcaster_user_id, env)
   if (!subscribed)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Something went wrong while trying to subscribe to kick events', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Something went wrong while trying to subscribe to kick events', env)] })
 
   let roleId: string | undefined
   if (role) {
@@ -118,7 +118,7 @@ export async function handleKickAddCommand(interaction: APIApplicationCommandInt
   }).returning().get()
 
   if (!subscription)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Something went wrong while trying to subscribe to kick events', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Something went wrong while trying to subscribe to kick events', env)] })
 
   // check if we can automatically make a multi-stream
   const stream = await useDB(env).query.streams.findFirst({
@@ -144,7 +144,7 @@ export async function handleKickAddCommand(interaction: APIApplicationCommandInt
 
   const kickChannelV2 = await getKickChannelV2(streamer)
 
-  return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(details, env, {
+  return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(details, env, {
     title: `${KICK_EMOTE.formatted} Subscribed to notifications for \`${subscription.name}\``,
     ...(kickChannelV2?.user.profile_pic && {
       thumbnail: { url: kickChannelV2.user.profile_pic },

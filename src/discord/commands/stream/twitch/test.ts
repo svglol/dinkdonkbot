@@ -29,9 +29,9 @@ export const TWITCH_TEST_COMMAND = {
 
 export async function handleTwitchTestCommand(interaction: APIApplicationCommandInteraction, command: APIApplicationCommandInteractionDataSubcommandOption, env: Env) {
   if (!isGuildInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
   if (command.type !== ApplicationCommandOptionType.Subcommand)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
   const test = command
   const streamer = test.options?.find(option => option.name === 'streamer')?.value as string | undefined
   const global = test.options?.find(option => option.name === 'global')?.value as boolean | undefined || false
@@ -46,7 +46,7 @@ export async function handleTwitchTestCommand(interaction: APIApplicationCommand
     },
   })
   if (!stream)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
 
   const messageType = test.options?.find(option => option.name === 'message-type')?.value as string | undefined || 'live'
   const multiStream = test.options?.find(option => option.name === 'multistream')?.value as boolean | undefined || false
@@ -96,9 +96,9 @@ export async function handleTwitchTestCommand(interaction: APIApplicationCommand
   const body = bodyBuilder(streamMessage, env)
   if (global) {
     await sendMessage(stream.channelId, env.DISCORD_TOKEN, body, env)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed('Sent test message', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed('Sent test message', env)] })
   }
   else {
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, body)
+    return await updateInteraction(interaction, env, body)
   }
 }

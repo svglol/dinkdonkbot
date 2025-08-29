@@ -23,9 +23,9 @@ export const TWITCH_ADD_COMMAND = {
 export async function handleTwitchAddCommand(interaction: APIApplicationCommandInteraction, command: APIApplicationCommandInteractionDataSubcommandOption, env: Env) {
   const server = interaction.guild_id
   if (!command)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
   if (command.type !== ApplicationCommandOptionType.Subcommand)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
 
   const streamer = command.options?.find(option => option.name === 'streamer')?.value as string | undefined
   const channel = command.options?.find(option => option.name === 'discord-channel')?.value as string | undefined
@@ -36,7 +36,7 @@ export async function handleTwitchAddCommand(interaction: APIApplicationCommandI
 
   // make sure we have all arguments we need
   if (!server || !streamer || !channel)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
 
   // make nessary checks all at once to increase performance
   const [subscriptions, channelId, permissions] = await Promise.all([
@@ -49,24 +49,24 @@ export async function handleTwitchAddCommand(interaction: APIApplicationCommandI
 
   // check if already subscribed to this channel
   if (subscriptions.length > 0)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You're already subscribed to notifications for \`${streamer}\` on this server`, env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`You're already subscribed to notifications for \`${streamer}\` on this server`, env)] })
 
   // check if twitch channel exists
   if (!channelId)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`Twitch channel with name:\`${streamer}\` could not be found`, env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`Twitch channel with name:\`${streamer}\` could not be found`, env)] })
 
   // check if we have permission to post in this discord channel
   const missingPermissions = Object.entries(permissions.checks).filter(([_, hasPermission]) => !hasPermission).map(([permissionName]) => permissionName)
   if (missingPermissions.length > 0) {
     const permissionError = `Dinkdonk Bot does not have the required permissions use <#${channel}>.\nMissing permissions: ${missingPermissions.join(', ')}`
     console.error(permissionError)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(permissionError, env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(permissionError, env)] })
   }
 
   // subscribe to event sub for this channel
   const subscribed = await subscribe(channelId, env)
   if (!subscribed)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Dinkdonk Bot failed to subscribe to Twitch event sub', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Dinkdonk Bot failed to subscribe to Twitch event sub', env)] })
 
   let roleId: string | undefined
   if (role) {
@@ -93,7 +93,7 @@ export async function handleTwitchAddCommand(interaction: APIApplicationCommandI
   }).returning().get()
 
   if (!subscription)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Failed to add subscription to database', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Failed to add subscription to database', env)] })
 
   // create a multi stream if a matching kick stream is found
   const kickStream = await useDB(env).query.kickStreams.findFirst({
@@ -119,7 +119,7 @@ export async function handleTwitchAddCommand(interaction: APIApplicationCommandI
   if (kickStream && !kickStream.multiStream)
     details += `\nAutomatically made a multi-stream with Kick Stream: ${KICK_EMOTE.formatted}\`${kickStream.name}\`\n`
 
-  return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`${details}`, env, {
+  return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(`${details}`, env, {
     title: `${TWITCH_EMOTE.formatted} Subscribed to notifications for \`${subscription.name}\``,
     ...(streamerDetails?.profile_image_url && {
       thumbnail: { url: streamerDetails.profile_image_url },

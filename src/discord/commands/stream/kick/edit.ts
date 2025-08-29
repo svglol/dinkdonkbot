@@ -49,19 +49,19 @@ export async function handleKickEditCommand(interaction: APIApplicationCommandIn
   const server = interaction.guild_id
   const edit = command
   if (edit.type !== ApplicationCommandOptionType.Subcommand)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
   if (!isGuildInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
 
   const streamer = edit.options?.find(option => option.name === 'streamer')?.value as string | undefined
   if (!streamer)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Missing required arguments', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Missing required arguments', env)] })
   const dbStream = await useDB(env).query.kickStreams.findFirst({
     where: (kickStreams, { and, eq, like }) => and(like(kickStreams.name, streamer), eq(kickStreams.guildId, interaction.guild_id)),
     with: { multiStream: true },
   })
   if (!dbStream)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
 
   const channel = edit.options?.find(option => option.name === 'discord-channel')?.value as string | undefined
   if (channel) {
@@ -74,7 +74,7 @@ export async function handleKickEditCommand(interaction: APIApplicationCommandIn
       if (missingPermissions.length > 0) {
         const permissionError = `Dinkdonk Bot does not have the required permissions use <#${channel}>.\nMissing permissions: ${missingPermissions.join(', ')}`
         console.error(permissionError)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(permissionError, env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(permissionError, env)] })
       }
       if (dbStream.multiStream) {
         await useDB(env).delete(tables.multiStream).where(eq(tables.multiStream.streamId, dbStream.id))
@@ -87,7 +87,7 @@ export async function handleKickEditCommand(interaction: APIApplicationCommandIn
 
   // Validate that both options aren't used together
   if (role && removePingRole) {
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return await updateInteraction(interaction, env, {
       embeds: [buildErrorEmbed('Cannot use both ping-role and remove-ping-role options at the same time', env)],
     })
   }
@@ -119,7 +119,7 @@ export async function handleKickEditCommand(interaction: APIApplicationCommandIn
     where: (streams, { and, eq, like }) => and(like(streams.name, streamer), eq(streams.guildId, interaction.guild_id)),
   })
   if (!subscription)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
 
   let details = `Streamer: \`${subscription.name}\`\n`
   details += `Channel: <#${subscription.channelId}>\n`
@@ -129,5 +129,5 @@ export async function handleKickEditCommand(interaction: APIApplicationCommandIn
   if (subscription.roleId)
     details += `Ping Role: <@&${subscription.roleId}>`
 
-  return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`${details}`, env, { title: `${KICK_EMOTE.formatted} Edited notifications for \`${streamer}\`` })] })
+  return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(`${details}`, env, { title: `${KICK_EMOTE.formatted} Edited notifications for \`${streamer}\`` })] })
 }

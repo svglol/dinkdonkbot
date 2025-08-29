@@ -29,9 +29,9 @@ export const MULTISTREAM_LINK_COMMAND = {
 export async function handleMultistreamLinkCommand(interaction: APIApplicationCommandInteraction, command: APIApplicationCommandInteractionDataSubcommandOption, env: Env) {
   const link = command
   if (link.type !== ApplicationCommandOptionType.Subcommand)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
   if (!isGuildInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
 
   const twitchStreamer = link.options?.find(option => option.name === 'twitch-streamer')?.value as string | undefined
   const kickStreamer = link.options?.find(option => option.name === 'kick-streamer')?.value as string | undefined
@@ -57,13 +57,13 @@ export async function handleMultistreamLinkCommand(interaction: APIApplicationCo
 
   if (twitchStream && kickStream) {
     if (twitchStream.multiStream)
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`The Twitch streamer is already linked to a multistream, if you want to relink it use the ${await findBotCommandMarkdown(env, 'multistream', 'unlink')} command`, env)] })
+      return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`The Twitch streamer is already linked to a multistream, if you want to relink it use the ${await findBotCommandMarkdown(env, 'multistream', 'unlink')} command`, env)] })
 
     if (kickStream.multiStream)
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`The Kick streamer is already linked to a multistream, if you want to relink it use the ${await findBotCommandMarkdown(env, 'multistream', 'unlink')} command`, env)] })
+      return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`The Kick streamer is already linked to a multistream, if you want to relink it use the ${await findBotCommandMarkdown(env, 'multistream', 'unlink')} command`, env)] })
 
     if (twitchStream.channelId !== kickStream.channelId)
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('The Twitch and Kick streamers must be setup to post in the same channel', env)] })
+      return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('The Twitch and Kick streamers must be setup to post in the same channel', env)] })
 
     await useDB(env).insert(tables.multiStream).values({
       streamId: twitchStream.id,
@@ -72,7 +72,7 @@ export async function handleMultistreamLinkCommand(interaction: APIApplicationCo
       lateMerge,
     })
 
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return await updateInteraction(interaction, env, {
       embeds: [
         buildSuccessEmbed(`Priority: ${priority}\n Late Merge: ${lateMerge ? 'Enabled' : 'Disabled'}`, env, {
           title: `Successfully linked ${TWITCH_EMOTE.formatted}\`${twitchStream.name}\` + ${KICK_EMOTE.formatted}\`${kickStream.name}\``,
@@ -81,7 +81,7 @@ export async function handleMultistreamLinkCommand(interaction: APIApplicationCo
     })
   }
   else {
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Could not find the appropriate subscriptions to link', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Could not find the appropriate subscriptions to link', env)] })
   }
 }
 

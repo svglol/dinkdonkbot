@@ -40,13 +40,13 @@ export const KICK_TEST_COMMAND = {
 export async function handleKickTestCommand(interaction: APIApplicationCommandInteraction, command: APIApplicationCommandInteractionDataSubcommandOption, env: Env) {
   const test = command
   if (test.type !== ApplicationCommandOptionType.Subcommand)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
   if (!isGuildInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
 
   const streamer = test.options?.find(option => option.name === 'streamer')?.value as string | undefined
   if (!streamer)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Missing required arguments', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Missing required arguments', env)] })
   const global = test.options?.find(option => option.name === 'global')?.value as boolean | undefined || false
   const stream = await useDB(env).query.kickStreams.findFirst({
     where: (kickStreams, { and, eq, like }) => and(like(kickStreams.name, streamer), eq(kickStreams.guildId, interaction.guild_id)),
@@ -57,7 +57,7 @@ export async function handleKickTestCommand(interaction: APIApplicationCommandIn
     },
   })
   if (!stream)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
 
   const messageType = test.options?.find(option => option.name === 'message-type')?.value as string | undefined || 'live'
   const multiStream = test.options?.find(option => option.name === 'multistream')?.value as boolean | undefined || false
@@ -107,9 +107,9 @@ export async function handleKickTestCommand(interaction: APIApplicationCommandIn
   const body = bodyBuilder(streamMessage, env)
   if (global) {
     await sendMessage(stream.channelId, env.DISCORD_TOKEN, body, env)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`Sent test message for **${streamer}**`, env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(`Sent test message for **${streamer}**`, env)] })
   }
   else {
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, body)
+    return await updateInteraction(interaction, env, body)
   }
 }

@@ -42,11 +42,11 @@ export async function handleKickCommands(interaction: APIApplicationCommandInter
           return handleKickTestCommand(interaction, subCommand, env)
         }
         default:
-          return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Not implemented yet', env)] })
+          return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Not implemented yet', env)] })
       }
     }
   }
-  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+  return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
 }
 
 export async function handleKickAutoComplete(interaction: APIApplicationCommandAutocompleteInteraction, option: APIApplicationCommandInteractionDataOption<InteractionType.ApplicationCommandAutocomplete>, env: Env) {

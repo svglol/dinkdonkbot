@@ -184,7 +184,7 @@ async function getAllStreamPages(interaction: APIApplicationCommandInteraction |
 
 export async function handleStreamListCommand(interaction: APIApplicationCommandInteraction, env: Env) {
   if (!isGuildInteraction(interaction)) {
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return updateInteraction(interaction, env, {
       embeds: [buildErrorEmbed('This command can only be used in a server', env)],
     })
   }
@@ -194,7 +194,7 @@ export async function handleStreamListCommand(interaction: APIApplicationCommand
 async function listStreams(interaction: APIApplicationCommandInteraction | APIMessageComponentInteraction, env: Env, pageId?: string) {
   const pageGroups = await getAllStreamPages(interaction, env)
   if (pageGroups.length === 0) {
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return updateInteraction(interaction, env, {
       embeds: [buildErrorEmbed('No alerts set up yet', env)],
     })
   }
@@ -219,7 +219,7 @@ async function listStreams(interaction: APIApplicationCommandInteraction | APIMe
     ],
   } satisfies APIMessageTopLevelComponent
 
-  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+  return updateInteraction(interaction, env, {
     flags: 1 << 15,
     components: [streamCard],
   })

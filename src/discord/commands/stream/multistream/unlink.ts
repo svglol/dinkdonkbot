@@ -20,13 +20,13 @@ export const MULTISTREAM_UNLINK_COMMAND = {
 export async function handleMultistreamUnlinkCommand(interaction: APIApplicationCommandInteraction, command: APIApplicationCommandInteractionDataSubcommandOption, env: Env) {
   const unlink = command
   if (command.type !== ApplicationCommandOptionType.Subcommand || !isGuildInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
 
   const twitchStreamer = unlink.options?.find(option => option.name === 'twitch-streamer')?.value as string | undefined
   const kickStreamer = unlink.options?.find(option => option.name === 'kick-streamer')?.value as string | undefined
 
   if (!twitchStreamer && !kickStreamer)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You must specify a Twitch or Kick streamer to unlink', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('You must specify a Twitch or Kick streamer to unlink', env)] })
 
   const streams = await useDB(env).query.streams.findMany({
     where: (streams, { eq }) => eq(streams.guildId, interaction.guild_id),
@@ -46,7 +46,7 @@ export async function handleMultistreamUnlinkCommand(interaction: APIApplication
     if (multiStream)
       await useDB(env).delete(tables.multiStream).where(eq(tables.multiStream.id, multiStream.id))
 
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return await updateInteraction(interaction, env, {
       embeds: [
         buildSuccessEmbed(` `, env, {
           title: `Successfully removed ${TWITCH_EMOTE.formatted}\`${multiStream?.stream?.name}\` + ${KICK_EMOTE.formatted}\`${multiStream?.kickStream?.name}\` multistream link`,
@@ -55,7 +55,7 @@ export async function handleMultistreamUnlinkCommand(interaction: APIApplication
     })
   }
   else {
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Could not find the appropriate subscriptions to remove', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Could not find the appropriate subscriptions to remove', env)] })
   }
 }
 

@@ -138,7 +138,7 @@ export async function handleStreamHelpCommand(interaction: APIMessageComponentIn
     ],
   } satisfies APIMessageTopLevelComponent
 
-  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+  return updateInteraction(interaction, env, {
     flags: 1 << 15,
     components: [helpCard],
   })

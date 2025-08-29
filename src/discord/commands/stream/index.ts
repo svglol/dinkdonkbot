@@ -28,10 +28,10 @@ async function handler(interaction: APIApplicationCommandInteraction, env: Env, 
 
 async function handleStream(interaction: APIApplicationCommandInteraction, env: Env) {
   if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
   const option = interaction.data.options?.[0]
   if (!option)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
   switch (option.name) {
     case 'twitch':
       return await handleTwitchCommands(interaction, option, env)
@@ -44,7 +44,7 @@ async function handleStream(interaction: APIApplicationCommandInteraction, env: 
     case 'help':
       return await handleStreamHelpCommand(interaction, env)
     default:
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`${option.name} command is not implemented yet`, env)] })
+      return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`${option.name} command is not implemented yet`, env)] })
   }
 }
 

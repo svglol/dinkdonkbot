@@ -30,7 +30,7 @@ export const MULTISTREAM_EDIT_COMMAND = {
 export async function handleMultistreamEditCommand(interaction: APIApplicationCommandInteraction, command: APIApplicationCommandInteractionDataSubcommandOption, env: Env) {
   const edit = command
   if (edit.type !== ApplicationCommandOptionType.Subcommand || !isGuildInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
 
   const twitchStreamer = edit.options?.find(option => option.name === 'twitch-streamer')?.value as string | undefined
   const kickStreamer = edit.options?.find(option => option.name === 'kick-streamer')?.value as string | undefined
@@ -39,10 +39,10 @@ export async function handleMultistreamEditCommand(interaction: APIApplicationCo
   const lateMerge = edit.options?.find(option => option.name === 'late-merge')?.value as boolean | undefined
 
   if (!twitchStreamer && !kickStreamer)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You must specify either a Twitch or Kick streamer to edit', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('You must specify either a Twitch or Kick streamer to edit', env)] })
 
   if (!priority && lateMerge === undefined)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You must specify a priority or late merge to update', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('You must specify a priority or late merge to update', env)] })
 
   let multiStreamToEdit: MultiStream | null = null
   let streamerName = ''
@@ -85,7 +85,7 @@ export async function handleMultistreamEditCommand(interaction: APIApplicationCo
   }
 
   if (!multiStreamToEdit) {
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return await updateInteraction(interaction, env, {
       embeds: [buildErrorEmbed('Could not find a multistream setup for the specified streamer', env)],
     })
   }
@@ -93,7 +93,7 @@ export async function handleMultistreamEditCommand(interaction: APIApplicationCo
   // Update the multistream settings
   await useDB(env).update(tables.multiStream).set({ priority, lateMerge }).where(eq(tables.multiStream.id, multiStreamToEdit.id))
 
-  return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+  return await updateInteraction(interaction, env, {
     embeds: [
       buildSuccessEmbed(`${priority ? `Priority updated to: ${priority}` : ''}  ${lateMerge !== undefined ? `Late merge updated to: ${lateMerge}` : ''}`, env, {
         title: `Successfully updated \`${streamerName}\` multistream settings`,
