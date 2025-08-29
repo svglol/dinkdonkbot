@@ -35,10 +35,10 @@ Keep your community updated when your favorite Twitch and Kick streamers go live
 You can also combine alerts from both Twitch and Kick into a single notification using **Multistream Alerts**, reducing spam in your channels.
 
 **Where to go next**
-- ${await findBotCommandMarkdown(env, 'stream', 'help')} – Help message for Stream Alerts
-- ${await findBotCommandMarkdown(env, 'stream', 'twitch')} – Set up and manage Twitch alerts
-- ${await findBotCommandMarkdown(env, 'stream', 'kick')} – Set up and manage Kick alerts
-- ${await findBotCommandMarkdown(env, 'stream', 'multistream')} – Combine Twitch and Kick alerts
+- ${await findBotCommandMarkdown(env, 'streams', 'help')} – Help message for Stream Alerts
+- ${await findBotCommandMarkdown(env, 'streams', 'twitch')} – Set up and manage Twitch alerts
+- ${await findBotCommandMarkdown(env, 'streams', 'kick')} – Set up and manage Kick alerts
+- ${await findBotCommandMarkdown(env, 'streams', 'multistream')} – Combine Twitch and Kick alerts
 `,
 
     page_clips: `## ${CLIPPERS_EMOTE.formatted} **Twitch Clips**

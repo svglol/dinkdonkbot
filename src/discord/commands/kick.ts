@@ -5,14 +5,14 @@ import { interactionEphemeralLoading } from '../interactionHandler'
 
 const KICK_COMMAND = {
   name: 'kick',
-  description: 'Kick command has moved to /stream kick',
+  description: 'Kick command has moved to /streams kick',
   type: 1,
   default_member_permissions: PermissionFlagsBits.Administrator.toString(),
   dm_permission: false,
 }
 
 async function handleCommand(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
-  ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'kick')} commands have moved to ${await findBotCommandMarkdown(env, 'stream', 'kick')}` }))
+  ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'kick')} commands have moved to ${await findBotCommandMarkdown(env, 'streams', 'kick')}` }))
   return interactionEphemeralLoading()
 }
 
