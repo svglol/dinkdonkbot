@@ -15,11 +15,14 @@ describe('streams', () => {
     expect(findModalSubmitHandlerByName('streams')).toBeUndefined()
   })
 
-  it('should not have a message component handler defined', () => {
-    expect(findMessageComponentHandlerByName('streams')).toBeUndefined()
+  it('should have message component handlers defined', () => {
+    expect(findMessageComponentHandlerByName('stream_help_page_select')).toBeDefined()
+    expect(findMessageComponentHandlerByName('stream_type_select')).toBeDefined()
+    expect(findMessageComponentHandlerByName('stream_prev_page')).toBeDefined()
+    expect(findMessageComponentHandlerByName('stream_next_page')).toBeDefined()
   })
 
-  it('should not have a autocomplete handler defined', () => {
+  it('should have a autocomplete handler defined', () => {
     expect(findAutoCompleteHandlerByName('streams')).toBeDefined()
   })
 })
