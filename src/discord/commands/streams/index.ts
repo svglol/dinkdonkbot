@@ -10,10 +10,8 @@ import { handleStreamListCommand, handleStreamListMessageComponent, STREAM_LIST_
 import { handleMultistreamAutoComplete, handleMultistreamCommands, MULTISTREAM_SUBCOMMANDS } from './multistream'
 import { handleTwitchAutoComplete, handleTwitchCommands, TWITCH_SUBCOMMANDS } from './twitch'
 
-// // TODO move test commands to its own file and not part of kick/twitch subcommand groups
-
-export const STREAM_COMMAND = {
-  name: 'stream',
+export const STREAMS_COMMAND = {
+  name: 'streams',
   description: 'Stream notifications settings',
   type: 1,
   default_member_permissions: PermissionFlagsBits.Administrator.toString(),
@@ -22,11 +20,11 @@ export const STREAM_COMMAND = {
 }
 
 async function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
-  ctx.waitUntil(handleStream(interaction, env))
+  ctx.waitUntil(handleStreams(interaction, env))
   return interactionEphemeralLoading()
 }
 
-async function handleStream(interaction: APIApplicationCommandInteraction, env: Env) {
+async function handleStreams(interaction: APIApplicationCommandInteraction, env: Env) {
   if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction))
     return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
   const option = interaction.data.options?.[0]
@@ -64,7 +62,7 @@ async function autoCompleteHandler(interaction: APIApplicationCommandAutocomplet
   }
 }
 export default {
-  command: STREAM_COMMAND,
+  command: STREAMS_COMMAND,
   handler,
   autoCompleteHandler,
   messageComponentHandlers: { stream_help_page_select: handleStreamHelpMessageComponent, stream_type_select: handleStreamListMessageComponent, stream_prev_page: handleStreamListMessageComponent, stream_next_page: handleStreamListMessageComponent },
