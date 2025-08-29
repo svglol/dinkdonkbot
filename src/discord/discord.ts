@@ -1,12 +1,13 @@
+import type { RESTPostAPICurrentUserCreateDMChannelResult } from 'discord-api-types/v9'
 import type { APIApplicationCommandOption, APIButtonComponent, APIEmbed, APIEmbedField, APIInteraction, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTGetAPIGuildMemberResult, RESTGetAPIGuildRolesResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
+
 import type { StreamMessage } from '../database/db'
 
 import { chatInputApplicationCommandMention, escapeMarkdown } from '@discordjs/formatters'
-
 import { DiscordAPIError, REST } from '@discordjs/rest'
 import { PermissionFlagsBits, Routes } from 'discord-api-types/v10'
-import { eq, tables, useDB } from '../database/db'
 
+import { eq, tables, useDB } from '../database/db'
 import { KICK_EMOTE, TWITCH_EMOTE } from '../util/discordEmotes'
 import { formatDuration } from '../util/formatDuration'
 
@@ -1061,4 +1062,25 @@ export async function findBotCommandMarkdown(env: Env, commandName: string, arg2
   }
 
   return chatInputApplicationCommandMention(commandName, command.id)
+}
+
+export async function directMessageUser(env: Env, userId: string, body: RESTPostAPIChannelMessageJSONBody) {
+  try {
+    const rest = new REST({ version: '10' }).setToken(env.DISCORD_TOKEN)
+
+    const dmChannel = await rest.post(Routes.userChannels(), {
+      body: {
+        recipient_id: userId,
+      },
+    }) as RESTPostAPICurrentUserCreateDMChannelResult
+
+    const message = await rest.post(Routes.channelMessages(dmChannel.id), {
+      body,
+    }) as RESTPostAPIChannelMessageResult
+
+    return message
+  }
+  catch (error) {
+    console.error('Error sending direct message:', error)
+  }
 }
