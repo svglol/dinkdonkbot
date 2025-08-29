@@ -334,7 +334,7 @@ export async function getSubscriptions(env: Env) {
 export async function getStreamDetails(user: string, env: Env, maxRetries = 3, baseDelay = 1000) {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      const streamRes = await fetch(`https://api.twitch.tv/helix/stream?user_login=${user}`, {
+      const streamRes = await fetch(`https://api.twitch.tv/helix/streams?user_login=${user}`, {
         headers: {
           'Client-ID': env.TWITCH_CLIENT_ID,
           'Authorization': `Bearer ${await getToken(env)}`,
