@@ -149,8 +149,8 @@ async function getAllStreamPages(interaction: APIApplicationCommandInteraction |
   })
 
   const multistreams = streams.filter(s => s.multiStream).flatMap(s => s.multiStream)
-  const twitchStreams = streams.filter(s => !s.multiStream)
-  const soloKickStreams = kickStreams.filter(s => !s.multiStream)
+  const twitchStreams = streams
+  const soloKickStreams = kickStreams
 
   const pageInfos: StreamPageInfo[] = []
 
