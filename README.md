@@ -31,18 +31,18 @@ Add DinkDonk Bot to your Discord server using [this link](https://discord.com/ap
 
 ### Step 2: Add a Streamer
 Add a Twitch or Kick streamer and choose which channel to post notifications in.
-- Twitch: `/stream twitch add <streamer> <channel>`
-- Kick: `/stream kick add <streamer> <channel>`
+- Twitch: `/streams twitch add <streamer> <channel>`
+- Kick: `/streams kick add <streamer> <channel>`
 
 ### Step 3: Multistream Notifications
 Link Twitch & Kick streamers together to reduce spam by merging notifications.
 *Note: You must have both Twitch and Kick alerts set up for this to work, and both need to post to the same channel.*
-- `/stream multistream link <twitch-streamer> <kick-streamer>`
+- `/streams multistream link <twitch-streamer> <kick-streamer>`
 
 ### Step 4: Test Your Notification *(Optional)*
 Preview what notifications will look like before going live.
-- `/stream twitch test <streamer>`
-- `/stream kick test <streamer>`
+- `/streams twitch test <streamer>`
+- `/streams kick test <streamer>`
 
 ### Step 5: Explore More Features
 - **Clips**: Get hourly highlights with `/clips add`
@@ -57,29 +57,29 @@ Use `/help` for detailed commands or join our [Discord server](https://discord.g
 ## Commands
 
 ### 🟪 Twitch Stream Alerts
-- `/stream twitch add <streamer> <discord-channel> [ping-role] [live-message] [offline-message] [cleanup]` - Add a Twitch streamer to receive notifications for going online
-- `/stream twitch remove <streamer>` - Remove a Twitch streamer from receiving notifications for going online or offline
-- `/stream twitch edit <streamer> [discord-channel] [ping-role] [remove-ping-role] [live-message] [offline-message] [cleanup]` - Edit a Twitch streamer's settings
-- `/stream list` - List the Twitch streamers that you are subscribed to
-- `/stream twitch test <streamer> [message-type] [multistream] [global]` - Test the notification for a streamer (online/offline)
-- `/stream twitch details <streamer>` - Show the details for a streamer you are subscribed to
-- `/stream help` - Show help for the Twitch command and its subcommands
+- `/streams twitch add <streamer> <discord-channel> [ping-role] [live-message] [offline-message] [cleanup]` - Add a Twitch streamer to receive notifications for going online
+- `/streams twitch remove <streamer>` - Remove a Twitch streamer from receiving notifications for going online or offline
+- `/streams twitch edit <streamer> [discord-channel] [ping-role] [remove-ping-role] [live-message] [offline-message] [cleanup]` - Edit a Twitch streamer's settings
+- `/streams list` - List the Twitch streamers that you are subscribed to
+- `/streams twitch test <streamer> [message-type] [multistream] [global]` - Test the notification for a streamer (online/offline)
+- `/streams twitch details <streamer>` - Show the details for a streamer you are subscribed to
+- `/streams help` - Show help for the Twitch command and its subcommands
 
 ### 🟩 Kick Stream Alerts
-- `/stream kick add <streamer> <discord-channel> [ping-role] [live-message] [offline-message] [cleanup]` - Add a Kick streamer to receive notifications for going online
-- `/stream kick remove <streamer>` - Remove a Kick streamer from receiving notifications for going online
-- `/stream kick edit <streamer> [discord-channel] [ping-role] [remove-ping-role]  [live-message] [offline-message] [cleanup]` - Edit a Kick streamer's settings
-- `/stream list` - View your subscribed Kick streamers
-- `/stream kick test <streamer> [message-type] [multistream] [global]` - Test the notification for a streamer (online/offline)
-- `/stream kick details <streamer>` - Show the details for a streamer you are subscribed to
-- `/stream help` - Show help for the Kick command
+- `/streams kick add <streamer> <discord-channel> [ping-role] [live-message] [offline-message] [cleanup]` - Add a Kick streamer to receive notifications for going online
+- `/streams kick remove <streamer>` - Remove a Kick streamer from receiving notifications for going online
+- `/streams kick edit <streamer> [discord-channel] [ping-role] [remove-ping-role]  [live-message] [offline-message] [cleanup]` - Edit a Kick streamer's settings
+- `/streams list` - View your subscribed Kick streamers
+- `/streams kick test <streamer> [message-type] [multistream] [global]` - Test the notification for a streamer (online/offline)
+- `/streams kick details <streamer>` - Show the details for a streamer you are subscribed to
+- `/streams help` - Show help for the Kick command
 
 ### 🔗 Multistream Notifications
-- `/stream multistream link <twitch-streamer> <kick-streamer> [priority] [late-merge]` - Setup a multistream connection between a Twitch & Kick channel
-- `/stream multistream unlink [twitch-streamer] [kick-streamer]` - Remove a multistream connection between a Twitch & Kick channel
-- `/stream multistream edit [twitch-streamer] [kick-streamer] [priority] [late-merge]` - Edit a multistream setup settings
-- `/stream list` - List your currently set up multistreams
-- `/stream help` - Show help for the multistream command
+- `/streams multistream link <twitch-streamer> <kick-streamer> [priority] [late-merge]` - Setup a multistream connection between a Twitch & Kick channel
+- `/streams multistream unlink [twitch-streamer] [kick-streamer]` - Remove a multistream connection between a Twitch & Kick channel
+- `/streams multistream edit [twitch-streamer] [kick-streamer] [priority] [late-merge]` - Edit a multistream setup settings
+- `/streams list` - List your currently set up multistreams
+- `/streams help` - Show help for the multistream command
 
 ### 🎬 Twitch Clip Highlights
 - `/clips add <streamer> <discord-channel>` - Subscribe to Twitch clips from a streamer to be posted hourly
