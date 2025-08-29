@@ -97,13 +97,13 @@ Bot Commands
 🟪 Twitch Stream Alerts
 
 #subtitle
-`/twitch add <streamer> <discord-channel> [ping-role] [live-message] [offline-message] [cleanup]` - Add Twitch streamer notifications
-`/twitch remove <streamer>` - Remove Twitch streamer notifications
-`/twitch edit <streamer> [discord-channel] [ping-role] [remove-ping-role] [live-message] [offline-message] [cleanup]` - Edit Twitch streamer settings
-`/twitch list` - View all subscribed Twitch streamers
-`/twitch test <streamer> [message-type] [multistream] [global]` - Test notification appearance
-`/twitch details <streamer>` - See detailed Twitch streamer settings
-`/twitch help` - Display Twitch command instructions
+`/streams twitch add <streamer> <discord-channel> [ping-role] [live-message] [offline-message] [cleanup]` - Add Twitch streamer notifications
+`/streams twitch remove <streamer>` - Remove Twitch streamer notifications
+`/streams twitch edit <streamer> [discord-channel] [ping-role] [remove-ping-role] [live-message] [offline-message] [cleanup]` - Edit Twitch streamer settings
+`/streams list` - View all subscribed Twitch streamers
+`/streams twitch test <streamer> [message-type] [multistream] [global]` - Test notification appearance
+`/streams twitch details <streamer>` - See detailed Twitch streamer settings
+`/streams help` - Display Twitch command instructions
 
 #description
 Set up Twitch stream notifications for your Discord server. Get notified when your favorite streamers go live or offline with customizable messages and ping roles.
@@ -115,13 +115,13 @@ Set up Twitch stream notifications for your Discord server. Get notified when yo
 🟩 Kick Stream Alerts
 
 #subtitle
-`/kick add <streamer> <discord-channel> [ping-role] [live-message] [offline-message] [cleanup]` - Add Kick streamer notifications
-`/kick remove <streamer>` - Remove Kick streamer notifications
-`/kick edit <streamer> [discord-channel] [ping-role] [live-message] [offline-message] [cleanup]` - Edit Kick streamer settings
-`/kick list` - View all subscribed Kick streamers
-`/kick test <streamer> [message-type] [multistream] [global]` - Test notification appearance
-`/kick details <streamer>` - See detailed Kick streamer settings
-`/kick help` - Display Kick command instructions
+`/streams kick add <streamer> <discord-channel> [ping-role] [live-message] [offline-message] [cleanup]` - Add Kick streamer notifications
+`/streams kick remove <streamer>` - Remove Kick streamer notifications
+`/streams kick edit <streamer> [discord-channel] [ping-role] [live-message] [offline-message] [cleanup]` - Edit Kick streamer settings
+`/streams list` - View all subscribed Kick streamers
+`/streams kick test <streamer> [message-type] [multistream] [global]` - Test notification appearance
+`/streams kick details <streamer>` - See detailed Kick streamer settings
+`/streams help` - Display Kick command instructions
 
 #description
 Monitor Kick streamers and get real-time notifications when they start or stop streaming. Perfect for keeping up with the latest live content on Kick.
@@ -133,11 +133,11 @@ Monitor Kick streamers and get real-time notifications when they start or stop s
 🔗 Multistream Notifications
 
 #subtitle
-`/multistream link <twitch-streamer> <kick-streamer> [priority] [late-merge]` - Link Twitch and Kick streamers for unified notifications
-`/multistream unlink [twitch-streamer] [kick-streamer]` - Remove multistream connection
-`/multistream edit [twitch-streamer] [kick-streamer] [priority] [late-merge]` - Edit multistream settings
-`/multistream list` - View all multistream connections
-`/multistream help` - Get help with multistream commands
+`/streams multistream link <twitch-streamer> <kick-streamer> [priority] [late-merge]` - Link Twitch and Kick streamers for unified notifications
+`/streams multistream unlink [twitch-streamer] [kick-streamer]` - Remove multistream connection
+`/streams multistream edit [twitch-streamer] [kick-streamer] [priority] [late-merge]` - Edit multistream settings
+`/streams list` - View all multistream connections
+`/streams help` - Get help with multistream commands
 
 #description
 Merge notifications for streamers who broadcast on both Twitch and Kick into a single unified message. Set platform priority and configure late-merge options for maximum flexibility.

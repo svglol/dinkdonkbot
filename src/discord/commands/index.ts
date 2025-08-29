@@ -12,6 +12,7 @@ import multistream from './multistream'
 import quickstart from './quickstart'
 import randomemote from './randomemote'
 import stealEmote from './stealEmote'
+import streams from './streams'
 import time from './time'
 import timestamp from './timestamp'
 import twitch from './twitch'
@@ -38,6 +39,7 @@ export const COMMANDS: Array<DiscordAPIApplicationCommand> = [
   commands,
   multistream,
   quickstart,
+  streams,
 ]
 
 export const COMMAND_DEFINITIONS = COMMANDS.filter(c => c && c.command).map(c => c.command)

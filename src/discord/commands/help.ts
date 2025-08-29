@@ -3,9 +3,6 @@ import { CLIPPERS_EMOTE, DISCORD_EMOTE, GITHUB_EMOTE, KICK_EMOTE, TWITCH_EMOTE }
 import { findBotCommandMarkdown, updateInteraction } from '../discord'
 import { deferedUpdate, interactionEphemeralLoading } from '../interactionHandler'
 import { getEmoteHelpMessage } from './emote'
-import { getKickHelpMessage } from './kick'
-import { getMultistreamHelpMessage } from './multistream'
-import { getTwitchHelpMessage } from './twitch'
 import { getClipsHelpMessage } from './twitchClips'
 
 const HELP_COMMAND = {
@@ -18,12 +15,8 @@ async function getHelpPages(env: Env): Promise<Record<string, string>> {
     page_index: `## 📖 Help Overview
 ### 🚀 Quickstart
 Use the ${await findBotCommandMarkdown(env, 'quickstart')} command to set up the bot and notifications in a few easy steps. Perfect for new users who want a guided setup.
-### ${TWITCH_EMOTE.formatted} Twitch Stream Alerts
-Set up Twitch stream notifications for your Discord server. Get notified when your favorite streamers go live or offline with customizable messages and ping roles.
-### ${KICK_EMOTE.formatted} Kick Stream Alerts  
-Set up Kick stream notifications for your Discord server. Get notified when your favorite streamers go live or offline with customizable messages and ping roles.
-### 📺 Multistream Alerts
-Combine Twitch and Kick notifications into unified alerts. Perfect for streamers who multistream across both platforms.
+### ${TWITCH_EMOTE.formatted} ${KICK_EMOTE.formatted} Stream Alerts
+Subscribe to automatic stream notifications from your favorite streamers. Get notified when your favorite streamers go live or offline with customizable messages and ping roles.
 ### ${CLIPPERS_EMOTE.formatted} Twitch Clip Alerts
 Subscribe to automatic Twitch clip notifications from your favorite streamers. Get the best clips posted hourly to your Discord channels.
 ### 🥳 Emote Management
@@ -32,12 +25,22 @@ Easily add custom emotes to your Discord server from other servers or 7tv. Steal
 Various utility commands including time, weather, invites, fun interactions, and timestamp generation.
 ### ❓ Support
 Links to the website, GitHub repository, and ways to support the bot.`,
-    page_twitch: `## ${TWITCH_EMOTE.formatted} **Twitch Stream Alerts**
-${await getTwitchHelpMessage(env)}`,
-    page_kick: `## ${KICK_EMOTE.formatted} **Kick Stream Alerts**
-${await getKickHelpMessage(env)}`,
-    page_multistream: `## 📺 **Multistream Alerts**
-${await getMultistreamHelpMessage(env)}`,
+    page_stream: `## ${TWITCH_EMOTE.formatted}${KICK_EMOTE.formatted} **Stream Alerts**
+Keep your community updated when your favorite Twitch and Kick streamers go live. Stream Alerts let you:
+- Automatically post messages in a chosen Discord channel when a streamer starts or stops streaming.
+- Customize the messages with variables (streamer name, category, links, etc.).
+- Ping specific roles when a stream goes live.
+- Remove or update alerts easily as your needs change.
+
+You can also combine alerts from both Twitch and Kick into a single notification using **Multistream Alerts**, reducing spam in your channels.
+
+**Where to go next**
+- ${await findBotCommandMarkdown(env, 'streams', 'help')} – Help message for Stream Alerts
+- ${await findBotCommandMarkdown(env, 'streams', 'twitch')} – Set up and manage Twitch alerts
+- ${await findBotCommandMarkdown(env, 'streams', 'kick')} – Set up and manage Kick alerts
+- ${await findBotCommandMarkdown(env, 'streams', 'multistream')} – Combine Twitch and Kick alerts
+`,
+
     page_clips: `## ${CLIPPERS_EMOTE.formatted} **Twitch Clips**
 ${await getClipsHelpMessage(env)}`,
     page_emotes: `## 🥳 **Emote Management**
@@ -88,14 +91,12 @@ async function handleHelpCommand(interaction: APIMessageComponentInteraction | A
         custom_id: 'help_page_select',
         placeholder: 'Select a help page',
         options: [
-          { label: 'Overview', value: 'page_index', emoji: { name: '📖' } },
-          { label: 'Twitch Alerts', value: 'page_twitch', emoji: { id: TWITCH_EMOTE.id, name: TWITCH_EMOTE.name } },
-          { label: 'Kick Alerts', value: 'page_kick', emoji: { id: KICK_EMOTE.id, name: KICK_EMOTE.name } },
-          { label: 'Multistream Alerts', value: 'page_multistream', emoji: { name: '📺' } },
-          { label: 'Twitch Clips', value: 'page_clips', emoji: { id: CLIPPERS_EMOTE.id, name: CLIPPERS_EMOTE.name } },
-          { label: 'Emote Management', value: 'page_emotes', emoji: { name: '🥳' } },
-          { label: 'Misc Commands', value: 'page_misc', emoji: { name: '🎉' } },
-          { label: 'Support', value: 'page_support', emoji: { name: '❓' } },
+          { label: 'Overview', value: 'page_index', emoji: { name: '📖' }, default: page === 'page_index' },
+          { label: 'Stream Alerts', value: 'page_stream', emoji: { name: '📺' }, default: page === 'page_stream' },
+          { label: 'Clips', value: 'page_clips', emoji: { id: CLIPPERS_EMOTE.id, name: CLIPPERS_EMOTE.name }, default: page === 'page_clips' },
+          { label: 'Emote Management', value: 'page_emotes', emoji: { name: '🥳' }, default: page === 'page_emotes' },
+          { label: 'Misc Commands', value: 'page_misc', emoji: { name: '🎉' }, default: page === 'page_misc' },
+          { label: 'Support', value: 'page_support', emoji: { name: '❓' }, default: page === 'page_support' },
         ],
       },
     ],

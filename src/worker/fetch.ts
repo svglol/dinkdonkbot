@@ -5,10 +5,13 @@ import { ApplicationIntegrationType, ApplicationWebhookEventType, ApplicationWeb
 import { InteractionResponseType, verifyKey } from 'discord-interactions'
 import { Router } from 'itty-router'
 
+import { buildQuickstartMessage } from '../discord/commands/quickstart'
+import { buildSuccessEmbed, directMessageUser } from '../discord/discord'
 import { discordInteractionAutoCompleteHandler, discordInteractionHandler, discordInteractionMessageComponentHandler, discordInteractionModalHandler } from '../discord/interactionHandler'
 import { kickEventHandler } from '../kick/eventHandler'
 import { getKickChannelV2 } from '../kick/kick'
 import { twitchEventHandler } from '../twitch/eventHandler'
+import { DINKDONK_EMOTE } from '../util/discordEmotes'
 import { JsonResponse } from '../util/jsonResponse'
 import { scheduledCheck } from './scheduled'
 
@@ -71,6 +74,12 @@ router.post('/', async (request, env: Env, ctx: ExecutionContext) => {
           // added to guild
           if (webhookEvent.event.data.guild)
             env.ANALYTICS.writeDataPoint({ blobs: ['guild_install', webhookEvent.event.data.guild.name], doubles: [1], indexes: [webhookEvent.event.data.guild.id] })
+
+          if (webhookEvent.event.data.user) {
+            // send quick start message via dm
+            const message = await buildQuickstartMessage(env)
+            await directMessageUser(env, webhookEvent.event.data.user.id, { embeds: [buildSuccessEmbed(message, env, { title: `${DINKDONK_EMOTE.formatted} DinkDonk Bot Quickstart`, color: 0xFFF200 })] })
+          }
         }
         else if (webhookEvent.event.data.integration_type === ApplicationIntegrationType.UserInstall) {
           env.ANALYTICS.writeDataPoint({ blobs: ['user_install', webhookEvent.event.data.user.username], doubles: [1], indexes: [webhookEvent.event.data.user.id] })
