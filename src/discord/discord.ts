@@ -129,7 +129,7 @@ export async function updateInteraction(interaction: APIInteraction, env: Env, b
       return await update.json()
     }
     catch (error) {
-      console.error('Error updating interaction:', error)
+      console.error(`Error updating interaction at ${url}:`, error)
     }
   }
 }
