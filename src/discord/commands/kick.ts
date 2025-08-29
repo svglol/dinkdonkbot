@@ -66,7 +66,6 @@ async function handleCommand(interaction: APIApplicationCommandInteraction, env:
       case 'remove':{
         ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'kick', 'remove')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'kick', 'remove')}` }))
         break
-
       }
       case 'edit':{
         ctx.waitUntil(updateInteraction(interaction, env, { content: `${await findBotCommandMarkdown(env, 'kick', 'edit')} command has moved to ${await findBotCommandMarkdown(env, 'stream', 'kick', 'edit')}` }))
