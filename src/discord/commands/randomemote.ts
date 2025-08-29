@@ -26,25 +26,25 @@ function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: E
  */
 async function handleRandomEmoteCommand(interaction: APIApplicationCommandInteraction, env: Env) {
   if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
   if (!isGuildInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
 
   try {
     const emojis = await fetchGuildEmojis(interaction.guild_id, env.DISCORD_TOKEN)
 
     if (emojis.length === 0) {
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+      return await updateInteraction(interaction, env, {
         embeds: [buildErrorEmbed('This server has no custom emotes!', env)],
       })
     }
 
     const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)]
     const emoteString = `<${randomEmoji.animated ? 'a' : ''}:${randomEmoji.name}:${randomEmoji.id}>`
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${emoteString}` })
+    return await updateInteraction(interaction, env, { content: `${emoteString}` })
   }
   catch (error) {
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return await updateInteraction(interaction, env, {
       embeds: [buildErrorEmbed(`Failed to fetch random emote: ${error}`, env)],
     })
   }

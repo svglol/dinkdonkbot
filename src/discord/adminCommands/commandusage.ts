@@ -33,9 +33,9 @@ function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: E
 
 async function handleUsageCommand(interaction: APIApplicationCommandInteraction, env: Env) {
   if (interaction.guild_id !== env.DISCORD_GUILD_ID)
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in the correct server', env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in the correct server', env)] })
   if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
 
   // Get the days parameter, default to 7 days - options can be undefined for commands with all optional parameters
   const daysOption = interaction.data.options?.find(option => option.name === 'days')
@@ -46,7 +46,7 @@ async function handleUsageCommand(interaction: APIApplicationCommandInteraction,
     const usageStats = await getCommandUsageStats(env, days)
 
     if (usageStats.length === 0) {
-      return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+      return updateInteraction(interaction, env, {
         embeds: [buildErrorEmbed('No command usage stats found', env)],
       })
     }
@@ -54,13 +54,13 @@ async function handleUsageCommand(interaction: APIApplicationCommandInteraction,
     // Format the response
     const response = formatUsageStats(usageStats, days)
 
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return updateInteraction(interaction, env, {
       embeds: [buildSuccessEmbed(response, env, { title: `${DINKDONK_EMOTE.formatted} Command Usage Stats`, color: 0xFFF200 })],
     })
   }
   catch (error) {
     console.error('Error getting command usage stats:', error)
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return updateInteraction(interaction, env, {
       embeds: [buildErrorEmbed(`Error getting command usage stats` + `\n${error}`, env)],
     })
   }

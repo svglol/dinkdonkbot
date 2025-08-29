@@ -21,7 +21,7 @@ function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: E
 
 async function handleStatsCommand(interaction: APIApplicationCommandInteraction, env: Env) {
   if (interaction.guild_id !== env.DISCORD_GUILD_ID)
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in the correct server', env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in the correct server', env)] })
 
   const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
   const db = useDB(env)
@@ -70,7 +70,7 @@ async function handleStatsCommand(interaction: APIApplicationCommandInteraction,
 - Stored Multistream Configurations (DB): ${multistreamCount}
 `
 
-  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(content, env, { title: `${DINKDONK_EMOTE.formatted} Stats`, color: 0xFFF200 })] })
+  return updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(content, env, { title: `${DINKDONK_EMOTE.formatted} Stats`, color: 0xFFF200 })] })
 }
 
 export default {

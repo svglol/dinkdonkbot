@@ -24,7 +24,7 @@ import { buildErrorEmbed, updateInteraction } from './discord'
 export async function discordInteractionHandler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
   if (!interaction.data) {
     env.ANALYTICS.writeDataPoint({ blobs: ['invalid_interaction'], doubles: [1], indexes: [interaction.guild_id ?? ''] })
-    ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] }))
+    ctx.waitUntil(updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] }))
     return interactionEphemeralLoading()
   }
 
@@ -37,7 +37,7 @@ export async function discordInteractionHandler(interaction: APIApplicationComma
   }
   else {
     env.ANALYTICS.writeDataPoint({ blobs: ['command_not_found', interaction.data.name], doubles: [1], indexes: [interaction.guild_id ?? ''] })
-    ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Command not found', env)] }))
+    ctx.waitUntil(updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Command not found', env)] }))
     return interactionEphemeralLoading()
   }
 }
@@ -231,9 +231,9 @@ async function handleTopClipsCommand(interaction: APIMessageComponentInteraction
 
       })
     }
-    await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { components, flags: 1 << 15 })
+    await updateInteraction(interaction, env, { components, flags: 1 << 15 })
   }
   else {
-    await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('We could not find any clips from this stream 😢', env)] })
+    await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('We could not find any clips from this stream 😢', env)] })
   }
 }

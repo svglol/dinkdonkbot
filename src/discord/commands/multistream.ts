@@ -144,18 +144,18 @@ async function handler(interaction: APIApplicationCommandInteraction, env: Env, 
 
 async function handleCommands(interaction: APIApplicationCommandInteraction, env: Env) {
   if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
   if (!interaction.data.options)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
   if (!isGuildInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
 
   const option = interaction.data.options[0].name
   switch (option) {
     case 'link': {
       const link = interaction.data.options.find(option => option.name === 'link')
       if (!link || !('options' in link) || !link.options)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
 
       const twitchStreamerOption = link.options.find(option => option.name === 'twitch-streamer')
       const twitchStreamer = twitchStreamerOption && 'value' in twitchStreamerOption ? twitchStreamerOption.value as string : undefined
@@ -188,13 +188,13 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
 
       if (twitchStream && kickStream) {
         if (twitchStream.multiStream)
-          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`The Twitch streamer is already linked to a multistream, if you want to relink it use the ${await findBotCommandMarkdown(env, 'multistream', 'unlink')} command`, env)] })
+          return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`The Twitch streamer is already linked to a multistream, if you want to relink it use the ${await findBotCommandMarkdown(env, 'multistream', 'unlink')} command`, env)] })
 
         if (kickStream.multiStream)
-          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`The Kick streamer is already linked to a multistream, if you want to relink it use the ${await findBotCommandMarkdown(env, 'multistream', 'unlink')} command`, env)] })
+          return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`The Kick streamer is already linked to a multistream, if you want to relink it use the ${await findBotCommandMarkdown(env, 'multistream', 'unlink')} command`, env)] })
 
         if (twitchStream.channelId !== kickStream.channelId)
-          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('The Twitch and Kick streamers must be setup to post in the same channel', env)] })
+          return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('The Twitch and Kick streamers must be setup to post in the same channel', env)] })
 
         await useDB(env).insert(tables.multiStream).values({
           streamId: twitchStream.id,
@@ -203,7 +203,7 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
           lateMerge,
         })
 
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+        return await updateInteraction(interaction, env, {
           embeds: [
             buildSuccessEmbed(`Priority: ${priority}\n Late Merge: ${lateMerge ? 'Enabled' : 'Disabled'}`, env, {
               title: `Successfully linked ${TWITCH_EMOTE.formatted}\`${twitchStream.name}\` + ${KICK_EMOTE.formatted}\`${kickStream.name}\``,
@@ -212,13 +212,13 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
         })
       }
       else {
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Could not find the appropriate subscriptions to link', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Could not find the appropriate subscriptions to link', env)] })
       }
     }
     case 'unlink':{
       const unlink = interaction.data.options.find(option => option.name === 'unlink')
       if (!unlink || !('options' in unlink) || !unlink.options)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
 
       const twitchStreamerOption = unlink.options.find(option => option.name === 'twitch-streamer')
       const twitchStreamer = twitchStreamerOption && 'value' in twitchStreamerOption ? twitchStreamerOption.value as string : undefined
@@ -227,7 +227,7 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
       const kickStreamer = kickStreamerOption && 'value' in kickStreamerOption ? kickStreamerOption.value as string : undefined
 
       if (!twitchStreamer && !kickStreamer)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You must specify a Twitch or Kick streamer to unlink', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('You must specify a Twitch or Kick streamer to unlink', env)] })
 
       const streams = await useDB(env).query.streams.findMany({
         where: (streams, { eq }) => eq(streams.guildId, interaction.guild_id),
@@ -247,7 +247,7 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
         if (multiStream)
           await useDB(env).delete(tables.multiStream).where(eq(tables.multiStream.id, multiStream.id))
 
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+        return await updateInteraction(interaction, env, {
           embeds: [
             buildSuccessEmbed(` `, env, {
               title: `Successfully removed ${TWITCH_EMOTE.formatted}\`${multiStream?.stream?.name}\` + ${KICK_EMOTE.formatted}\`${multiStream?.kickStream?.name}\` multistream link`,
@@ -256,7 +256,7 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
         })
       }
       else {
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Could not find the appropriate subscriptions to remove', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Could not find the appropriate subscriptions to remove', env)] })
       }
     }
     case 'list':{
@@ -276,16 +276,16 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
 
       if (multiStreams.length > 0) {
         const list = multiStreams.map(multistream => `${TWITCH_EMOTE.formatted}\`${multistream.stream.name}\` ${KICK_EMOTE.formatted}\`${multistream.kickStream.name}\` ${'Priority: '}${multistream.priority === 'twitch' ? TWITCH_EMOTE.formatted : KICK_EMOTE.formatted} Late Merge: ${multistream.lateMerge ? 'Enabled' : 'Disabled'}`).join('\n')
-        return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(list, env, { title: 'Multistream Links', color: 0xFFF200 })] })
+        return updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(list, env, { title: 'Multistream Links', color: 0xFFF200 })] })
       }
       else {
-        return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('No multistream links found!', env)] })
+        return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('No multistream links found!', env)] })
       }
     }
     case 'edit': {
       const edit = interaction.data.options.find(option => option.name === 'edit')
       if (!edit || !('options' in edit) || !edit.options)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
 
       const twitchStreamerOption = edit.options.find(option => option.name === 'twitch-streamer')
       const twitchStreamer = twitchStreamerOption && 'value' in twitchStreamerOption ? twitchStreamerOption.value as string : undefined
@@ -300,10 +300,10 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
       const lateMerge = lateMergeOption && 'value' in lateMergeOption ? lateMergeOption.value as boolean : undefined
 
       if (!twitchStreamer && !kickStreamer)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You must specify either a Twitch or Kick streamer to edit', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('You must specify either a Twitch or Kick streamer to edit', env)] })
 
       if (!priority && lateMerge === undefined)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You must specify a priority or late merge to update', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('You must specify a priority or late merge to update', env)] })
 
       let multiStreamToEdit: MultiStream | null = null
       let streamerName = ''
@@ -346,7 +346,7 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
       }
 
       if (!multiStreamToEdit) {
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+        return await updateInteraction(interaction, env, {
           embeds: [buildErrorEmbed('Could not find a multistream setup for the specified streamer', env)],
         })
       }
@@ -354,7 +354,7 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
       // Update the multistream settings
       await useDB(env).update(tables.multiStream).set({ priority, lateMerge }).where(eq(tables.multiStream.id, multiStreamToEdit.id))
 
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+      return await updateInteraction(interaction, env, {
         embeds: [
           buildSuccessEmbed(`${priority ? `Priority updated to: ${priority}` : ''}  ${lateMerge !== undefined ? `Late merge updated to: ${lateMerge}` : ''}`, env, {
             title: `Successfully updated \`${streamerName}\` multistream settings`,
@@ -388,10 +388,10 @@ async function handleCommands(interaction: APIApplicationCommandInteraction, env
           },
         ],
       } satisfies APIMessageTopLevelComponent
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { components: [helpCard], flags: 1 << 15 })
+      return await updateInteraction(interaction, env, { components: [helpCard], flags: 1 << 15 })
     }
   }
-  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Not yet implemented', env)] })
+  return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Not yet implemented', env)] })
 }
 
 async function autoCompleteHandler(interaction: APIApplicationCommandAutocompleteInteraction, env: Env, _ctx: ExecutionContext) {

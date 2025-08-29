@@ -47,7 +47,7 @@ function formatSlashCommand(command: APIApplicationCommand): string {
 
 async function listCommands(interaction: APIApplicationCommandInteraction, env: Env) {
   if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction)) {
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return updateInteraction(interaction, env, {
       embeds: [buildErrorEmbed('Invalid interaction', env)],
     })
   }
@@ -69,7 +69,7 @@ async function listCommands(interaction: APIApplicationCommandInteraction, env: 
       : null,
   ].filter(Boolean).join('\n\n')
 
-  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+  return updateInteraction(interaction, env, {
     embeds: [
       buildSuccessEmbed(content, env, {
         title: `${DINKDONK_EMOTE.formatted} DinkDonk Bot Commands`,
@@ -83,13 +83,13 @@ async function listCommands(interaction: APIApplicationCommandInteraction, env: 
  */
 export async function listAllBotCommands(interaction: APIApplicationCommandInteraction, env: Env) {
   if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction)) {
-    return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return updateInteraction(interaction, env, {
       embeds: [buildErrorEmbed('Invalid interaction', env)],
     })
   }
   const commands = (await fetchBotCommands(env.DISCORD_TOKEN, env)).filter(c => c.type === 1).sort((a, b) => a.name.localeCompare(b.name))
   const content = commands.length > 0 ? `${commands.map(c => `- </${c.name}:${c.id}> - ${c.description}`).join('\n')}` : '⚠️ No commands found.'
-  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(content, env, { title: `${DINKDONK_EMOTE.formatted} DinkDonk Bot Commands`, color: 0xFFF200 })] })
+  return updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(content, env, { title: `${DINKDONK_EMOTE.formatted} DinkDonk Bot Commands`, color: 0xFFF200 })] })
 }
 
 export default {

@@ -109,13 +109,13 @@ function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: E
  */
 async function handleTwitchClipsCommand(interaction: APIApplicationCommandInteraction, env: Env) {
   if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
 
   if (!interaction.data.options)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
 
   if (!isGuildInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
 
   const option = interaction.data.options[0].name
   switch (option) {
@@ -123,7 +123,7 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
       const server = interaction.guild_id
       const add = interaction.data.options.find(option => option.name === 'add')
       if (!add || !('options' in add) || !add.options)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
 
       const streamerOption = add.options.find(option => option.name === 'streamer')
       const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
@@ -131,7 +131,7 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
       const channel = channelOption && 'value' in channelOption ? channelOption.value as string : undefined
 
       if (!streamer || !channel)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
 
       // check if we have permission to post in this discord channel
       const permissions = await calculateChannelPermissions(interaction.guild_id!, channel, env.DISCORD_APPLICATION_ID, env.DISCORD_TOKEN, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.MentionEveryone])
@@ -142,7 +142,7 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
       if (missingPermissions.length > 0) {
         const permissionError = `Dinkdonk Bot does not have the required permissions use <#${channel}>.\nMissing permissions: ${missingPermissions.join(', ')}`
         console.error(permissionError)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(permissionError, env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(permissionError, env)] })
       }
 
       // check if already subscribed to this channel
@@ -150,12 +150,12 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
         where: (clips, { eq, and, like }) => and(eq(clips.guildId, server), like(clips.streamer, streamer)),
       })
       if (subscriptions.length > 0)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
 
       // check if twitch channel exists
       const channelId = await getChannelId(streamer, env)
       if (!channelId)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`Twitch channel with name:\`${streamer}\` could not be found`, env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`Twitch channel with name:\`${streamer}\` could not be found`, env)] })
 
       const streamerDetails = await getStreamerDetails(streamer, env)
 
@@ -168,12 +168,12 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
       }).returning().get()
 
       if (!subscription)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Failed to add subscription', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Failed to add subscription', env)] })
 
       let details = `Streamer: \`${subscription.streamer}\`\n`
       details += `Channel: <#${subscription.channelId}>\n`
 
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(details, env, {
+      return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(details, env, {
         title: `${TWITCH_EMOTE.formatted} Subscribed for Clip Notifications for \`${streamerDetails ? streamerDetails.display_name : streamer}\``,
         ...(streamerDetails?.profile_image_url && {
           thumbnail: { url: streamerDetails.profile_image_url },
@@ -183,36 +183,36 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
     case 'remove': {
       const remove = interaction.data.options.find(option => option.name === 'remove')
       if (!remove || !('options' in remove) || !remove.options)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
       const streamerOption = remove.options.find(option => option.name === 'streamer')
       const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
       if (!streamer)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
 
       const stream = await useDB(env).query.clips.findFirst({
         where: (clips, { and, eq, like }) => and(like(clips.streamer, streamer), eq(clips.guildId, interaction.guild_id)),
       })
       if (!stream)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You are not subscribed to this streamer', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('You are not subscribed to this streamer', env)] })
 
       await useDB(env).delete(tables.clips).where(and(like(tables.clips.streamer, streamer), eq(tables.clips.guildId, interaction.guild_id)))
 
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`Unsubscribed to \`${streamer}\` for clip notifications`, env)] })
+      return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(`Unsubscribed to \`${streamer}\` for clip notifications`, env)] })
     }
     case 'edit': {
       const server = interaction.guild_id
       const edit = interaction.data.options.find(option => option.name === 'edit')
       if (!edit || !('options' in edit) || !edit.options)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
       const streamerOption = edit.options.find(option => option.name === 'streamer')
       const streamer = streamerOption && 'value' in streamerOption ? streamerOption.value as string : undefined
       if (!streamer)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
       const dbClip = await useDB(env).query.clips.findFirst({
         where: (clips, { and, eq, like }) => and(like(clips.streamer, streamer), eq(clips.guildId, interaction.guild_id)),
       })
       if (!dbClip)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You are not subscribed to this streamer', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('You are not subscribed to this streamer', env)] })
 
       const channel = edit.options.find(option => option.name === 'discord-channel')
       if (channel) {
@@ -225,13 +225,13 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
         if (missingPermissions.length > 0) {
           const permissionError = `Dinkdonk Bot does not have the required permissions use <#${channelValue}>.\nMissing permissions: ${missingPermissions.join(', ')}`
           console.error(permissionError)
-          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(permissionError, env)] })
+          return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(permissionError, env)] })
         }
 
         await useDB(env).update(tables.clips).set({ channelId: channelValue }).where(and(like(tables.clips.streamer, streamer), eq(tables.clips.guildId, server)))
       }
 
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`Edited \`${streamer}\` for clip notifications`, env)] })
+      return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(`Edited \`${streamer}\` for clip notifications`, env)] })
     }
     case 'list': {
       const clips = await useDB(env).query.clips.findMany({
@@ -241,7 +241,7 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
       if (clips.length > 0)
         clipsList = clips.map(stream => `**${stream.streamer}** - <#${stream.channelId}>`).join('\n')
 
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(clipsList, env, { title: `${TWITCH_EMOTE.formatted} Clip Notifications` })] })
+      return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(clipsList, env, { title: `${TWITCH_EMOTE.formatted} Clip Notifications` })] })
     }
     case 'help': {
       const helpCard = {
@@ -269,7 +269,7 @@ async function handleTwitchClipsCommand(interaction: APIApplicationCommandIntera
           },
         ],
       } satisfies APIMessageTopLevelComponent
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { components: [helpCard], flags: 1 << 15 })
+      return await updateInteraction(interaction, env, { components: [helpCard], flags: 1 << 15 })
     }
   }
 }

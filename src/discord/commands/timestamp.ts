@@ -53,7 +53,7 @@ function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: E
 
 async function handleTimestampCommand(interaction: APIApplicationCommandInteraction, env: Env) {
   if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction) || !interaction.data.options) {
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return await updateInteraction(interaction, env, {
       embeds: [buildErrorEmbed('Invalid arguments', env)],
     })
   }
@@ -64,7 +64,7 @@ async function handleTimestampCommand(interaction: APIApplicationCommandInteract
   const styleOption = interaction.data.options.find(o => o.name === 'style')
 
   if (!dateOption || !timeOption || !offsetOption || !('value' in dateOption) || !('value' in timeOption) || !('value' in offsetOption)) {
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return await updateInteraction(interaction, env, {
       embeds: [buildErrorEmbed('Invalid arguments', env)],
     })
   }
@@ -76,7 +76,7 @@ async function handleTimestampCommand(interaction: APIApplicationCommandInteract
   // Validate UTC offset format (UTC+/-X)
   const match = utcInput.match(/^UTC([+-]\d{1,2})$/)
   if (!match) {
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return await updateInteraction(interaction, env, {
       embeds: [buildErrorEmbed('Invalid UTC offset format. Use e.g. `UTC+0`, `UTC+5`, `UTC-5`', env)],
     })
   }
@@ -88,7 +88,7 @@ async function handleTimestampCommand(interaction: APIApplicationCommandInteract
   const localDate = new Date(dateStr)
 
   if (Number.isNaN(localDate.getTime())) {
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+    return await updateInteraction(interaction, env, {
       embeds: [buildErrorEmbed('Invalid date/time format, please use - date: \`YYYY-MM-DD\` time: \`HH:MM\`', env)],
     })
   }
@@ -96,7 +96,7 @@ async function handleTimestampCommand(interaction: APIApplicationCommandInteract
   const unix = Math.floor(utcDate.getTime() / 1000)
   const discordTimestamp = `<t:${unix}:${style}>`
 
-  return updateInteraction(interaction, env.DISCORD_APPLICATION_ID, {
+  return updateInteraction(interaction, env, {
     embeds: [
       buildSuccessEmbed(
         `Preview: ${discordTimestamp}\nTimestamp: \`${discordTimestamp}\`\nYou can copy and paste this into any message on Discord.`,

@@ -59,20 +59,20 @@ function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: E
  */
 async function handleEmoteCommand(interaction: APIApplicationCommandInteraction, env: Env) {
   if (!interaction.data || !isChatInputApplicationCommandInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
   if (!interaction.data.options)
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
   if (!isGuildInteraction(interaction))
-    return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
   const option = interaction.data.options[0].name
   switch (option) {
     case 'add': {
       const add = interaction.data.options.find(option => option.name === 'add')
       if (!add || !('options' in add) || !add.options)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
       const emoteOption = add.options.find(option => option.name === 'url_or_emoji')
       if (!emoteOption)
-        return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('No emote provided', env)] })
+        return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('No emote provided', env)] })
       const emote = 'value' in emoteOption ? emoteOption.value as string : ''
 
       const is7tvLink = /^https?:\/\/7tv\.app\/emotes\/[a-zA-Z0-9]+$/.test(emote)
@@ -90,7 +90,7 @@ async function handleEmoteCommand(interaction: APIApplicationCommandInteraction,
         try {
           const emojis = await fetchGuildEmojis(interaction.guild_id, env.DISCORD_TOKEN)
           if (emojis.some(emoji => emoji.id === id)) {
-            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`Emote already exists on this server: <${isAnimated ? 'a' : ''}:${cleanName}:${id}>`, env)] })
+            return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`Emote already exists on this server: <${isAnimated ? 'a' : ''}:${cleanName}:${id}>`, env)] })
           }
         }
         catch (error) {
@@ -100,10 +100,10 @@ async function handleEmoteCommand(interaction: APIApplicationCommandInteraction,
         try {
           const imageBuffer = await fetchEmoteImageBuffer(emoteUrl)
           const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, cleanName, imageBuffer)
-          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`Emote added: <${isAnimated ? 'a' : ''}:${cleanName}:${discordEmote.id}>`, env)] })
+          return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(`Emote added: <${isAnimated ? 'a' : ''}:${cleanName}:${discordEmote.id}>`, env)] })
         }
         catch (error) {
-          return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`${error}`, env)] })
+          return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`${error}`, env)] })
         }
       }
 
@@ -119,14 +119,14 @@ async function handleEmoteCommand(interaction: APIApplicationCommandInteraction,
             cleanName = cleanName.padEnd(2, '_').slice(0, 32)
             const imageBuffer = await fetch7tvEmoteImageBuffer(emote)
             const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, cleanName, imageBuffer)
-            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildSuccessEmbed(`Emote added: <${emote.animated ? 'a' : ''}:${cleanName}:${discordEmote.id}>`, env)] })
+            return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(`Emote added: <${emote.animated ? 'a' : ''}:${cleanName}:${discordEmote.id}>`, env)] })
           }
           catch (error) {
-            return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed(`${error}`, env)] })
+            return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`${error}`, env)] })
           }
         }
       }
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
+      return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
     }
     case 'help': {
       const helpCard = {
@@ -154,11 +154,11 @@ async function handleEmoteCommand(interaction: APIApplicationCommandInteraction,
           },
         ],
       } satisfies APIMessageTopLevelComponent
-      return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { components: [helpCard], flags: 1 << 15 })
+      return await updateInteraction(interaction, env, { components: [helpCard], flags: 1 << 15 })
     }
   }
 
-  return await updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid command', env)] })
+  return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid command', env)] })
 }
 
 export default {

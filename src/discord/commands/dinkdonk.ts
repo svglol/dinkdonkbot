@@ -16,7 +16,7 @@ const DINKDONK_COMMAND = {
  * @returns A promise that resolves to nothing. Updates the interaction with a dinkdonk emote.
  */
 function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
-  ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `${DINKDONK_EMOTE.formatted}` }))
+  ctx.waitUntil(updateInteraction(interaction, env, { content: `${DINKDONK_EMOTE.formatted}` }))
   return interactionLoading()
 }
 

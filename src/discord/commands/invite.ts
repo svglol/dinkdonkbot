@@ -8,7 +8,7 @@ const INVITE_COMMAND = {
 }
 
 async function handleInviteCommand(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
-  ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `https://discord.com/application-directory/${env.DISCORD_APPLICATION_ID}` }))
+  ctx.waitUntil(updateInteraction(interaction, env, { content: `https://discord.com/application-directory/${env.DISCORD_APPLICATION_ID}` }))
   return interactionEphemeralLoading()
 }
 

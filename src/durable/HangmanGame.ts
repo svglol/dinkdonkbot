@@ -92,7 +92,7 @@ export class HangmanGame extends DurableObject {
       const hangmanCard = this.buildComponents(true)
 
       if (this.interaction) {
-        await updateInteraction(this.interaction, this.env.DISCORD_APPLICATION_ID, {
+        await updateInteraction(this.interaction, this.env, {
           flags: 1 << 15,
           components: [hangmanCard],
         })
@@ -157,7 +157,7 @@ export class HangmanGame extends DurableObject {
       this.customPhrase = true
       if (this.phrase.length === 0) {
         this.reset()
-        return await updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Phrase cannot be empty', this.env)] })
+        return await updateInteraction(interaction, this.env, { embeds: [buildErrorEmbed('Phrase cannot be empty', this.env)] })
       }
     }
     else {
@@ -174,7 +174,7 @@ export class HangmanGame extends DurableObject {
       }
       catch (error: any) {
         console.error('Error fetching phrase:', error)
-        return await updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Failed to fetch a random phrase', this.env)] })
+        return await updateInteraction(interaction, this.env, { embeds: [buildErrorEmbed('Failed to fetch a random phrase', this.env)] })
       }
     }
 
@@ -189,7 +189,7 @@ export class HangmanGame extends DurableObject {
 
     const hangmanCard = this.buildComponents(false)
 
-    return updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, {
+    return updateInteraction(interaction, this.env, {
       flags: 1 << 15,
       components: [hangmanCard],
     })
@@ -197,7 +197,7 @@ export class HangmanGame extends DurableObject {
 
   async makeGuessButton(interaction: APIMessageComponentInteraction) {
     if ((this.interaction?.member && this.interaction.member.user.id === interaction.member?.user.id) && this.customPhrase) {
-      this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You cannot make a guess while playing a custom phrase game that you started!', this.env)] }))
+      this.state.waitUntil(updateInteraction(interaction, this.env, { embeds: [buildErrorEmbed('You cannot make a guess while playing a custom phrase game that you started!', this.env)] }))
       return interactionEphemeralLoading()
     }
     return new JsonResponse({
@@ -229,29 +229,29 @@ export class HangmanGame extends DurableObject {
   async guessModal(interaction: APIModalSubmitInteraction) {
     return this.state.blockConcurrencyWhile(async () => {
       if (!this.interaction) {
-        this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Game not found or already ended', this.env)] }))
+        this.state.waitUntil(updateInteraction(interaction, this.env, { embeds: [buildErrorEmbed('Game not found or already ended', this.env)] }))
         return interactionEphemeralLoading()
       }
       if (this.interaction?.member && interaction.member && this.customPhrase) {
         if (this.interaction.member.user.id === interaction.member.user.id) {
-          this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('You cannot guess in your own game!', this.env)] }))
+          this.state.waitUntil(updateInteraction(interaction, this.env, { embeds: [buildErrorEmbed('You cannot guess in your own game!', this.env)] }))
           return interactionEphemeralLoading()
         }
       }
 
       const guessInput = interaction.data.components[0].components.find(c => c.custom_id === 'hangman_guess_input')
       if (!guessInput || guessInput.type !== 4 || typeof guessInput.value !== 'string') {
-        this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Invalid guess input.', this.env)] }))
+        this.state.waitUntil(updateInteraction(interaction, this.env, { embeds: [buildErrorEmbed('Invalid guess input.', this.env)] }))
         return interactionEphemeralLoading()
       }
 
       const guess = guessInput.value.trim().toUpperCase().replace(/[^A-Z0-9 ]/g, '')
       if (guess.length === 0) {
-        this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Guess cannot be empty, and cannot contain special characters.', this.env)] }))
+        this.state.waitUntil(updateInteraction(interaction, this.env, { embeds: [buildErrorEmbed('Guess cannot be empty, and cannot contain special characters.', this.env)] }))
         return interactionEphemeralLoading()
       }
       if (this.guesses.some(g => g.guess.toUpperCase() === guess)) {
-        this.state.waitUntil(updateInteraction(interaction, this.env.DISCORD_APPLICATION_ID, { embeds: [buildErrorEmbed('Someone already guessed that phrase or letter!', this.env)] }))
+        this.state.waitUntil(updateInteraction(interaction, this.env, { embeds: [buildErrorEmbed('Someone already guessed that phrase or letter!', this.env)] }))
         return interactionEphemeralLoading()
       }
       this.guesses.push({ guess, userId: interaction.member?.user.id ?? '' })

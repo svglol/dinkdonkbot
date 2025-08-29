@@ -15,7 +15,7 @@ const COINFLIP_COMMAND = {
  * @returns A promise that resolves to nothing. Updates the interaction with a coinflip emote.
  */
 function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
-  ctx.waitUntil(updateInteraction(interaction, env.DISCORD_APPLICATION_ID, { content: `A coin was flipped and it was ${Math.random() < 0.5 ? 'Heads' : 'Tails'} 🪙` }))
+  ctx.waitUntil(updateInteraction(interaction, env, { content: `A coin was flipped and it was ${Math.random() < 0.5 ? 'Heads' : 'Tails'} 🪙` }))
   return interactionLoading()
 }
 
