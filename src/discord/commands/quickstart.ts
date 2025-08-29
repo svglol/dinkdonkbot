@@ -5,7 +5,7 @@ import { interactionEphemeralLoading } from '../interactionHandler'
 
 const QUICKSTART_COMMAND = {
   name: 'quickstart',
-  description: 'Get started with DinkDonk Bot - setup your first stream notification',
+  description: 'Get started with DinkDonk Bot',
 }
 
 export async function buildQuickstartMessage(env: Env) {
@@ -17,8 +17,7 @@ export async function buildQuickstartMessage(env: Env) {
   const helpCommand = await findBotCommandMarkdown(env, 'help')
   const clipsCommand = await findBotCommandMarkdown(env, 'clips', 'add')
   const emoteCommand = await findBotCommandMarkdown(env, 'emote', 'add')
-  const hangmanCommand = await findBotCommandMarkdown(env, 'hangman')
-  const rpsCommand = await findBotCommandMarkdown(env, 'rps')
+  const streamHelpCommand = await findBotCommandMarkdown(env, 'streams', 'help')
 
   const message = `Welcome! Let's get you set up with stream notifications in 3 easy steps.
 ### Step 1: Add a Streamer
@@ -35,11 +34,10 @@ ${twitchTestCommand}
 ${kickTestCommand}
 ### Step 4: Explore More Features
 Enhance your server with extra tools and fun commands.  
-- Clips: Get hourly highlights with ${clipsCommand} 
-- Emotes: Add emotes from other servers with ${emoteCommand} 
-- Games: Try ${hangmanCommand} or ${rpsCommand} for community fun  
+- Twitch Clips: Get hourly highlights with ${clipsCommand} 
+- Emotes: Add emotes from other servers or 7tv with ${emoteCommand} 
 ### Need Help?
-Use ${helpCommand} for detailed commands or join our [Discord server](https://discord.gg/NuY7Tnrb6F) for support!`
+If you get stuck, use ${helpCommand} or ${streamHelpCommand} for more details or join our [Discord server](https://discord.gg/NuY7Tnrb6F) for support!`
 
   return message
 }
