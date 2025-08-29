@@ -45,7 +45,7 @@ Preview what notifications will look like before going live.
 - `/streams kick test <streamer>`
 
 ### Step 5: Explore More Features
-- **Clips**: Get hourly highlights with `/clips add`
+- **Clips**: Get hourly highlights with `/clips twitch add`
 - **Emotes**: Add emotes from other servers with `/emote add`
 - **Games**: Play `/hangman`, `/rps`, `/coinflip`, and more
 
@@ -82,11 +82,11 @@ Use `/help` for detailed commands or join our [Discord server](https://discord.g
 - `/streams help` - Show help for the multistream command
 
 ### 🎬 Twitch Clip Highlights
-- `/clips add <streamer> <discord-channel>` - Subscribe to Twitch clips from a streamer to be posted hourly
-- `/clips remove <streamer>` - Unsubscribe from Twitch clips from a streamer
-- `/clips edit <streamer> <discord-channel>` - Update the settings for a Twitch clip subscription
-- `/clips list` - View your subscribed Twitch clip channels
-- `/clips help` - Show help for the Twitch clips command
+- `/clips twitch add <streamer> <discord-channel>` - Subscribe to Twitch clips from a streamer to be posted hourly
+- `/clips twitch remove <streamer>` - Unsubscribe from Twitch clips from a streamer
+- `/clips twitch edit <streamer> <discord-channel>` - Update the settings for a Twitch clip subscription
+- `/clips twitch list` - View your subscribed Twitch clip channels
+- `/clips twitch help` - Show help for the Twitch clips command
 
 ### 🥳 Emote Management
 - `/emote add <url_or_emoji>` - Add an emote from another Discord server or 7TV

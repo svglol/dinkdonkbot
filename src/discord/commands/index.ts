@@ -1,3 +1,4 @@
+import clips from './clips'
 import commands from './commands'
 import dinkdonk from './dinkdonk'
 import emote from './emote'
@@ -13,7 +14,6 @@ import stealEmote from './stealEmote'
 import streams from './streams'
 import time from './time'
 import timestamp from './timestamp'
-import twitchClips from './twitchClips'
 import weather from './weather'
 
 export const COMMANDS: Array<DiscordAPIApplicationCommand> = [
@@ -21,7 +21,6 @@ export const COMMANDS: Array<DiscordAPIApplicationCommand> = [
   invite,
   help,
   emote,
-  twitchClips,
   stealEmote,
   time,
   weather,
@@ -34,6 +33,7 @@ export const COMMANDS: Array<DiscordAPIApplicationCommand> = [
   commands,
   quickstart,
   streams,
+  clips,
 ]
 
 export const COMMAND_DEFINITIONS = COMMANDS.filter(c => c && c.command).map(c => c.command)

@@ -2,8 +2,8 @@ import type { APIApplicationCommandInteraction, APIMessageComponentInteraction, 
 import { CLIPPERS_EMOTE, DISCORD_EMOTE, GITHUB_EMOTE, KICK_EMOTE, TWITCH_EMOTE } from '../../util/discordEmotes'
 import { findBotCommandMarkdown, updateInteraction } from '../discord'
 import { deferedUpdate, interactionEphemeralLoading } from '../interactionHandler'
+import { getClipsHelpMessage } from './clips/twitch/help'
 import { getEmoteHelpMessage } from './emote'
-import { getClipsHelpMessage } from './twitchClips'
 
 const HELP_COMMAND = {
   name: 'help',

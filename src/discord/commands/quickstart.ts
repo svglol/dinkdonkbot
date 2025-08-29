@@ -15,7 +15,7 @@ export async function buildQuickstartMessage(env: Env) {
   const kickTestCommand = await findBotCommandMarkdown(env, 'streams', 'kick', 'test')
   const multistreamCommand = await findBotCommandMarkdown(env, 'streams', 'multistream', 'link')
   const helpCommand = await findBotCommandMarkdown(env, 'help')
-  const clipsCommand = await findBotCommandMarkdown(env, 'clips', 'add')
+  const clipsCommand = await findBotCommandMarkdown(env, 'clips', 'twitch', 'add')
   const emoteCommand = await findBotCommandMarkdown(env, 'emote', 'add')
   const streamHelpCommand = await findBotCommandMarkdown(env, 'streams', 'help')
 

@@ -149,11 +149,11 @@ Merge notifications for streamers who broadcast on both Twitch and Kick into a s
 🎬 Twitch Clip Highlights
 
 #subtitle
-`/clips add <streamer> <discord-channel>` - Subscribe to hourly Twitch clips from a streamer
-`/clips remove <streamer>` - Unsubscribe from Twitch clip notifications
-`/clips edit <streamer> <discord-channel>` - Change clip notification channel
-`/clips list` - View all clip subscriptions
-`/clips help` - Get help with clip commands
+`/clips twitch add <streamer> <discord-channel>` - Subscribe to hourly Twitch clips from a streamer
+`/clips twitch remove <streamer>` - Unsubscribe from Twitch clip notifications
+`/clips twitch edit <streamer> <discord-channel>` - Change clip notification channel
+`/clips twitch list` - View all clip subscriptions
+`/clips twitch help` - Get help with clip commands
 
 #description
 Stay up to date with the best moments from your favorite streamers. Automatically receive the latest Twitch clips posted hourly to keep your community engaged with highlights.
