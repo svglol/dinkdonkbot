@@ -36,8 +36,8 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "5.2.1",
-    "@cloudflare/vitest-pool-workers": "0.8.66",
-    "@cloudflare/workers-types": "4.20250826.0",
+    "@cloudflare/vitest-pool-workers": "0.8.68",
+    "@cloudflare/workers-types": "4.20250828.1",
     "@types/tz-lookup": "6.1.2",
     "dotenv": "17.2.1",
     "drizzle-kit": "0.31.4",
@@ -46,6 +46,6 @@
     "tsx": "4.20.5",
     "typescript": "5.9.2",
     "vitest": "3.2.4",
-    "wrangler": "4.32.0"
+    "wrangler": "4.33.1"
   }
 }
