@@ -8,7 +8,7 @@ import { deferedUpdate } from '../../interactionHandler'
 export const STREAM_LIST_COMMAND = {
   type: 1,
   name: 'list',
-  description: 'View all of your Twitch/Kick stream alerts',
+  description: 'View all of your Twitch/Kick stream notifications',
   dm_permission: false,
 }
 
@@ -165,7 +165,7 @@ async function getAllStreamPages(interaction: APIApplicationCommandInteraction |
   if (twitchStreams.length > 0) {
     pageInfos.push({
       id: 'page_twitch',
-      title: 'Twitch Alerts',
+      title: 'Twitch Notifications',
       emoji: { name: TWITCH_EMOTE.name, id: TWITCH_EMOTE.id, formatted: TWITCH_EMOTE.formatted },
       content: twitchStreams.map(s => `- **${s.name}** - <#${s.channelId}>`).join('\n'),
     })
@@ -173,7 +173,7 @@ async function getAllStreamPages(interaction: APIApplicationCommandInteraction |
   if (soloKickStreams.length > 0) {
     pageInfos.push({
       id: 'page_kick',
-      title: 'Kick Alerts',
+      title: 'Kick Notifications',
       emoji: { name: KICK_EMOTE.name, id: KICK_EMOTE.id, formatted: KICK_EMOTE.formatted },
       content: soloKickStreams.map(s => `- **${s.name}** - <#${s.channelId}>`).join('\n'),
     })
@@ -195,7 +195,7 @@ async function listStreams(interaction: APIApplicationCommandInteraction | APIMe
   const pageGroups = await getAllStreamPages(interaction, env)
   if (pageGroups.length === 0) {
     return updateInteraction(interaction, env, {
-      embeds: [buildErrorEmbed('No alerts set up yet', env)],
+      embeds: [buildErrorEmbed('No notifications set up yet', env)],
     })
   }
 
@@ -209,7 +209,7 @@ async function listStreams(interaction: APIApplicationCommandInteraction | APIMe
     components: [
       {
         type: 10,
-        content: `## Stream Alerts\n### ${currentPage.emoji.formatted} ${currentPage.title}`,
+        content: `## Stream Notifications\n### ${currentPage.emoji.formatted} ${currentPage.title}`,
       },
       {
         type: 10,

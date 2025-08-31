@@ -33,7 +33,7 @@ Your all-in-one Discord bot for Twitch and Kick notifications, multistream suppo
 ::card{:icon="fa6-solid:bell"}
 
 #title
-Live Stream Alerts
+Live Stream Notifications
 
 #subtitle
 Never miss a stream! Get instant notifications when your favorite Twitch and Kick streamers go live, with full customization options.
@@ -45,7 +45,7 @@ Never miss a stream! Get instant notifications when your favorite Twitch and Kic
 Multistream Support
 
 #subtitle
-Merge notifications for streamers who broadcast on both Twitch and Kick into single, unified alerts.
+Merge notifications for streamers who broadcast on both Twitch and Kick into a single unified notification.
 ::
 
 ::card{:icon="fa6-solid:film"}
@@ -54,7 +54,7 @@ Merge notifications for streamers who broadcast on both Twitch and Kick into sin
 Clip Highlights
 
 #subtitle
-Stay updated with the best moments! Receive hourly alerts with new clips from your favorite Twitch streamers.
+Stay updated with the best moments! Receive hourly updates with new clips from your favorite Twitch streamers.
 ::
 
 ::card{:icon="fa6-solid:face-smile"}
@@ -94,7 +94,7 @@ Bot Commands
 ::card{:disableSpotlight="true"}
 
 #title
-🟪 Twitch Stream Alerts
+🟪 Twitch Stream Notifications
 
 #subtitle
 `/streams twitch add <streamer> <discord-channel> [ping-role] [live-message] [offline-message] [cleanup]` - Add Twitch streamer notifications
@@ -112,7 +112,7 @@ Set up Twitch stream notifications for your Discord server. Get notified when yo
 ::card{:disableSpotlight="true"}
 
 #title
-🟩 Kick Stream Alerts
+🟩 Kick Stream Notifications
 
 #subtitle
 `/streams kick add <streamer> <discord-channel> [ping-role] [live-message] [offline-message] [cleanup]` - Add Kick streamer notifications

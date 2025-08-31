@@ -11,7 +11,7 @@ import { CLIPS_TWITCH_REMOVE_COMMAND, handleClipsTwitchRemoveCommand } from './r
 export const CLIPS_TWITCH_SUBCOMMANDS = {
   type: 2,
   name: 'twitch',
-  description: 'Twitch clips alerts',
+  description: 'Twitch clips notifications',
   options: [
     CLIPS_TWITCH_ADD_COMMAND,
     CLIPS_TWITCH_REMOVE_COMMAND,

@@ -13,13 +13,13 @@ export const STREAM_HELP_COMMAND = {
 async function getHelpPages(env: Env): Promise<Record<string, string>> {
   return {
     page_index: `## 📖 Overview
-### ${TWITCH_EMOTE.formatted} Twitch Stream Alerts
+### ${TWITCH_EMOTE.formatted} Twitch Stream Notifications
 Set up Twitch stream notifications for your Discord server. Get notified when your favorite streamers go live with customizable messages and ping roles.
-### ${KICK_EMOTE.formatted} Kick Stream Alerts  
+### ${KICK_EMOTE.formatted} Kick Stream Notifications  
 Set up Kick stream notifications for your Discord server. Get notified when your favorite streamers go live with customizable messages and ping roles.
-### 📺 Multistream Alerts
-Combine Twitch and Kick notifications into unified alerts. Perfect for streamers who multistream across both platforms.`,
-    page_twitch: `## ${TWITCH_EMOTE.formatted} **Twitch Stream Alerts**
+### 📺 Multistream Notifications
+Combine Twitch and Kick notifications into unified notifications. Perfect for streamers who multistream across both platforms.`,
+    page_twitch: `## ${TWITCH_EMOTE.formatted} **Twitch Stream Notifications**
 Set up Twitch stream notifications for your Discord server. Get notified when your favorite streamers go live or offline with customizable messages and ping roles.
 - ${await findBotCommandMarkdown(env, 'streams', 'twitch', 'add')} <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Add a Twitch streamer to receive notifications for going online or offline
 - ${await findBotCommandMarkdown(env, 'streams', 'twitch', 'edit')} <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Edit a Twitch streamer’s settings  
@@ -39,7 +39,7 @@ Set up Twitch stream notifications for your Discord server. Get notified when yo
 > \`<message-type>\` – Whether to test the live or offline message
 > \`<multistream>\` – Show the notification as if it was a multistream (only works if you have a multistream setup)
 > \`<global>\` – Show the notification for everyone in the server  `,
-    page_kick: `## ${KICK_EMOTE.formatted} **Kick Stream Alerts**
+    page_kick: `## ${KICK_EMOTE.formatted} **Kick Stream Notifications**
 Set up Kick stream notifications for your Discord server. Get notified when your favorite streamers go live or offline with customizable messages and ping roles.
 - ${await findBotCommandMarkdown(env, 'streams', 'kick', 'add')} <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Add a Kick streamer to receive notifications for going online or offline
 - ${await findBotCommandMarkdown(env, 'streams', 'kick', 'edit')} <streamer> <discord-channel> <ping-role> <live-message> <offline-message> <cleanup> - Edit a Kick streamer’s settings  
@@ -59,11 +59,11 @@ Set up Kick stream notifications for your Discord server. Get notified when your
 > \`<message-type>\` - Whether to test the live or offline message
 > \`<multistream>\` - Show the notification as if it was a multistream (only works if you have a multistream setup)
 > \`<global>\` - Show the notification for everyone in the server`,
-    page_multistream: `## 📺 **Multistream Alerts**
+    page_multistream: `## 📺 **Multistream Notifications**
  Do you or the streamer you follow broadcast to both Twitch and Kick at the same time? You can link the streams so the bot combines notifications into a single message whenever possible, cutting down on spam.
     
 To use this feature:
-- Both Twitch and Kick alerts need to be set up.
+- Both Twitch and Kick notifications need to be set up.
 - Make sure both are configured to post to the same Discord channel.
 - When one stream goes live, the bot will wait up to 15 seconds for the other to start before sending a notification.
 - You can set a priority to decide which platform’s data the message should use first.
@@ -100,9 +100,9 @@ export async function handleStreamHelpCommand(interaction: APIMessageComponentIn
         placeholder: 'Select a help page',
         options: [
           { label: 'Overview', value: 'page_index', emoji: { name: '📖' }, default: page === 'page_index' },
-          { label: 'Twitch Alerts', value: 'page_twitch', emoji: { id: TWITCH_EMOTE.id, name: TWITCH_EMOTE.name }, default: page === 'page_twitch' },
-          { label: 'Kick Alerts', value: 'page_kick', emoji: { id: KICK_EMOTE.id, name: KICK_EMOTE.name }, default: page === 'page_kick' },
-          { label: 'Multistream Alerts', value: 'page_multistream', emoji: { name: '📺' }, default: page === 'page_multistream' },
+          { label: 'Twitch Notifications', value: 'page_twitch', emoji: { id: TWITCH_EMOTE.id, name: TWITCH_EMOTE.name }, default: page === 'page_twitch' },
+          { label: 'Kick Notifications', value: 'page_kick', emoji: { id: KICK_EMOTE.id, name: KICK_EMOTE.name }, default: page === 'page_kick' },
+          { label: 'Multistream Notifications', value: 'page_multistream', emoji: { name: '📺' }, default: page === 'page_multistream' },
           { label: 'Message Variables', value: 'page_variables', emoji: { name: '📝' }, default: page === 'page_variables' },
         ],
       },
@@ -119,7 +119,7 @@ export async function handleStreamHelpCommand(interaction: APIMessageComponentIn
         components: [
           {
             type: 10,
-            content: '# Stream Alerts Help',
+            content: '# Stream Notifications Help',
           },
           {
             type: 10,

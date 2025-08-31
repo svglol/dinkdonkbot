@@ -11,7 +11,7 @@ import { handleTwitchTestCommand, TWITCH_TEST_COMMAND } from './test'
 export const TWITCH_SUBCOMMANDS = {
   type: 2,
   name: 'twitch',
-  description: 'Twitch stream alerts',
+  description: 'Twitch stream notifications',
   options: [
     TWITCH_ADD_COMMAND,
     TWITCH_EDIT_COMMAND,

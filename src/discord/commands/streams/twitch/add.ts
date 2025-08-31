@@ -9,7 +9,7 @@ import { autoCompleteResponse } from '../../../interactionHandler'
 export const TWITCH_ADD_COMMAND = {
   type: 1,
   name: 'add',
-  description: 'Add a Twitch streamer to receive alerts for going live',
+  description: 'Add a Twitch streamer to receive notifications for going live',
   options: [
     { type: 3, name: 'streamer', description: 'Streamer name', required: true, autocomplete: true },
     { type: 7, name: 'discord-channel', description: 'Discord channel', required: true, channel_types: [0] },

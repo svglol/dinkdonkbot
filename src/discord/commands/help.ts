@@ -15,9 +15,9 @@ async function getHelpPages(env: Env): Promise<Record<string, string>> {
     page_index: `## 📖 Help Overview
 ### 🚀 Quickstart
 Use the ${await findBotCommandMarkdown(env, 'quickstart')} command to set up the bot and notifications in a few easy steps. Perfect for new users who want a guided setup.
-### ${TWITCH_EMOTE.formatted} ${KICK_EMOTE.formatted} Stream Alerts
+### ${TWITCH_EMOTE.formatted} ${KICK_EMOTE.formatted} Stream Notifications
 Subscribe to automatic stream notifications from your favorite streamers. Get notified when your favorite streamers go live or offline with customizable messages and ping roles.
-### ${CLIPPERS_EMOTE.formatted} Twitch Clip Alerts
+### ${CLIPPERS_EMOTE.formatted} Twitch Clip Notifications
 Subscribe to automatic Twitch clip notifications from your favorite streamers. Get the best clips posted hourly to your Discord channels.
 ### 🥳 Emote Management
 Easily add custom emotes to your Discord server from other servers or 7tv. Steal emotes from messages or add them directly by URL or emoji.
@@ -25,20 +25,20 @@ Easily add custom emotes to your Discord server from other servers or 7tv. Steal
 Various utility commands including time, weather, invites, fun interactions, and timestamp generation.
 ### ❓ Support
 Links to the website, GitHub repository, and ways to support the bot.`,
-    page_stream: `## ${TWITCH_EMOTE.formatted}${KICK_EMOTE.formatted} **Stream Alerts**
-Keep your community updated when your favorite Twitch and Kick streamers go live. Stream Alerts let you:
+    page_stream: `## ${TWITCH_EMOTE.formatted}${KICK_EMOTE.formatted} **Stream Notifications**
+Keep your community updated when your favorite Twitch and Kick streamers go live. Stream Notifications let you:
 - Automatically post messages in a chosen Discord channel when a streamer starts or stops streaming.
 - Customize the messages with variables (streamer name, category, links, etc.).
 - Ping specific roles when a stream goes live.
-- Remove or update alerts easily as your needs change.
+- Remove or update notifications easily as your needs change.
 
-You can also combine alerts from both Twitch and Kick into a single notification using **Multistream Alerts**, reducing spam in your channels.
+You can also combine notifications from both Twitch and Kick into a single notification using **Multistream Notifications**, reducing spam in your channels.
 
 **Where to go next**
-- ${await findBotCommandMarkdown(env, 'streams', 'help')} – Help message for Stream Alerts
-- ${await findBotCommandMarkdown(env, 'streams', 'twitch')} – Set up and manage Twitch alerts
-- ${await findBotCommandMarkdown(env, 'streams', 'kick')} – Set up and manage Kick alerts
-- ${await findBotCommandMarkdown(env, 'streams', 'multistream')} – Combine Twitch and Kick alerts
+- ${await findBotCommandMarkdown(env, 'streams', 'help')} – Help message for Stream Notifications
+- ${await findBotCommandMarkdown(env, 'streams', 'twitch')} – Set up and manage Twitch notifications
+- ${await findBotCommandMarkdown(env, 'streams', 'kick')} – Set up and manage Kick notifications
+- ${await findBotCommandMarkdown(env, 'streams', 'multistream')} – Combine Twitch and Kick notifications
 `,
 
     page_clips: `## ${CLIPPERS_EMOTE.formatted} **Twitch Clips**
@@ -92,7 +92,7 @@ async function handleHelpCommand(interaction: APIMessageComponentInteraction | A
         placeholder: 'Select a help page',
         options: [
           { label: 'Overview', value: 'page_index', emoji: { name: '📖' }, default: page === 'page_index' },
-          { label: 'Stream Alerts', value: 'page_stream', emoji: { name: '📺' }, default: page === 'page_stream' },
+          { label: 'Stream Notifications', value: 'page_stream', emoji: { name: '📺' }, default: page === 'page_stream' },
           { label: 'Clips', value: 'page_clips', emoji: { id: CLIPPERS_EMOTE.id, name: CLIPPERS_EMOTE.name }, default: page === 'page_clips' },
           { label: 'Emote Management', value: 'page_emotes', emoji: { name: '🥳' }, default: page === 'page_emotes' },
           { label: 'Misc Commands', value: 'page_misc', emoji: { name: '🎉' }, default: page === 'page_misc' },

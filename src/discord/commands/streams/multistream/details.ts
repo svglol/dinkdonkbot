@@ -39,7 +39,7 @@ export async function handleMultistreamDetailsCommand(interaction: APIApplicatio
       },
     })
     if (!stream)
-      return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`You are not subscribed to alerts for this Twitch streamer: \`${twitchStreamer}\``, env)] })
+      return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this Twitch streamer: \`${twitchStreamer}\``, env)] })
 
     multiStream = stream.multiStream
   }
@@ -51,7 +51,7 @@ export async function handleMultistreamDetailsCommand(interaction: APIApplicatio
       },
     })
     if (!kickStream)
-      return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`You are not subscribed to alerts for this Kick streamer: \`${kickStreamer}\``, env)] })
+      return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this Kick streamer: \`${kickStreamer}\``, env)] })
 
     if (multiStream !== null && multiStream?.kickStreamId !== kickStream.id)
       return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`This Kick streamer \`${kickStreamer}\` is not linked to the Twitch streamer: \`${twitchStreamer}\``, env)] })

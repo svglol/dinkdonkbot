@@ -8,7 +8,7 @@
 A powerful Discord bot for Twitch & Kick notifications, emote management, and interactive games, running on Cloudflare Workers.
 
 ## Features
-- **Live Stream Alerts**: Get instant notifications when your favorite Twitch & Kick streamers go live
+- **Live Stream Notifications**: Get instant notifications when your favorite Twitch & Kick streamers go live
 - **Multistream Support**: Merge Twitch and Kick notifications for streamers who broadcast on both platforms
 - **Clip Highlights**: Stay updated with the best moments from your favorite streamers posted hourly
 - **Emote Management**: Easily add emotes from 7TV or other Discord servers to your own server
@@ -36,7 +36,7 @@ Add a Twitch or Kick streamer and choose which channel to post notifications in.
 
 ### Step 3: Multistream Notifications
 Link Twitch & Kick streamers together to reduce spam by merging notifications.
-*Note: You must have both Twitch and Kick alerts set up for this to work, and both need to post to the same channel.*
+*Note: You must have both Twitch and Kick notifications set up for this to work, and both need to post to the same channel.*
 - `/streams multistream link <twitch-streamer> <kick-streamer>`
 
 ### Step 4: Test Your Notification *(Optional)*
@@ -56,7 +56,7 @@ Use `/help` for detailed commands or join our [Discord server](https://discord.g
 
 ## Commands
 
-### 🟪 Twitch Stream Alerts
+### 🟪 Twitch Stream Notifications
 - `/streams twitch add <streamer> <discord-channel> [ping-role] [live-message] [offline-message] [cleanup]` - Add a Twitch streamer to receive notifications for going online
 - `/streams twitch remove <streamer>` - Remove a Twitch streamer from receiving notifications for going online or offline
 - `/streams twitch edit <streamer> [discord-channel] [ping-role] [remove-ping-role] [live-message] [offline-message] [cleanup]` - Edit a Twitch streamer's settings
@@ -65,7 +65,7 @@ Use `/help` for detailed commands or join our [Discord server](https://discord.g
 - `/streams twitch details <streamer>` - Show the details for a streamer you are subscribed to
 - `/streams help` - Show help for the Twitch command and its subcommands
 
-### 🟩 Kick Stream Alerts
+### 🟩 Kick Stream Notifications
 - `/streams kick add <streamer> <discord-channel> [ping-role] [live-message] [offline-message] [cleanup]` - Add a Kick streamer to receive notifications for going online
 - `/streams kick remove <streamer>` - Remove a Kick streamer from receiving notifications for going online
 - `/streams kick edit <streamer> [discord-channel] [ping-role] [remove-ping-role]  [live-message] [offline-message] [cleanup]` - Edit a Kick streamer's settings

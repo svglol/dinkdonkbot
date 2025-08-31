@@ -26,10 +26,10 @@ ${TWITCH_EMOTE.formatted} Twitch: ${twitchAddCommand}
 ${KICK_EMOTE.formatted} Kick: ${kickAddCommand}
 ### Step 2: Multistream Notifications
 Link Twitch & Kick streamers together to combine notifications into one, reducing spam.  
--# Note: You must have both Twitch and Kick alerts set up for this to work, and both need to be configured to post to the same channel.
+-# Note: You must have both Twitch and Kick notifications set up for this to work, and both need to be configured to post to the same channel.
 ${multistreamCommand}
 ### Step 3: Test Your Notification (Optional)
-Send a test notification to preview how your alerts will look.  
+Send a test notification to preview how your notifications will look.  
 ${twitchTestCommand}  
 ${kickTestCommand}
 ### Step 4: Explore More Features
