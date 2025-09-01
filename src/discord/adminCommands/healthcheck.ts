@@ -75,11 +75,26 @@ async function handleHealthCheckCommand(interaction: APIApplicationCommandIntera
     console.error('Error fetching discord status', error)
   }
 
+  let discordProxyStatus = '❌'
+  try {
+    const res = await fetch(`${env.DISCORD_PROXY}/api/v10/users/@me`, {
+      headers: { Authorization: `Bot ${env.DISCORD_TOKEN}` },
+    })
+    discordProxyStatus = res.ok ? '✅' : '❌'
+    if (!res.ok)
+      throw new Error(`Failed to fetch discord proxy status: ${JSON.stringify(await res.json())}`)
+  }
+  catch (error) {
+    discordProxyStatus = '❌'
+    console.error('Error fetching discord proxy status', error)
+  }
+
   const content = `- KV: ${kvStatus}
 - Database: ${dbStatus}
 - Twitch API: ${twitchStatus}
 - Kick API: ${kickStatus}
 - Discord API: ${discordStatus}
+- Discord Proxy: ${discordProxyStatus}
 `
   return updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(content, env, { title: `${DINKDONK_EMOTE.formatted} Healthcheck`, color: 0xFFF200 })] })
 }
