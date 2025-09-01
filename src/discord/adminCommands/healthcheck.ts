@@ -26,8 +26,9 @@ async function handleHealthCheckCommand(interaction: APIApplicationCommandIntera
     const kvTest = await env.KV.get('twitch-token')
     kvStatus = kvTest !== null ? '✅' : '❌'
   }
-  catch {
+  catch (error) {
     kvStatus = '❌'
+    console.error('Error fetching KV status', error)
   }
 
   let dbStatus = '❌'
@@ -35,8 +36,9 @@ async function handleHealthCheckCommand(interaction: APIApplicationCommandIntera
     await env.DB.prepare('SELECT 1').all()
     dbStatus = '✅'
   }
-  catch {
+  catch (error) {
     dbStatus = '❌'
+    console.error('Error fetching database status', error)
   }
 
   let twitchStatus = '❌'
@@ -44,8 +46,9 @@ async function handleHealthCheckCommand(interaction: APIApplicationCommandIntera
     const res = await getTwitchStatus(env)
     twitchStatus = res.ok ? '✅' : '❌'
   }
-  catch {
+  catch (error) {
     twitchStatus = '❌'
+    console.error('Error fetching twitch status', error)
   }
 
   let kickStatus = '❌'
@@ -53,8 +56,9 @@ async function handleHealthCheckCommand(interaction: APIApplicationCommandIntera
     const res = await getKickStatus(env)
     kickStatus = res.ok ? '✅' : '❌'
   }
-  catch {
+  catch (error) {
     kickStatus = '❌'
+    console.error('Error fetching kick status', error)
   }
 
   let discordStatus = '❌'
@@ -64,8 +68,9 @@ async function handleHealthCheckCommand(interaction: APIApplicationCommandIntera
     })
     discordStatus = res.ok ? '✅' : '❌'
   }
-  catch {
+  catch (error) {
     discordStatus = '❌'
+    console.error('Error fetching discord status', error)
   }
 
   const content = `- KV: ${kvStatus}
