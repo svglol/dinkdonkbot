@@ -37,7 +37,9 @@ Enhance your server with extra tools and fun commands.
 - Twitch Clips: Get hourly highlights with ${clipsCommand} 
 - Emotes: Add emotes from other servers or 7tv with ${emoteCommand} 
 ### Need Help?
-If you get stuck, use ${helpCommand} or ${streamHelpCommand} for more details or join our [Discord server](https://discord.gg/NuY7Tnrb6F) for support!`
+If you get stuck, use ${helpCommand} or ${streamHelpCommand} for more details or join our [Discord server](https://discord.gg/NuY7Tnrb6F) for support!
+
+-# Note: /streams and /clips commands are only available to use in servers, not DMs.`
 
   return message
 }
