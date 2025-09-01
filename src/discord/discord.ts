@@ -645,7 +645,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     if (streamMessage.kickVod) {
       buttons.push({
         type: 2,
-        label: 'Watch Kick VOD',
+        label: 'Watch KICK VOD',
         url: `https://kick.com/${streamMessage.kickStream?.name}/videos/${streamMessage.kickVod.video.uuid}`,
         style: 5,
         emoji: {
@@ -694,7 +694,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     const buttons: APIButtonComponent[] = []
     buttons.push({
       type: 2,
-      label: 'Watch Twitch Stream',
+      label: 'Watch on Twitch',
       url: `https://twitch.tv/${streamMessage.twitchStreamerData?.login}`,
       style: 5,
       emoji: {
@@ -795,7 +795,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
 
     buttons.push({
       type: 2,
-      label: 'Watch Kick Stream',
+      label: 'Watch on KICK',
       url: `https://kick.com/${streamMessage.kickStream?.name}`,
       style: 5,
       emoji: {
@@ -824,7 +824,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     if (streamMessage.kickVod) {
       buttons.push({
         type: 2,
-        label: 'Watch Kick VOD',
+        label: 'Watch KICK VOD',
         url: `https://kick.com/${streamMessage.kickStream?.name}/videos/${streamMessage.kickVod.video.uuid}`,
         style: 5,
         emoji: {
