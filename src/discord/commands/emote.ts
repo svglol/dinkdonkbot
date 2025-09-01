@@ -99,7 +99,7 @@ async function handleEmoteCommand(interaction: APIApplicationCommandInteraction,
 
         try {
           const imageBuffer = await fetchEmoteImageBuffer(emoteUrl)
-          const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, cleanName, imageBuffer)
+          const discordEmote = await uploadEmoji(interaction.guild_id, env, cleanName, imageBuffer)
           return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(`Emote added: <${isAnimated ? 'a' : ''}:${cleanName}:${discordEmote.id}>`, env)] })
         }
         catch (error) {
@@ -118,7 +118,7 @@ async function handleEmoteCommand(interaction: APIApplicationCommandInteraction,
             let cleanName = emote.name.replace(/[^\w\s]/g, '')
             cleanName = cleanName.padEnd(2, '_').slice(0, 32)
             const imageBuffer = await fetch7tvEmoteImageBuffer(emote)
-            const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, cleanName, imageBuffer)
+            const discordEmote = await uploadEmoji(interaction.guild_id, env, cleanName, imageBuffer)
             return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(`Emote added: <${emote.animated ? 'a' : ''}:${cleanName}:${discordEmote.id}>`, env)] })
           }
           catch (error) {

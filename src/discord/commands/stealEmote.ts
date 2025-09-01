@@ -76,7 +76,7 @@ async function handleStealEmoteCommand(interaction: APIApplicationCommandInterac
 
     try {
       const imageBuffer = await fetchEmoteImageBuffer(emoteUrl)
-      const discordEmote = await uploadEmoji(interaction.guild_id, env.DISCORD_TOKEN, cleanName, imageBuffer)
+      const discordEmote = await uploadEmoji(interaction.guild_id, env, cleanName, imageBuffer)
       return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(`Emote added: <${isAnimated ? 'a' : ''}:${cleanName}:${discordEmote.id}>`, env)] })
     }
     catch (error) {
@@ -106,7 +106,7 @@ async function handleStealEmoteCommand(interaction: APIApplicationCommandInterac
           })
       }
       const imageBuffer = await fetchEmoteImageBuffer(`https://cdn.discordapp.com/stickers/${sticker.id}.${extension}`)
-      const discordSticker = await uploadSticker(interaction.guild_id, env.DISCORD_TOKEN, sticker.name, imageBuffer, extension, sticker.name, sticker.name)
+      const discordSticker = await uploadSticker(interaction.guild_id, env, sticker.name, imageBuffer, extension, sticker.name, sticker.name)
       return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(`Sticker added: \`${discordSticker.name}\``, env)] })
     }
     catch (error) {

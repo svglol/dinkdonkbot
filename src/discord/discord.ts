@@ -139,7 +139,7 @@ export async function updateInteraction(interaction: APIInteraction, env: Env, b
  * Uploads a new emoji to the specified guild.
  *
  * @param guildId The ID of the guild to which the emoji should be uploaded.
- * @param discordToken The Discord bot token for authorization.
+ * @param env The environment variables from Cloudflare.
  * @param emojiName The desired name for the emoji.
  * @param imageBuffer The image data for the emoji as a Buffer.
  * @returns A DiscordEmoji object containing the ID of the uploaded emoji.
@@ -147,9 +147,9 @@ export async function updateInteraction(interaction: APIInteraction, env: Env, b
  * @throws If there is an error uploading the emoji.
  */
 // eslint-disable-next-line node/prefer-global/buffer
-export async function uploadEmoji(guildId: string, discordToken: string, emojiName: string, imageBuffer: Buffer) {
+export async function uploadEmoji(guildId: string, env: Env, emojiName: string, imageBuffer: Buffer) {
   try {
-    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
+    const rest = new REST({ version: '10', api: `${env.DISCORD_PROXY}/api`, makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
     const emoji = await rest.post(Routes.guildEmojis(guildId), {
       body: {
         name: emojiName,
@@ -184,7 +184,7 @@ export async function uploadEmoji(guildId: string, discordToken: string, emojiNa
 }
 
 // eslint-disable-next-line node/prefer-global/buffer
-export async function uploadSticker(guildId: string, discordToken: string, stickerName: string, imageBuffer: Buffer<ArrayBufferLike>, imageExtension: string, description = 'stolen sticker', tags = 'stolen') {
+export async function uploadSticker(guildId: string, env: Env, stickerName: string, imageBuffer: Buffer<ArrayBufferLike>, imageExtension: string, description = 'stolen sticker', tags = 'stolen') {
   try {
     const form = new FormData()
     form.append('name', stickerName)
@@ -195,7 +195,7 @@ export async function uploadSticker(guildId: string, discordToken: string, stick
     })
     form.append('file', file)
 
-    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
+    const rest = new REST({ version: '10', api: `${env.DISCORD_PROXY}/api`, makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
     const sticker = await rest.post(Routes.guildStickers(guildId), {
       body: form,
       passThroughBody: true,
