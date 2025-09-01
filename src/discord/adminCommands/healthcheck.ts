@@ -67,6 +67,8 @@ async function handleHealthCheckCommand(interaction: APIApplicationCommandIntera
       headers: { Authorization: `Bot ${env.DISCORD_TOKEN}` },
     })
     discordStatus = res.ok ? '✅' : '❌'
+    if (!res.ok)
+      throw new Error(`Failed to fetch discord status: ${JSON.stringify(await res.json())}`)
   }
   catch (error) {
     discordStatus = '❌'
