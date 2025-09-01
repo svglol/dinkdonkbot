@@ -110,10 +110,10 @@ async function streamOffline(payload: KickLivestreamStatusUpdatedEvent, env: Env
 
       const discordMessage = bodyBuilder(updatedMessageWithStreams, env)
       if ((discordMessage.embeds && discordMessage.embeds.length > 0) || (discordMessage.components && discordMessage.components?.length > 0)) {
-        return await updateMessage(message.discordChannelId, message?.discordMessageId ?? '', env.DISCORD_TOKEN, discordMessage)
+        return await updateMessage(message.discordChannelId, message?.discordMessageId ?? '', env, discordMessage)
       }
       else if (message?.kickStream?.cleanup) {
-        return await deleteMessage(message.discordChannelId, message?.discordMessageId ?? '', env.DISCORD_TOKEN)
+        return await deleteMessage(message.discordChannelId, message?.discordMessageId ?? '', env)
       }
     })
     await Promise.allSettled(promises)
@@ -186,7 +186,7 @@ async function streamMetadataUpdated(payload: KickLivestreamMetadataUpdatedEvent
       }
 
       const discordMessage = bodyBuilder(updatedMessage, env)
-      return await updateMessage(message.discordChannelId, updatedMessage.discordMessageId, env.DISCORD_TOKEN, discordMessage)
+      return await updateMessage(message.discordChannelId, updatedMessage.discordMessageId, env, discordMessage)
     })
     await Promise.allSettled(updatePromises)
   }

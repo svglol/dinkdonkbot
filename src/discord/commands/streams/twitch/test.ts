@@ -95,7 +95,7 @@ export async function handleTwitchTestCommand(interaction: APIApplicationCommand
 
   const body = bodyBuilder(streamMessage, env)
   if (global) {
-    await sendMessage(stream.channelId, env.DISCORD_TOKEN, body, env)
+    await sendMessage(stream.channelId, body, env)
     return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed('Sent test message', env)] })
   }
   else {

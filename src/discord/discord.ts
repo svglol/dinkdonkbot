@@ -15,15 +15,15 @@ import { formatDuration } from '../util/formatDuration'
  * Sends a message to the specified channel.
  *
  * @param channelId The id of the channel to send the message to.
- * @param discordToken The Discord bot token.
  * @param body The message body.
+ * @param env The environment variables from Cloudflare.
  * @returns The id of the message sent.
  *
  * @throws If there is an error sending the message.
  */
-export async function sendMessage(channelId: string, discordToken: string, body: RESTPostAPIChannelMessageJSONBody, env: Env) {
+export async function sendMessage(channelId: string, body: RESTPostAPIChannelMessageJSONBody, env: Env) {
   try {
-    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
     const message = await rest.post(Routes.channelMessages(channelId), {
       body,
     }) as RESTPostAPIChannelMessageResult
@@ -38,7 +38,7 @@ export async function sendMessage(channelId: string, discordToken: string, body:
         const kvKey = `channel:error:${channelId}`
         const channel = await env.KV.get(kvKey) as number | null
 
-        const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
+        const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
         const discordChannel = await rest.get(Routes.channel(channelId)) as RESTGetAPIChannelResult
         if (discordChannel) {
           // channel exists we just dont have permission to post in it (lets not delete their subscriptions)
@@ -66,15 +66,15 @@ export async function sendMessage(channelId: string, discordToken: string, body:
  *
  * @param channelId The ID of the channel where the message is located.
  * @param messageId The ID of the message to be updated.
- * @param discordToken The Discord bot token for authorization.
+ * @param env The environment variables from Cloudflare.
  * @param body The new content of the message as a DiscordBody object.
  * @returns The ID of the updated message.
  *
  * @throws If there is an error updating the message.
  */
-export async function updateMessage(channelId: string, messageId: string, discordToken: string, body: RESTPatchAPIChannelMessageJSONBody) {
+export async function updateMessage(channelId: string, messageId: string, env: Env, body: RESTPatchAPIChannelMessageJSONBody) {
   try {
-    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
     const message = await rest.patch(Routes.channelMessage(channelId, messageId), {
       body,
     }) as RESTPatchAPIChannelMessageResult
@@ -91,13 +91,13 @@ export async function updateMessage(channelId: string, messageId: string, discor
  *
  * @param channelId The ID of the channel where the message is located.
  * @param messageId The ID of the message to be deleted.
- * @param discordToken The Discord bot token for authorization.
+ * @param env The environment variables from Cloudflare.
  *
  * @throws If there is an error deleting the message.
  */
-export async function deleteMessage(channelId: string, messageId: string, discordToken: string) {
+export async function deleteMessage(channelId: string, messageId: string, env: Env) {
   try {
-    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
     await rest.delete(Routes.channelMessage(channelId, messageId))
   }
   catch (error: unknown) {
@@ -408,7 +408,7 @@ export async function fetchGuildEmojis(guildId: string, env: Env) {
   }
 }
 
-export async function fetchBotCommands(discordToken: string, env: Env) {
+export async function fetchBotCommands(env: Env) {
   const cacheKey = `discord-commands:${env.DISCORD_APPLICATION_ID}`
 
   try {
@@ -417,7 +417,7 @@ export async function fetchBotCommands(discordToken: string, env: Env) {
       return commands
     }
 
-    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
 
     commands = await rest.get(Routes.applicationCommands(env.DISCORD_APPLICATION_ID)) as RESTGetAPIApplicationCommandsResult
 
@@ -998,7 +998,7 @@ export function buildSuccessEmbed(message: string, env: Env, embed?: APIEmbed) {
 }
 
 export async function findBotCommand(env: Env, commandName: string, subCommandGroupName?: string, subCommandName?: string) {
-  const commands = await fetchBotCommands(env.DISCORD_TOKEN, env)
+  const commands = await fetchBotCommands(env)
 
   // Find the main command
   const command = commands.find(c => c.name === commandName)

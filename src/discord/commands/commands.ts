@@ -122,7 +122,7 @@ function createPageGroup(pageInfo: PageInfo): PageGroup {
 }
 
 async function getBaseCommandPages(env: Env): Promise<PageInfo[]> {
-  const commands = await fetchBotCommands(env.DISCORD_TOKEN, env)
+  const commands = await fetchBotCommands(env)
   const slashCommands = commands.filter(c => c.type === 1).sort((a, b) => a.name.localeCompare(b.name))
   const userCommands = commands.filter(c => c.type === 2).sort((a, b) => a.name.localeCompare(b.name))
   const messageCommands = commands.filter(c => c.type === 3).sort((a, b) => a.name.localeCompare(b.name))

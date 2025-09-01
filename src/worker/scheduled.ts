@@ -52,7 +52,7 @@ async function scheduledTwitchClips(env: Env) {
             `*Created At:* <t:${unixTimestamp}:F>`,
           ].join('\n')
           const body = { content: clipInfo }
-          await sendMessage(clip.channelId, env.DISCORD_TOKEN, body, env)
+          await sendMessage(clip.channelId, body, env)
         }
       }
     }
