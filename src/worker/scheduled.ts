@@ -86,7 +86,7 @@ export async function scheduledCheck(env: Env) {
 
     // check if the bot has been removed from any servers (we can then remove the subscriptions from the database and stop sending notifications for that server)
     try {
-      const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+      const rest = new REST({ version: '10', api: `${env.DISCORD_PROXY}/api`, makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
       const userGuilds = await rest.get(Routes.userGuilds()) as RESTGetAPICurrentUserGuildsResult
       if (userGuilds.length > 0) {
         const serverIds = userGuilds.map(server => server.id)

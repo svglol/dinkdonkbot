@@ -23,7 +23,7 @@ async function handleStatsCommand(interaction: APIApplicationCommandInteraction,
   if (interaction.guild_id !== env.DISCORD_GUILD_ID)
     return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in the correct server', env)] })
 
-  const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+  const rest = new REST({ version: '10', api: `${env.DISCORD_PROXY}/api`, makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
   const db = useDB(env)
 
   // Run all async operations concurrently
