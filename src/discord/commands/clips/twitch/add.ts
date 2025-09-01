@@ -42,7 +42,7 @@ export async function handleClipsTwitchAddCommand(interaction: APIApplicationCom
     return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid arguments', env)] })
 
   // check if we have permission to post in this discord channel
-  const permissions = await calculateChannelPermissions(interaction.guild_id!, channel, env.DISCORD_APPLICATION_ID, env.DISCORD_TOKEN, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.MentionEveryone])
+  const permissions = await calculateChannelPermissions(interaction.guild_id!, channel, env.DISCORD_APPLICATION_ID, env, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.MentionEveryone])
   const missingPermissions = Object.entries(permissions.checks)
     .filter(([_, hasPermission]) => !hasPermission)
     .map(([permissionName]) => permissionName)

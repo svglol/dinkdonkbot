@@ -48,7 +48,7 @@ export async function handleClipsTwitchEditCommand(interaction: APIApplicationCo
   const channel = edit.options.find(option => option.name === 'discord-channel')
   if (channel) {
     const channelValue = String('value' in channel ? channel.value : '')
-    const permissions = await calculateChannelPermissions(interaction.guild_id!, channelValue, env.DISCORD_APPLICATION_ID, env.DISCORD_TOKEN, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.ViewChannel])
+    const permissions = await calculateChannelPermissions(interaction.guild_id!, channelValue, env.DISCORD_APPLICATION_ID, env, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.ViewChannel])
     const missingPermissions = Object.entries(permissions.checks)
       .filter(([_, hasPermission]) => !hasPermission)
       .map(([permissionName]) => permissionName)

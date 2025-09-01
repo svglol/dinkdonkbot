@@ -66,7 +66,7 @@ export async function handleKickAddCommand(interaction: APIApplicationCommandInt
       where: (kickStreams, { eq, and, like }) => and(eq(kickStreams.guildId, server), like(kickStreams.name, streamer)),
     }),
     await getKickChannel(streamer, env),
-    await calculateChannelPermissions(interaction.guild_id!, channel!, env.DISCORD_APPLICATION_ID, env.DISCORD_TOKEN, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.MentionEveryone]),
+    await calculateChannelPermissions(interaction.guild_id!, channel!, env.DISCORD_APPLICATION_ID, env, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.MentionEveryone]),
   ])
 
   // check if already subscribed to this channel

@@ -42,7 +42,7 @@ export async function handleTwitchEditCommand(interaction: APIApplicationCommand
   const channel = edit.options?.find(option => option.name === 'discord-channel')?.value as string | undefined
   if (channel) {
     if (dbStream.channelId !== channel) {
-      const permissions = await calculateChannelPermissions(interaction.guild_id!, channel, env.DISCORD_APPLICATION_ID, env.DISCORD_TOKEN, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.MentionEveryone])
+      const permissions = await calculateChannelPermissions(interaction.guild_id!, channel, env.DISCORD_APPLICATION_ID, env, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.MentionEveryone])
       const missingPermissions = Object.entries(permissions.checks)
         .filter(([_, hasPermission]) => !hasPermission)
         .map(([permissionName]) => permissionName)

@@ -307,8 +307,8 @@ export function messageBuilder(message: string, streamMessage: StreamMessage, ty
     .replace(/\{\{timestamp\}\}/gi, `<t:${timestampValue}:R>`)
 }
 
-export async function calculateChannelPermissions(guildId: string, channelId: string, botUserId: string, token: string, permissionsToCheck?: bigint[]) {
-  const rest = new REST({ version: '10' }).setToken(token)
+export async function calculateChannelPermissions(guildId: string, channelId: string, botUserId: string, env: Env, permissionsToCheck?: bigint[]) {
+  const rest = new REST({ version: '10', api: `${env.DISCORD_PROXY}/api` }).setToken(env.DISCORD_TOKEN)
 
   try {
     const channel = await rest.get(Routes.channel(channelId)) as RESTGetAPIChannelResult
@@ -392,14 +392,14 @@ export async function calculateChannelPermissions(guildId: string, channelId: st
  * Fetches all custom emojis for a guild.
  *
  * @param guildId - The ID of the guild to fetch emojis from.
- * @param discordToken - The bot token for authorization.
+ * @param env - The environment variables from Cloudflare.
  * @returns An array of DiscordEmoji objects, each containing the ID and name of the emoji.
  *
  * @throws If there is an error fetching the emojis.
  */
-export async function fetchGuildEmojis(guildId: string, discordToken: string) {
+export async function fetchGuildEmojis(guildId: string, env: Env) {
   try {
-    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(discordToken)
+    const rest = new REST({ version: '10', api: `${env.DISCORD_PROXY}/api`, makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
     const emojis = await rest.get(Routes.guildEmojis(guildId)) as RESTGetAPIGuildEmojisResult
     return emojis
   }

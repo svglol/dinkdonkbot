@@ -31,7 +31,7 @@ async function handleRandomEmoteCommand(interaction: APIApplicationCommandIntera
     return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in a server', env)] })
 
   try {
-    const emojis = await fetchGuildEmojis(interaction.guild_id, env.DISCORD_TOKEN)
+    const emojis = await fetchGuildEmojis(interaction.guild_id, env)
 
     if (emojis.length === 0) {
       return await updateInteraction(interaction, env, {

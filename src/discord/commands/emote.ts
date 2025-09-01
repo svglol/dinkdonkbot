@@ -88,7 +88,7 @@ async function handleEmoteCommand(interaction: APIApplicationCommandInteraction,
 
         // Check if the emote already exists in the guild
         try {
-          const emojis = await fetchGuildEmojis(interaction.guild_id, env.DISCORD_TOKEN)
+          const emojis = await fetchGuildEmojis(interaction.guild_id, env)
           if (emojis.some(emoji => emoji.id === id)) {
             return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`Emote already exists on this server: <${isAnimated ? 'a' : ''}:${cleanName}:${id}>`, env)] })
           }

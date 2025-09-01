@@ -44,7 +44,7 @@ export async function handleTwitchAddCommand(interaction: APIApplicationCommandI
       where: (streams, { eq, and, like }) => and(eq(streams.guildId, server), like(streams.name, streamer)),
     }),
     await getChannelId(streamer, env),
-    await calculateChannelPermissions(interaction.guild_id!, channel!, env.DISCORD_APPLICATION_ID, env.DISCORD_TOKEN, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.MentionEveryone]),
+    await calculateChannelPermissions(interaction.guild_id!, channel!, env.DISCORD_APPLICATION_ID, env, [PermissionFlagsBits.SendMessages, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.MentionEveryone]),
   ])
 
   // check if already subscribed to this channel
