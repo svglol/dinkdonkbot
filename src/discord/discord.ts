@@ -776,14 +776,22 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
   function buildKickOnlineMessage(streamMessage: StreamMessage, _env: Env): Content {
     const roleMention = streamMessage.kickStream?.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
     const message = `${roleMention}${messageBuilder(streamMessage.kickStream?.liveMessage ? streamMessage.kickStream.liveMessage : '{{name}} is live!', streamMessage, 'online', 'kick')}`
-    const title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream?.name} is live!`
+    let title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream?.name} is live!`
     const description = `${KICK_EMOTE.formatted} ${streamMessage.kickStream?.name ?? streamMessage.kickStreamerData?.slug} is live on KICK!`
-    const game = streamMessage.kickStreamData?.category.name || 'No game'
+    let game = streamMessage.kickStreamData?.category.name || 'No game'
     const status = 'Online'
     const timestamp = new Date(streamMessage.kickStreamData?.started_at || Date.now()).toISOString()
     const image = streamMessage.kickStreamData?.thumbnail ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${new Date().getTime()}` : 'https://kick.com/img/default-channel-banners/offline.webp'
     const url = `https://kick.com/${streamMessage.kickStream?.name}`
     const buttons: APIButtonComponent[] = []
+
+    // current issue with some getLiveStream from kick api returning the wrong stream title/category
+    if (streamMessage.kickStreamData?.stream_title !== streamMessage.kickStreamerData?.livestream?.session_title) {
+      title = streamMessage.kickStreamerData?.livestream?.session_title || `${streamMessage.kickStream?.name} is live!`
+    }
+    if (streamMessage.kickStreamData?.category.name !== streamMessage.kickStreamerData?.livestream?.categories[0].name) {
+      game = streamMessage.kickStreamerData?.livestream?.categories[0].name || 'No game'
+    }
 
     buttons.push({
       type: 2,
@@ -826,6 +834,11 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
         },
       })
     }
+    let title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream?.name} is no longer live!`
+    // current issue with some getLiveStream from kick api returning the wrong stream title/category
+    if (streamMessage.kickStreamData?.stream_title !== streamMessage.kickStreamerData?.livestream?.session_title) {
+      title = streamMessage.kickStreamerData?.livestream?.session_title || `${streamMessage.kickStream?.name} is live!`
+    }
 
     const duration = streamMessage.kickVod && !Number.isNaN(streamMessage.kickVod.duration) && streamMessage.kickVod.duration > 0
       ? formatDuration(streamMessage.kickVod.duration)
@@ -834,7 +847,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
         : '0'
     return {
       message: messageBuilder(streamMessage.kickStream?.offlineMessage ? streamMessage.kickStream?.offlineMessage : '{{name}} is now offline.', streamMessage, 'offline', 'kick'),
-      title: streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream?.name} is no longer live!`,
+      title,
       color: OFFLINE_COLOR,
       description: `${KICK_EMOTE.formatted} ${streamMessage.kickStream?.name ?? streamMessage.kickStreamerData?.slug} is no longer live on KICK!`,
       duration,

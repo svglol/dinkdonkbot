@@ -393,7 +393,33 @@ declare global {
     banner_image: {
       url: string
     } | null
-    livestream: any | null
+    livestream?: {
+      id: number
+      slug: string
+      channel_id: number
+      created_at: string
+      session_title: string
+      is_live: boolean
+      risk_level_id: number | null
+      start_time: string
+      source: string | null
+      twitch_channel: string | null
+      duration: number
+      language: string
+      is_mature: boolean
+      viewer_count: number
+      thumbnail: {
+        url: string
+      }
+      lang_iso: string
+      tags: string[]
+      categories: {
+        id: number
+        slug: string
+        name: string
+        tags: string[]
+      }[]
+    }
     role: any | null
     muted: boolean
     follower_badges: any[]

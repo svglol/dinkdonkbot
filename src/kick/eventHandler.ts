@@ -148,6 +148,25 @@ async function streamMetadataUpdated(payload: KickLivestreamMetadataUpdatedEvent
               },
               language: payload.metadata.language,
             },
+            kickStreamerData: message.kickStreamerData
+              ? {
+                  ...message.kickStreamerData,
+                  livestream: message.kickStreamerData?.livestream
+                    ? {
+                        ...message.kickStreamerData?.livestream,
+                        session_title: payload.metadata.title,
+                        categories: [
+                          {
+                            id: payload.metadata.Category.id,
+                            name: payload.metadata.Category.name,
+                            slug: payload.metadata.Category.name,
+                            tags: [],
+                          },
+                        ],
+                      }
+                    : undefined,
+                }
+              : undefined,
           }).where(eq(tables.streamMessages.id, message.id))
         }
         catch (error) {
