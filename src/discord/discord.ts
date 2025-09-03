@@ -1,5 +1,5 @@
 import type { RESTPostAPICurrentUserCreateDMChannelResult } from 'discord-api-types/v9'
-import type { APIApplicationCommandOption, APIButtonComponent, APIEmbed, APIEmbedField, APIInteraction, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTGetAPIGuildMemberResult, RESTGetAPIGuildRolesResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
+import type { APIApplicationCommandOption, APIButtonComponent, APIEmbed, APIEmbedField, APIInteraction, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTGetAPIGuildMemberResult, RESTGetAPIGuildRolesResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPatchAPIWebhookResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
 
 import type { StreamMessage } from '../database/db'
 
@@ -114,24 +114,16 @@ export async function deleteMessage(channelId: string, messageId: string, env: E
  * @throws If there is an error updating the interaction.
  */
 export async function updateInteraction(interaction: APIInteraction, env: Env, body: RESTPatchAPIChannelMessageJSONBody) {
-  const urls = [`https://discord.com`, env.DISCORD_PROXY]
-  for (const url of urls) {
-    try {
-      const update = await fetch(`${url}/api/v10/webhooks/${env.DISCORD_APPLICATION_ID}/${interaction.token}/messages/@original`, {
-        method: 'PATCH',
-        body: JSON.stringify(body),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-      if (!update.ok)
-        throw new Error(`Failed to update interaction: ${await update.text()}`)
+  try {
+    const rest = new REST({ version: '10', api: `${env.DISCORD_PROXY}/api`, makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+    const message = await rest.patch(Routes.webhookMessage(env.DISCORD_APPLICATION_ID, interaction.token), {
+      body,
+    })
 
-      return await update.json()
-    }
-    catch (error) {
-      console.error(`Error updating interaction at ${url}:`, error)
-    }
+    return message as RESTPatchAPIWebhookResult
+  }
+  catch (error: unknown) {
+    console.error('Failed to update interaction:', error)
   }
 }
 
