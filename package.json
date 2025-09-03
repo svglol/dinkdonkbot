@@ -28,7 +28,7 @@
     "@discordjs/formatters": "0.6.1",
     "@discordjs/rest": "2.6.0",
     "date-fns-tz": "3.2.0",
-    "discord-api-types": "0.38.21",
+    "discord-api-types": "0.38.22",
     "discord-interactions": "4.3.0",
     "drizzle-orm": "0.44.5",
     "itty-router": "5.0.22",
@@ -37,7 +37,7 @@
   "devDependencies": {
     "@antfu/eslint-config": "5.2.1",
     "@cloudflare/vitest-pool-workers": "0.8.68",
-    "@cloudflare/workers-types": "4.20250828.1",
+    "@cloudflare/workers-types": "4.20250831.0",
     "@types/tz-lookup": "6.1.2",
     "dotenv": "17.2.1",
     "drizzle-kit": "0.31.4",
