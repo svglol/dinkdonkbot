@@ -1,4 +1,4 @@
-import type { APIActionRowComponent, APIComponentInContainer, APIMessageComponentInteraction, APIMessageTopLevelComponent, APIModalSubmitInteraction, ModalSubmitActionRowComponent } from 'discord-api-types/v10'
+import type { APIComponentInContainer, APIMessageComponentInteraction, APIMessageTopLevelComponent, APIModalSubmitInteraction, ModalSubmitActionRowComponent } from 'discord-api-types/v10'
 import { DurableObject } from 'cloudflare:workers'
 import { InteractionResponseType } from 'discord-interactions'
 import { buildErrorEmbed, updateInteraction } from '../discord/discord'
