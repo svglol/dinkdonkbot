@@ -1,4 +1,4 @@
-import type { APIComponentInContainer, APIMessageComponentInteraction, APIMessageTopLevelComponent, APIModalSubmitInteraction } from 'discord-api-types/v10'
+import type { APIActionRowComponent, APIComponentInContainer, APIMessageComponentInteraction, APIMessageTopLevelComponent, APIModalSubmitInteraction, ModalSubmitActionRowComponent } from 'discord-api-types/v10'
 import { DurableObject } from 'cloudflare:workers'
 import { InteractionResponseType } from 'discord-interactions'
 import { buildErrorEmbed, updateInteraction } from '../discord/discord'
@@ -151,7 +151,11 @@ export class HangmanGame extends DurableObject {
   async startGameModal(interaction: APIModalSubmitInteraction) {
     this.interaction = interaction
     // Get the word/phrase from the interaction options or fetch a random one
-    const phraseInput = interaction.data.components[0].components.find(c => c.custom_id === 'hangman_phrase_input')
+    const phraseInputRow = interaction.data.components[0]
+    let phraseInput
+    if (phraseInputRow.type === 1) {
+      phraseInput = (phraseInputRow as ModalSubmitActionRowComponent).components.find(c => c.custom_id === 'hangman_phrase_input')
+    }
     if (phraseInput && phraseInput.value.length > 0) {
       this.phrase = phraseInput.value.trim().toUpperCase().replace(/[^A-Z0-9 ]/g, '')
       this.customPhrase = true
@@ -239,7 +243,11 @@ export class HangmanGame extends DurableObject {
         }
       }
 
-      const guessInput = interaction.data.components[0].components.find(c => c.custom_id === 'hangman_guess_input')
+      const guessInputRow = interaction.data.components[0]
+      let guessInput
+      if (guessInputRow.type === 1) {
+        guessInput = (guessInputRow as ModalSubmitActionRowComponent).components.find(c => c.custom_id === 'hangman_guess_input')
+      }
       if (!guessInput || guessInput.type !== 4 || typeof guessInput.value !== 'string') {
         this.state.waitUntil(updateInteraction(interaction, this.env, { embeds: [buildErrorEmbed('Invalid guess input.', this.env)] }))
         return interactionEphemeralLoading()
