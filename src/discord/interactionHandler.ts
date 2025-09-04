@@ -234,6 +234,6 @@ async function handleTopClipsCommand(interaction: APIMessageComponentInteraction
     await updateInteraction(interaction, env, { components, flags: 1 << 15 })
   }
   else {
-    await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('We could not find any clips from this stream 😢', env)] })
+    await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('We could not find any clips from this stream 😢', env, { title: 'No clips found :(' })] })
   }
 }
