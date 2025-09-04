@@ -27,7 +27,7 @@ export function getSubcommandInfo(interaction: APIApplicationCommandInteraction)
   const chatData = data as APIChatInputApplicationCommandInteractionData
 
   const subcommandGroup = chatData.options?.find(opt => opt.type === 2)?.name
-  const subcommand = chatData.options?.find(opt => opt.type === 1)?.name
+  const subcommand = chatData.options?.find(opt => opt.type === 1)?.name || chatData.options?.find(opt => opt.type === 2)?.options?.find(opt => opt.type === 1)?.name
 
   return { subcommandGroup, subcommand, commandName: data.name }
 }
