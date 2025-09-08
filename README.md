@@ -112,7 +112,39 @@ Use `/help` for detailed commands or join our [Discord server](https://discord.g
 - `/invite` - Get an invite link to add the bot to your server
 
 ## Development
-This bot is built using Cloudflare Workers and is based on the [Discord Cloudflare Sample App](https://github.com/discord/cloudflare-sample-app).
+This bot is built to run on Cloudflare Workers and was originally based on the [Discord Cloudflare Sample App](https://github.com/discord/cloudflare-sample-app).
+
+Enviroment Variables
+```
+DISCORD_APPLICATION_ID: "your_discord_app_id"
+DISCORD_PUBLIC_KEY: "your_discord_app_public_key"
+DISCORD_TOKEN: "your_discord_bot_token"
+TWITCH_CLIENT_ID: "your_twitch_client_id"
+TWITCH_CLIENT_SECRET: "your_twitch_client_secret"
+TWITCH_EVENT_SECRET: "your_twitch_event_secret"
+WEBHOOK_URL: "https://your_ngrok_url/
+KICK_CLIENT_ID: "your_kick_client_id"
+KICK_CLIENT_SECRET: "your_kick_client_secret"
+ANALYTICS_DATASET: "dinkdonk_bot_events" // used for analytics (not required for dev)
+ACCOUNT_ID: "your_cloudflare_account_id" // used for analytics (not required for dev)
+API_TOKEN: "your_cloudflare_api_token" // used for analytics (not required for dev)
+DISCORD_PROXY: "https://discord.com" // we use a proxy on production, but can be set to "https://discord.com" for local development
+```
+
+## Running Locally
+```bash
+pnpm run dev
+```
+
+```bash
+pnpm run ngrok
+```
+
+```bash
+Edit your Discord Application Interactions Endpoint URL to match ngrok URL
+Edit Kick.com application webhooks url to match ngrok URL + /kick-eventsub
+Edit WEBHOOK_URL environment variable to match ngrok URL
+```
 
 ## Support
 Need help or have questions? Join our [Discord server](https://discord.gg/NuY7Tnrb6F) or check out the [documentation](https://svglol.github.io/dinkdonkbot/).
