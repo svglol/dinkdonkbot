@@ -93,7 +93,7 @@ export async function handleKickAddCommand(interaction: APIApplicationCommandInt
   // subscribe to event sub for this channel
   const subscribed = await kickSubscribe(kickChannel.broadcaster_user_id, env)
   if (!subscribed)
-    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Something went wrong while trying to subscribe to kick events', env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Something went wrong while trying to subscribe to kick events. This is most likely an error with Kick\'s API please try again later.', env)] })
 
   let roleId: string | undefined
   if (role) {
