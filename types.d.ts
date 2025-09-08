@@ -149,13 +149,13 @@ declare global {
   // This type maps the SubscriptionType to the corresponding event data type
   // It uses conditional types to determine the correct type based on the SubscriptionType
   type SubscriptionEventByType<T extends SubscriptionType>
-  = T extends SubscriptionType.Online
-    ? OnlineEventData
-    : T extends SubscriptionType.Offline
-      ? OfflineEventData
-      : T extends SubscriptionType.Update
-        ? ChannelUpdateEventData
-        : never
+    = T extends SubscriptionType.Online
+      ? OnlineEventData
+      : T extends SubscriptionType.Offline
+        ? OfflineEventData
+        : T extends SubscriptionType.Update
+          ? ChannelUpdateEventData
+          : never
 
   interface SubscriptionEventResponseData<T extends SubscriptionType> {
     subscription: SubscriptionData
