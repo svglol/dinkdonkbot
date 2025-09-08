@@ -469,7 +469,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
   function mergeContent(target: Content, source: Partial<Content>): Content {
     return Object.entries(source).reduce((acc, [key, value]) => {
       const isEmptyString
-      = typeof value === 'string' && value.replace(/[\s\u200B-\u200F]/g, '') === ''
+        = typeof value === 'string' && value.replace(/[\s\u200B-\u200F]/g, '') === ''
 
       if (value !== undefined && value !== null && !isEmptyString) {
         (acc as any)[key] = value

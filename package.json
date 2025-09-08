@@ -28,24 +28,24 @@
     "@discordjs/formatters": "0.6.1",
     "@discordjs/rest": "2.6.0",
     "date-fns-tz": "3.2.0",
-    "discord-api-types": "0.38.22",
+    "discord-api-types": "0.38.23",
     "discord-interactions": "4.3.0",
     "drizzle-orm": "0.44.5",
     "itty-router": "5.0.22",
     "tz-lookup": "6.1.25"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "5.2.1",
-    "@cloudflare/vitest-pool-workers": "0.8.68",
-    "@cloudflare/workers-types": "4.20250831.0",
+    "@antfu/eslint-config": "5.2.2",
+    "@cloudflare/vitest-pool-workers": "0.8.70",
+    "@cloudflare/workers-types": "4.20250905.0",
     "@types/tz-lookup": "6.1.2",
-    "dotenv": "17.2.1",
+    "dotenv": "17.2.2",
     "drizzle-kit": "0.31.4",
     "eslint": "9.34.0",
     "ngrok": "5.0.0-beta.2",
     "tsx": "4.20.5",
     "typescript": "5.9.2",
     "vitest": "3.2.4",
-    "wrangler": "4.33.1"
+    "wrangler": "4.34.0"
   }
 }
