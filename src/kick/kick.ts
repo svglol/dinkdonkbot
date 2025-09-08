@@ -164,7 +164,7 @@ export async function getKickSubscriptions(env: Env) {
  * @throws If the request to fetch the channel fails.
  */
 export async function getKickChannel(channel: string, env: Env) {
-  const response = await fetch(`${baseUrl}/channels?slug=${channel.toLowerCase()}`, {
+  const response = await fetch(`${baseUrl}/channels?slug=${channel.toLowerCase().replace(/_/g, '-')}`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${await getKickToken(env)}`,
@@ -178,7 +178,7 @@ export async function getKickChannel(channel: string, env: Env) {
     throw new Error(`HTTP error! status: ${response.status}`)
 
   const channels = await response.json() as KickChannelsResponse
-  return channels.data.find(c => c.slug === channel.toLowerCase())
+  return channels.data.find(c => c.slug === channel.toLowerCase().replace(/_/g, '-'))
 }
 
 /**
@@ -302,7 +302,7 @@ export async function getKickLivestream(broadcasterId: number, env: Env) {
  */
 export async function getKickChannelV2(slug: string) {
   try {
-    const response = await fetch(`https://kick.com/api/v2/channels/${slug.toLowerCase()}`, {
+    const response = await fetch(`https://kick.com/api/v2/channels/${slug.toLowerCase().replace(/_/g, '-')}`, {
       method: 'GET',
       headers: {
         'User-Agent':
@@ -344,7 +344,7 @@ export async function getKickLatestVod(startedAt: string, slug: string) {
       throw new Error('Channel slug is required')
     }
 
-    const response = await fetch(`https://kick.com/api/v2/channels/${encodeURIComponent(slug.toLowerCase())}/videos`, {
+    const response = await fetch(`https://kick.com/api/v2/channels/${encodeURIComponent(slug.toLowerCase().replace(/_/g, '-'))}/videos`, {
       method: 'GET',
       headers: {
         'User-Agent':
