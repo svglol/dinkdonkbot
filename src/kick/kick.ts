@@ -11,77 +11,83 @@ const baseUrl = 'https://api.kick.com/public/v1'
  * @throws If the request to create the subscription fails.
  */
 export async function kickSubscribe(broadcasterUserId: number, env: Env) {
-  const subscriptions = await getKickSubscriptions(env)
-  const statusSubscription = subscriptions.data.find(sub => sub.broadcaster_user_id === broadcasterUserId && sub.event === 'livestream.status.updated')
-  const metaSubscription = subscriptions.data.find(sub => sub.broadcaster_user_id === broadcasterUserId && sub.event === 'livestream.metadata.updated')
-  if (statusSubscription && metaSubscription)
-    return true
+  try {
+    const subscriptions = await getKickSubscriptions(env)
+    const statusSubscription = subscriptions.data.find(sub => sub.broadcaster_user_id === broadcasterUserId && sub.event === 'livestream.status.updated')
+    const metaSubscription = subscriptions.data.find(sub => sub.broadcaster_user_id === broadcasterUserId && sub.event === 'livestream.metadata.updated')
+    if (statusSubscription && metaSubscription)
+      return true
 
-  let response = false
-  if (!statusSubscription) {
-    const statusResponse = await fetch(`${baseUrl}/events/subscriptions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${await getKickToken(env)}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        method: 'webhook',
-        events: [
-          {
-            name: 'livestream.status.updated',
-            version: 1,
-          },
-        ],
-        broadcaster_user_id: broadcasterUserId,
-      }),
-    })
+    let response = false
+    if (!statusSubscription) {
+      const statusResponse = await fetch(`${baseUrl}/events/subscriptions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${await getKickToken(env)}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          method: 'webhook',
+          events: [
+            {
+              name: 'livestream.status.updated',
+              version: 1,
+            },
+          ],
+          broadcaster_user_id: broadcasterUserId,
+        }),
+      })
 
-    if (statusResponse.status === 401)
-      throw new Error('Unauthorized')
-    if (statusResponse.status === 403)
-      throw new Error('Forbidden')
-    if (!statusResponse.ok) {
-      const error = await statusResponse.json().catch(() => ({}))
-      throw new Error(`HTTP error! status: ${statusResponse.status}, message: ${JSON.stringify(error)}`)
+      if (statusResponse.status === 401)
+        throw new Error('Unauthorized')
+      if (statusResponse.status === 403)
+        throw new Error('Forbidden')
+      if (!statusResponse.ok) {
+        const error = await statusResponse.json().catch(() => ({}))
+        throw new Error(`HTTP error! status: ${statusResponse.status}, message: ${JSON.stringify(error)}`)
+      }
+
+      response = true
     }
 
-    response = true
-  }
+    if (!metaSubscription) {
+      // Create a subscription for livestream metadata updates
+      const metaResponse = await fetch(`${baseUrl}/events/subscriptions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${await getKickToken(env)}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          method: 'webhook',
+          events: [
+            {
+              name: 'livestream.metadata.updated',
+              version: 1,
+            },
+          ],
+          broadcaster_user_id: broadcasterUserId,
+        }),
+      })
 
-  if (!metaSubscription) {
-    // Create a subscription for livestream metadata updates
-    const metaResponse = await fetch(`${baseUrl}/events/subscriptions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${await getKickToken(env)}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        method: 'webhook',
-        events: [
-          {
-            name: 'livestream.metadata.updated',
-            version: 1,
-          },
-        ],
-        broadcaster_user_id: broadcasterUserId,
-      }),
-    })
+      if (metaResponse.status === 401)
+        throw new Error('Unauthorized')
+      if (metaResponse.status === 403)
+        throw new Error('Forbidden')
+      if (!metaResponse.ok) {
+        const error = await metaResponse.json().catch(() => ({}))
+        throw new Error(`HTTP error! status: ${metaResponse.status}, message: ${JSON.stringify(error)}`)
+      }
 
-    if (metaResponse.status === 401)
-      throw new Error('Unauthorized')
-    if (metaResponse.status === 403)
-      throw new Error('Forbidden')
-    if (!metaResponse.ok) {
-      const error = await metaResponse.json().catch(() => ({}))
-      throw new Error(`HTTP error! status: ${metaResponse.status}, message: ${JSON.stringify(error)}`)
+      response = true
     }
 
-    response = true
+    return response
   }
-
-  return response
+  catch (error) {
+    console.error('Error subscribing to Kick EventSub:', error)
+    return false
+  }
 }
 
 /**
@@ -128,30 +134,36 @@ export async function kickUnsubscribe(broadcasterUserId: number, env: Env) {
  * @throws If the request to fetch the webhooks fails.
  */
 export async function getKickSubscriptions(env: Env) {
-  const cacheKey = `kick_subscriptions_${env.KICK_CLIENT_ID}`
-  const cachedSubscriptions = await env.KV.get(cacheKey, { type: 'json' }) as KickWebhooksResponse | null
-  if (cachedSubscriptions) {
-    return cachedSubscriptions
+  try {
+    const cacheKey = `kick_subscriptions_${env.KICK_CLIENT_ID}`
+    const cachedSubscriptions = await env.KV.get(cacheKey, { type: 'json' }) as KickWebhooksResponse | null
+    if (cachedSubscriptions) {
+      return cachedSubscriptions
+    }
+
+    const response = await fetch(`${baseUrl}/events/subscriptions`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${await getKickToken(env)}`,
+      },
+    })
+
+    if (response.status === 401)
+      throw new Error('Unauthorized')
+    if (response.status === 403)
+      throw new Error('Forbidden')
+    if (!response.ok)
+      throw new Error(`HTTP error! status: ${response.status}`)
+
+    const data = await response.json() as KickWebhooksResponse
+    await env.KV.put(cacheKey, JSON.stringify(data), { expirationTtl: 60 })
+
+    return data
   }
-
-  const response = await fetch(`${baseUrl}/events/subscriptions`, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${await getKickToken(env)}`,
-    },
-  })
-
-  if (response.status === 401)
-    throw new Error('Unauthorized')
-  if (response.status === 403)
-    throw new Error('Forbidden')
-  if (!response.ok)
-    throw new Error(`HTTP error! status: ${response.status}`)
-
-  const data = await response.json() as KickWebhooksResponse
-  await env.KV.put(cacheKey, JSON.stringify(data), { expirationTtl: 60 })
-
-  return data
+  catch (error) {
+    console.error('Error fetching Kick webhooks:', error)
+    return { data: [] }
+  }
 }
 
 /**
