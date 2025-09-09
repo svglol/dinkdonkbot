@@ -9,10 +9,10 @@ import { InteractionResponseType, verifyKey } from 'discord-interactions'
 import { Router } from 'itty-router'
 import { buildQuickstartMessage } from '@/discord/commands/quickstart'
 import { discordInteractionAutoCompleteHandler, discordInteractionHandler, discordInteractionMessageComponentHandler, discordInteractionModalHandler } from '@/discord/interactionHandler'
+import { kickEventHandler } from '@/kick/eventHandler'
+import { twitchEventHandler } from '@/twitch/eventHandler'
 import { DINKDONK_EMOTE } from '@/utils/discordEmotes'
 import { JsonResponse } from '@/utils/jsonResponse'
-import { kickEventHandler } from '../kick/eventHandler'
-import { twitchEventHandler } from '../twitch/eventHandler'
 import { scheduledCheck } from './scheduled'
 
 const router = Router()
