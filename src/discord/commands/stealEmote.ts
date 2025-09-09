@@ -1,9 +1,9 @@
 import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
+import { buildErrorEmbed, buildSuccessEmbed, fetchGuildEmojis, updateInteraction, uploadEmoji, uploadSticker } from '@discord-api'
 import { isContextMenuApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
 import { PermissionFlagsBits, StickerFormatType } from 'discord-api-types/v10'
-import { fetchEmoteImageBuffer } from '../../util/emote'
-import { buildErrorEmbed, buildSuccessEmbed, fetchGuildEmojis, updateInteraction, uploadEmoji, uploadSticker } from '../discord'
-import { interactionEphemeralLoading } from '../interactionHandler'
+import { interactionEphemeralLoading } from '@/discord/interactionHandler'
+import { fetchEmoteImageBuffer } from '@/utils/emote'
 
 const STEAL_EMOTE_COMMAND = {
   name: 'Steal Emote/Sticker',

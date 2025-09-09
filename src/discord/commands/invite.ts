@@ -1,6 +1,6 @@
 import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
-import { updateInteraction } from '../discord'
-import { interactionEphemeralLoading } from '../interactionHandler'
+import { updateInteraction } from '@discord-api'
+import { interactionEphemeralLoading } from '@/discord/interactionHandler'
 
 const INVITE_COMMAND = {
   name: 'invite',

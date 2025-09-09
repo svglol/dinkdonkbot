@@ -1,7 +1,7 @@
 import type { APIApplicationCommandInteraction, APIMessageComponentInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
-import { KICK_EMOTE, TWITCH_EMOTE } from '../../../util/discordEmotes'
-import { findBotCommandMarkdown, updateInteraction } from '../../discord'
-import { deferedUpdate } from '../../interactionHandler'
+import { findBotCommandMarkdown, updateInteraction } from '@discord-api'
+import { deferedUpdate } from '@/discord/interactionHandler'
+import { KICK_EMOTE, TWITCH_EMOTE } from '@/utils/discordEmotes'
 
 export const STREAM_HELP_COMMAND = {
   type: 1,

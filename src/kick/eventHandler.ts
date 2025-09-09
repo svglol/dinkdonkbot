@@ -1,7 +1,7 @@
-import type { LiveStream } from '../server'
-import { and, eq, tables, useDB } from '../database/db'
-import { bodyBuilder, deleteMessage, updateMessage } from '../discord/discord'
-import { getKickChannelV2, getKickLatestVod, getKickLivestream } from './kick'
+import type { LiveStream } from '@server'
+import { bodyBuilder, deleteMessage, updateMessage } from '@discord-api'
+import { getKickChannelV2, getKickLatestVod, getKickLivestream } from '@kick-api'
+import { and, eq, tables, useDB } from '@/database/db'
 
 /**
  * Handles a 'livestream.status.updated' event by sending a live message to all subscribers.

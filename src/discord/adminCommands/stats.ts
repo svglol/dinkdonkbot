@@ -1,12 +1,12 @@
 import type { APIApplicationCommandInteraction, RESTGetAPICurrentUserGuildsResult } from 'discord-api-types/v10'
+import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '@discord-api'
 import { REST } from '@discordjs/rest'
+import { getKickSubscriptions } from '@kick-api'
+import { getSubscriptions } from '@twitch-api'
 import { PermissionFlagsBits, Routes } from 'discord-api-types/v10'
-import { useDB } from '../../database/db'
-import { getKickSubscriptions } from '../../kick/kick'
-import { getSubscriptions } from '../../twitch/twitch'
-import { DINKDONK_EMOTE } from '../../util/discordEmotes'
-import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '../discord'
-import { interactionEphemeralLoading } from '../interactionHandler'
+import { useDB } from '@/database/db'
+import { interactionEphemeralLoading } from '@/discord/interactionHandler'
+import { DINKDONK_EMOTE } from '@/utils/discordEmotes'
 
 const STATS_COMMAND = {
   name: 'stats',

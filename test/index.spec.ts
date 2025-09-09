@@ -1,6 +1,6 @@
+import worker from '@server'
 import { createExecutionContext, createScheduledController, env, SELF, waitOnExecutionContext } from 'cloudflare:test'
 import { describe, expect, it } from 'vitest'
-import worker from '../src/server'
 
 describe('worker fetch router', () => {
   it('responds with discord application id', async () => {

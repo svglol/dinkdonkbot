@@ -1,7 +1,7 @@
 import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
-import { DINKDONK_EMOTE } from '../../util/discordEmotes'
-import { updateInteraction } from '../discord'
-import { interactionLoading } from '../interactionHandler'
+import { updateInteraction } from '@discord-api'
+import { interactionLoading } from '@/discord/interactionHandler'
+import { DINKDONK_EMOTE } from '@/utils/discordEmotes'
 
 const DINKDONK_COMMAND = {
   name: 'dinkdonk',

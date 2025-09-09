@@ -1,9 +1,9 @@
 import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction } from 'discord-api-types/v10'
+import { buildErrorEmbed, updateInteraction } from '@discord-api'
 import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
-import { PermissionFlagsBits } from 'discord-api-types/v10'
 
-import { buildErrorEmbed, updateInteraction } from '../../discord'
-import { autoCompleteResponse, interactionEphemeralLoading } from '../../interactionHandler'
+import { PermissionFlagsBits } from 'discord-api-types/v10'
+import { autoCompleteResponse, interactionEphemeralLoading } from '@/discord/interactionHandler'
 import { handleStreamHelpCommand, handleStreamHelpMessageComponent, STREAM_HELP_COMMAND } from './help'
 import { handleKickAutoComplete, handleKickCommands, KICK_SUBCOMMANDS } from './kick'
 import { handleStreamListCommand, handleStreamListMessageComponent, STREAM_LIST_COMMAND } from './list'

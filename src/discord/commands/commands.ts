@@ -1,6 +1,6 @@
 import type { APIApplicationCommand, APIApplicationCommandInteraction, APIMessageComponentInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
-import { buildErrorEmbed, fetchBotCommands, updateInteraction } from '../discord'
-import { deferedUpdate, interactionEphemeralLoading } from '../interactionHandler'
+import { buildErrorEmbed, fetchBotCommands, updateInteraction } from '@discord-api'
+import { deferedUpdate, interactionEphemeralLoading } from '@/discord/interactionHandler'
 
 const COMMANDS_COMMAND = {
   name: 'commands',

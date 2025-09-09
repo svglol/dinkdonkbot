@@ -1,7 +1,7 @@
 import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
+import { buildErrorEmbed, updateInteraction } from '@discord-api'
 import { isChatInputApplicationCommandInteraction } from 'discord-api-types/utils'
-import { buildErrorEmbed, updateInteraction } from '../../discord'
-import { interactionLoading } from '../../interactionHandler'
+import { interactionLoading } from '@/discord/interactionHandler'
 
 const ROLL_COMMAND = {
   name: 'roll',

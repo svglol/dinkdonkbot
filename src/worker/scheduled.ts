@@ -1,11 +1,11 @@
 import type { RESTGetAPICurrentUserGuildsResult } from 'discord-api-types/rest'
+import { sendMessage } from '@discord-api'
 import { REST } from '@discordjs/rest'
+import { getKickSubscriptions, getKickUser, kickSubscribe, kickUnsubscribe } from '@kick-api'
+import { getClipsLastHour, getSubscriptions, getUserbyID, removeFailedSubscriptions, removeSubscription, subscribe } from '@twitch-api'
 import { Routes } from 'discord-api-types/v10'
-import { eq, tables, useDB } from '../database/db'
-import { sendMessage } from '../discord/discord'
-import { getKickSubscriptions, getKickUser, kickSubscribe, kickUnsubscribe } from '../kick/kick'
-import { getClipsLastHour, getSubscriptions, getUserbyID, removeFailedSubscriptions, removeSubscription, subscribe } from '../twitch/twitch'
-import { CLIPPERS_EMOTE } from '../util/discordEmotes'
+import { eq, tables, useDB } from '@/database/db'
+import { CLIPPERS_EMOTE } from '@/utils/discordEmotes'
 
 export default {
   async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext) {

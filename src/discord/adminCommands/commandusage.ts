@@ -1,9 +1,9 @@
 import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
+import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '@discord-api'
 import { isChatInputApplicationCommandInteraction } from 'discord-api-types/utils'
 import { PermissionFlagsBits } from 'discord-api-types/v10'
-import { DINKDONK_EMOTE } from '../../util/discordEmotes'
-import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '../discord'
-import { interactionEphemeralLoading } from '../interactionHandler'
+import { interactionEphemeralLoading } from '@/discord/interactionHandler'
+import { DINKDONK_EMOTE } from '@/utils/discordEmotes'
 
 const COMMANDUSAGE_COMMAND = {
   name: 'commandusage',

@@ -1,6 +1,6 @@
-import type { LiveStream } from '../server'
-import { and, eq, tables, useDB } from '../database/db'
-import { bodyBuilder, deleteMessage, updateMessage } from '../discord/discord'
+import type { LiveStream } from '@server'
+import { bodyBuilder, deleteMessage, updateMessage } from '@discord-api'
+import { and, eq, tables, useDB } from '@/database/db'
 import { getLatestVOD, getStreamDetails, getStreamerDetails } from './twitch'
 
 /**

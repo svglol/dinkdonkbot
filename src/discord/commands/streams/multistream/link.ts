@@ -1,10 +1,10 @@
 import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIApplicationCommandInteractionDataOption, APIApplicationCommandInteractionDataSubcommandOption, InteractionType } from 'discord-api-types/v10'
+import { buildErrorEmbed, buildSuccessEmbed, findBotCommandMarkdown, updateInteraction } from '@discord-api'
 import { isGuildInteraction } from 'discord-api-types/utils'
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-import { tables, useDB } from '../../../../database/db'
-import { KICK_EMOTE, TWITCH_EMOTE } from '../../../../util/discordEmotes'
-import { buildErrorEmbed, buildSuccessEmbed, findBotCommandMarkdown, updateInteraction } from '../../../discord'
-import { autoCompleteResponse } from '../../../interactionHandler'
+import { tables, useDB } from '@/database/db'
+import { autoCompleteResponse } from '@/discord/interactionHandler'
+import { KICK_EMOTE, TWITCH_EMOTE } from '@/utils/discordEmotes'
 
 export const MULTISTREAM_LINK_COMMAND = {
   type: 1,

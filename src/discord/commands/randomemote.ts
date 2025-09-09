@@ -1,8 +1,8 @@
 import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
+import { buildErrorEmbed, fetchGuildEmojis, updateInteraction } from '@discord-api'
 import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
 import { PermissionFlagsBits } from 'discord-api-types/v10'
-import { buildErrorEmbed, fetchGuildEmojis, updateInteraction } from '../discord'
-import { interactionLoading } from '../interactionHandler'
+import { interactionLoading } from '@/discord/interactionHandler'
 
 const RANDOM_EMOTE_COMMAND = {
   name: 'randomemote',

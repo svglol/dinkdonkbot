@@ -1,9 +1,9 @@
 import type { APIApplicationCommandInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
+import { buildErrorEmbed, buildSuccessEmbed, fetchGuildEmojis, findBotCommandMarkdown, updateInteraction, uploadEmoji } from '@discord-api'
 import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
 import { PermissionFlagsBits } from 'discord-api-types/v10'
-import { fetch7tvEmoteImageBuffer, fetchEmoteImageBuffer, fetchSingular7tvEmote } from '../../util/emote'
-import { buildErrorEmbed, buildSuccessEmbed, fetchGuildEmojis, findBotCommandMarkdown, updateInteraction, uploadEmoji } from '../discord'
-import { interactionEphemeralLoading } from '../interactionHandler'
+import { interactionEphemeralLoading } from '@/discord/interactionHandler'
+import { fetch7tvEmoteImageBuffer, fetchEmoteImageBuffer, fetchSingular7tvEmote } from '@/utils/emote'
 
 const EMOTE_COMMAND = {
   name: 'emote',
