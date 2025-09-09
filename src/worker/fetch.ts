@@ -2,7 +2,6 @@ import type { APIInteraction, APIWebhookEvent } from 'discord-api-types/v10'
 import { Buffer } from 'node:buffer'
 import crypto from 'node:crypto'
 import { buildSuccessEmbed, directMessageUser } from '@discord-api'
-import { getKickChannelV2 } from '@kick-api'
 import { ApplicationIntegrationType, ApplicationWebhookEventType, ApplicationWebhookType, InteractionType } from 'discord-api-types/v10'
 
 import { InteractionResponseType, verifyKey } from 'discord-interactions'
@@ -13,7 +12,6 @@ import { kickEventHandler } from '@/kick/eventHandler'
 import { twitchEventHandler } from '@/twitch/eventHandler'
 import { DINKDONK_EMOTE } from '@/utils/discordEmotes'
 import { JsonResponse } from '@/utils/jsonResponse'
-import { scheduledCheck } from './scheduled'
 
 const router = Router()
 export default {
@@ -143,39 +141,10 @@ router.post('/kick-eventsub', async (request, env: Env, ctx: ExecutionContext) =
   return new JsonResponse({ message: 'Success' }, { status: 200 })
 })
 
-router.get('/check', async (request, env: Env, ctx: ExecutionContext) => {
-  const providedKey = request.headers.get('x-api-key')
-  const allowedKey = env.ACCESS_KEY
-
-  if (providedKey !== allowedKey) {
-    return new Response('Unauthorized', { status: 401 })
-  }
-  ctx.waitUntil(scheduledCheck(env))
-  return new Response('OK', { status: 200 })
-})
-
 router.get('/static/:filename', async (request, env: Env) => {
   const filename = request.params.filename
   const url = new URL(`/${filename}`, request.url)
   return env.ASSETS.fetch(url)
-})
-
-router.get('/kick/channel/:slug', async (request, env: Env) => {
-  const providedKey = request.headers.get('x-api-key')
-  const allowedKey = env.ACCESS_KEY
-
-  if (providedKey !== allowedKey) {
-    return new Response('Unauthorized', { status: 401 })
-  }
-
-  const slug = request.params.slug
-  const channel = await getKickChannelV2(slug)
-
-  if (!channel) {
-    return new Response('Channel not found', { status: 404 })
-  }
-
-  return new JsonResponse(channel)
 })
 
 // all other routes return a 404

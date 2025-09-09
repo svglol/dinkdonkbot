@@ -17,7 +17,6 @@ declare global {
     WEBHOOK_URL: string
     KICK_CLIENT_ID: string
     KICK_CLIENT_SECRET: string
-    ACCESS_KEY: string
     DISCORD_GUILD_ID: string
     ANALYTICS_DATASET: string
     ACCOUNT_ID: string
