@@ -1,9 +1,9 @@
 import type { APIApplicationCommandInteraction, APIApplicationCommandInteractionDataSubcommandOption } from 'discord-api-types/v10'
+import { tables, useDB } from '@database'
 import { buildErrorEmbed, buildSuccessEmbed, calculateChannelPermissions, updateInteraction } from '@discord-api'
 import { isGuildInteraction } from 'discord-api-types/utils'
 import { ApplicationCommandOptionType, PermissionFlagsBits } from 'discord-api-types/v10'
 import { and, eq, like } from 'drizzle-orm'
-import { tables, useDB } from '@/database/db'
 import { TWITCH_EMOTE } from '@/utils/discordEmotes'
 
 export const TWITCH_EDIT_COMMAND = {

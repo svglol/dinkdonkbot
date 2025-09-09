@@ -1,10 +1,10 @@
 import type { RESTGetAPICurrentUserGuildsResult } from 'discord-api-types/rest'
+import { eq, tables, useDB } from '@database'
 import { sendMessage } from '@discord-api'
 import { REST } from '@discordjs/rest'
 import { getKickSubscriptions, getKickUser, kickSubscribe, kickUnsubscribe } from '@kick-api'
 import { getClipsLastHour, getSubscriptions, getUserbyID, removeFailedSubscriptions, removeSubscription, subscribe } from '@twitch-api'
 import { Routes } from 'discord-api-types/v10'
-import { eq, tables, useDB } from '@/database/db'
 import { CLIPPERS_EMOTE } from '@/utils/discordEmotes'
 
 export default {

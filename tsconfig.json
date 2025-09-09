@@ -9,7 +9,8 @@
       "@kick-api": ["./src/kick/kick.ts"],
       "@twitch-api": ["./src/twitch/twitch.ts"],
       "@discord-api": ["./src/discord/discord.ts"],
-      "@server": ["./src/server.ts"]
+      "@server": ["./src/server.ts"],
+      "@database": ["./src/database/db.ts"]
     },
     "types": ["@cloudflare/workers-types", "@cloudflare/vitest-pool-workers"],
     "strict": true,

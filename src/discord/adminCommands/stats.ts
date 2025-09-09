@@ -1,10 +1,10 @@
 import type { APIApplicationCommandInteraction, RESTGetAPICurrentUserGuildsResult } from 'discord-api-types/v10'
+import { useDB } from '@database'
 import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '@discord-api'
 import { REST } from '@discordjs/rest'
 import { getKickSubscriptions } from '@kick-api'
 import { getSubscriptions } from '@twitch-api'
 import { PermissionFlagsBits, Routes } from 'discord-api-types/v10'
-import { useDB } from '@/database/db'
 import { interactionEphemeralLoading } from '@/discord/interactionHandler'
 import { DINKDONK_EMOTE } from '@/utils/discordEmotes'
 

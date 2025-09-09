@@ -1,11 +1,11 @@
+import type { StreamMessage } from '@database'
 import type { APIApplicationCommandInteraction, APIApplicationCommandInteractionDataSubcommandOption } from 'discord-api-types/v10'
-import type { StreamMessage } from '@/database/db'
+import { useDB } from '@database'
 import { bodyBuilder, buildErrorEmbed, buildSuccessEmbed, sendMessage, updateInteraction } from '@discord-api'
 import { getKickChannelV2, getKickLatestVod, getKickLivestream } from '@kick-api'
 import { getLatestVOD, getStreamDetails, getStreamerDetails } from '@twitch-api'
 import { isGuildInteraction } from 'discord-api-types/utils'
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-import { useDB } from '@/database/db'
 
 export const KICK_TEST_COMMAND = {
   type: 1,

@@ -1,10 +1,10 @@
 import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIApplicationCommandInteractionDataOption, APIApplicationCommandInteractionDataSubcommandOption, InteractionType } from 'discord-api-types/v10'
+import { tables, useDB } from '@database'
 import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '@discord-api'
 import { removeSubscription } from '@twitch-api'
 import { isGuildInteraction } from 'discord-api-types/utils'
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { and, eq, like } from 'drizzle-orm'
-import { tables, useDB } from '@/database/db'
 import { autoCompleteResponse } from '@/discord/interactionHandler'
 
 export const TWITCH_REMOVE_COMMAND = {

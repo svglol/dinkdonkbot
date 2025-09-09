@@ -1,13 +1,13 @@
+import type { StreamMessage } from '@database'
 import type { RESTPostAPICurrentUserCreateDMChannelResult } from 'discord-api-types/v9'
+
 import type { APIApplicationCommandOption, APIButtonComponent, APIEmbed, APIEmbedField, APIInteraction, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTGetAPIGuildMemberResult, RESTGetAPIGuildRolesResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPatchAPIWebhookResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
 
-import type { StreamMessage } from '@/database/db'
-
+import { eq, tables, useDB } from '@database'
 import { chatInputApplicationCommandMention, escapeMarkdown } from '@discordjs/formatters'
 import { DiscordAPIError, REST } from '@discordjs/rest'
-import { PermissionFlagsBits, Routes } from 'discord-api-types/v10'
 
-import { eq, tables, useDB } from '@/database/db'
+import { PermissionFlagsBits, Routes } from 'discord-api-types/v10'
 import { KICK_EMOTE, TWITCH_EMOTE } from '@/utils/discordEmotes'
 import { formatDuration } from '@/utils/formatDuration'
 

@@ -1,9 +1,9 @@
 import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIApplicationCommandInteractionDataOption, APIApplicationCommandInteractionDataSubcommandOption, InteractionType } from 'discord-api-types/v10'
+import { tables, useDB } from '@database'
 import { buildErrorEmbed, buildSuccessEmbed, calculateChannelPermissions, updateInteraction } from '@discord-api'
 import { getChannelId, getStreamerDetails, searchStreamers } from '@twitch-api'
 import { isGuildInteraction } from 'discord-api-types/utils'
 import { ApplicationCommandOptionType, PermissionFlagsBits } from 'discord-api-types/v10'
-import { tables, useDB } from '@/database/db'
 import { autoCompleteResponse } from '@/discord/interactionHandler'
 import { TWITCH_EMOTE } from '@/utils/discordEmotes'
 

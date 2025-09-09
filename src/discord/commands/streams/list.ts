@@ -1,7 +1,7 @@
 import type { APIApplicationCommandInteraction, APIMessageComponentInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
+import { useDB } from '@database'
 import { buildErrorEmbed, updateInteraction } from '@discord-api'
 import { isGuildInteraction } from 'discord-api-types/utils'
-import { useDB } from '@/database/db'
 import { deferedUpdate } from '@/discord/interactionHandler'
 import { KICK_EMOTE, TWITCH_EMOTE } from '@/utils/discordEmotes'
 

@@ -1,7 +1,7 @@
-import type { MultiStream, Stream, StreamKick, StreamMessage } from '@/database/db'
+import type { MultiStream, Stream, StreamKick, StreamMessage } from '@database'
+import { and, eq, tables, useDB } from '@database'
 import { bodyBuilder, sendMessage, updateMessage } from '@discord-api'
 import { DurableObject } from 'cloudflare:workers'
-import { and, eq, tables, useDB } from '@/database/db'
 
 interface PersistedState {
   twitchLive: boolean
