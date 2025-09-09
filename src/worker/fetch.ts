@@ -1,18 +1,18 @@
 import type { APIInteraction, APIWebhookEvent } from 'discord-api-types/v10'
 import { Buffer } from 'node:buffer'
 import crypto from 'node:crypto'
+import { buildSuccessEmbed, directMessageUser } from '@discord-api'
+import { getKickChannelV2 } from '@kick-api'
 import { ApplicationIntegrationType, ApplicationWebhookEventType, ApplicationWebhookType, InteractionType } from 'discord-api-types/v10'
+
 import { InteractionResponseType, verifyKey } from 'discord-interactions'
 import { Router } from 'itty-router'
-
-import { buildQuickstartMessage } from '../discord/commands/quickstart'
-import { buildSuccessEmbed, directMessageUser } from '../discord/discord'
-import { discordInteractionAutoCompleteHandler, discordInteractionHandler, discordInteractionMessageComponentHandler, discordInteractionModalHandler } from '../discord/interactionHandler'
+import { buildQuickstartMessage } from '@/discord/commands/quickstart'
+import { discordInteractionAutoCompleteHandler, discordInteractionHandler, discordInteractionMessageComponentHandler, discordInteractionModalHandler } from '@/discord/interactionHandler'
+import { DINKDONK_EMOTE } from '@/utils/discordEmotes'
+import { JsonResponse } from '@/utils/jsonResponse'
 import { kickEventHandler } from '../kick/eventHandler'
-import { getKickChannelV2 } from '../kick/kick'
 import { twitchEventHandler } from '../twitch/eventHandler'
-import { DINKDONK_EMOTE } from '../util/discordEmotes'
-import { JsonResponse } from '../util/jsonResponse'
 import { scheduledCheck } from './scheduled'
 
 const router = Router()

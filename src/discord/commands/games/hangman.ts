@@ -1,11 +1,11 @@
+import type { HangmanGame } from '@server'
 import type { APIApplicationCommandInteraction, APIMessageComponentInteraction, APIModalSubmitInteraction } from 'discord-api-types/v10'
-import type { HangmanGame } from '../../../server'
+import { buildErrorEmbed, updateInteraction } from '@discord-api'
 import { isGuildInteraction } from 'discord-api-types/utils'
 import { PermissionFlagsBits } from 'discord-api-types/v10'
 import { InteractionResponseType } from 'discord-interactions'
-import { JsonResponse } from '../../../util/jsonResponse'
-import { buildErrorEmbed, updateInteraction } from '../../discord'
-import { interactionEphemeralLoading, interactionLoading } from '../../interactionHandler'
+import { interactionEphemeralLoading, interactionLoading } from '@/discord/interactionHandler'
+import { JsonResponse } from '@/utils/jsonResponse'
 
 const HANGMAN_COMMAND = {
   name: 'hangman',

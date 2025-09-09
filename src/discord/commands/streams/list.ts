@@ -1,9 +1,9 @@
 import type { APIApplicationCommandInteraction, APIMessageComponentInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
+import { buildErrorEmbed, updateInteraction } from '@discord-api'
 import { isGuildInteraction } from 'discord-api-types/utils'
-import { useDB } from '../../../database/db'
-import { KICK_EMOTE, TWITCH_EMOTE } from '../../../util/discordEmotes'
-import { buildErrorEmbed, updateInteraction } from '../../discord'
-import { deferedUpdate } from '../../interactionHandler'
+import { useDB } from '@/database/db'
+import { deferedUpdate } from '@/discord/interactionHandler'
+import { KICK_EMOTE, TWITCH_EMOTE } from '@/utils/discordEmotes'
 
 export const STREAM_LIST_COMMAND = {
   type: 1,

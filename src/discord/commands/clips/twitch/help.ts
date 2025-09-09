@@ -1,8 +1,8 @@
 import type { APIApplicationCommandInteraction, APIApplicationCommandInteractionDataSubcommandOption, APIMessageTopLevelComponent } from 'discord-api-types/v10'
+import { buildErrorEmbed, findBotCommandMarkdown, updateInteraction } from '@discord-api'
 import { isGuildInteraction } from 'discord-api-types/utils'
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-import { CLIPPERS_EMOTE } from '../../../../util/discordEmotes'
-import { buildErrorEmbed, findBotCommandMarkdown, updateInteraction } from '../../../discord'
+import { CLIPPERS_EMOTE } from '@/utils/discordEmotes'
 
 export const CLIPS_TWITCH_HELP_COMMAND = {
   type: 1,

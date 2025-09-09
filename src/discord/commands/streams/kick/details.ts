@@ -1,9 +1,9 @@
 import type { APIApplicationCommandInteraction, APIApplicationCommandInteractionDataSubcommandOption } from 'discord-api-types/v10'
+import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '@discord-api'
 import { isGuildInteraction } from 'discord-api-types/utils'
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
-import { useDB } from '../../../../database/db'
-import { KICK_EMOTE, TWITCH_EMOTE } from '../../../../util/discordEmotes'
-import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '../../../discord'
+import { useDB } from '@/database/db'
+import { KICK_EMOTE, TWITCH_EMOTE } from '@/utils/discordEmotes'
 
 export const KICK_DETAILS_COMMAND = {
   type: 1,

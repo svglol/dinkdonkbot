@@ -1,7 +1,7 @@
 import type { APIApplicationCommandInteraction, APIMessageComponentInteraction } from 'discord-api-types/v10'
-import type { RPSGame } from '../../../durable/RPSGame'
+import type { RPSGame } from '@/durable/RPSGame'
 import { PermissionFlagsBits } from 'discord-api-types/v10'
-import { interactionLoading } from '../../interactionHandler'
+import { interactionLoading } from '@/discord/interactionHandler'
 
 const RPS_COMMAND = {
   name: 'rps',

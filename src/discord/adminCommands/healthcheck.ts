@@ -1,10 +1,10 @@
 import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
+import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '@discord-api'
+import { getKickStatus } from '@kick-api'
+import { getTwitchStatus } from '@twitch-api'
 import { PermissionFlagsBits } from 'discord-api-types/v10'
-import { getKickStatus } from '../../kick/kick'
-import { getTwitchStatus } from '../../twitch/twitch'
-import { DINKDONK_EMOTE } from '../../util/discordEmotes'
-import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '../discord'
-import { interactionEphemeralLoading } from '../interactionHandler'
+import { interactionEphemeralLoading } from '@/discord/interactionHandler'
+import { DINKDONK_EMOTE } from '@/utils/discordEmotes'
 
 const HEALTHCHECK_COMMAND = {
   name: 'healthcheck',

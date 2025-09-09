@@ -1,9 +1,9 @@
 import type { APIComponentInContainer, APIMessageComponentInteraction, APIMessageTopLevelComponent, APIModalSubmitInteraction, ModalSubmitActionRowComponent } from 'discord-api-types/v10'
+import { buildErrorEmbed, updateInteraction } from '@discord-api'
 import { DurableObject } from 'cloudflare:workers'
 import { InteractionResponseType } from 'discord-interactions'
-import { buildErrorEmbed, updateInteraction } from '../discord/discord'
-import { interactionEphemeralLoading } from '../discord/interactionHandler'
-import { JsonResponse } from '../util/jsonResponse'
+import { interactionEphemeralLoading } from '@/discord/interactionHandler'
+import { JsonResponse } from '@/utils/jsonResponse'
 
 interface PersistedState {
   interaction: APIModalSubmitInteraction | null

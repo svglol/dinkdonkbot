@@ -1,7 +1,7 @@
 import type { APIApplicationCommandInteraction, APIMessageComponentInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
-import { CLIPPERS_EMOTE, DISCORD_EMOTE, GITHUB_EMOTE, KICK_EMOTE, TWITCH_EMOTE } from '../../util/discordEmotes'
-import { findBotCommandMarkdown, updateInteraction } from '../discord'
-import { deferedUpdate, interactionEphemeralLoading } from '../interactionHandler'
+import { findBotCommandMarkdown, updateInteraction } from '@discord-api'
+import { deferedUpdate, interactionEphemeralLoading } from '@/discord/interactionHandler'
+import { CLIPPERS_EMOTE, DISCORD_EMOTE, GITHUB_EMOTE, KICK_EMOTE, TWITCH_EMOTE } from '@/utils/discordEmotes'
 import { getClipsHelpMessage } from './clips/twitch/help'
 import { getEmoteHelpMessage } from './emote'
 

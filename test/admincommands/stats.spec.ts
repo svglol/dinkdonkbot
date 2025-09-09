@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { ADMIN_COMMAND_DEFINITIONS } from '../../src/discord/adminCommands'
-import { findAutoCompleteHandlerByName, findHandlerByName, findMessageComponentHandlerByName, findModalSubmitHandlerByName } from '../../src/util/commandsHelper'
+import { ADMIN_COMMAND_DEFINITIONS } from '@/discord/adminCommands'
+import { findAutoCompleteHandlerByName, findHandlerByName, findMessageComponentHandlerByName, findModalSubmitHandlerByName } from '@/utils/commandsHelper'
 
 describe('stats', () => {
   it('should have command defined', () => {

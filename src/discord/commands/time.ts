@@ -1,10 +1,10 @@
 import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
+import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '@discord-api'
 import { formatInTimeZone } from 'date-fns-tz'
 import { isChatInputApplicationCommandInteraction } from 'discord-api-types/utils'
 import tzlookup from 'tz-lookup'
-import { getGeoData } from '../../util/geoData'
-import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '../discord'
-import { interactionLoading } from '../interactionHandler'
+import { interactionLoading } from '@/discord/interactionHandler'
+import { getGeoData } from '@/utils/geoData'
 
 const TIME_COMMAND = {
   name: 'time',

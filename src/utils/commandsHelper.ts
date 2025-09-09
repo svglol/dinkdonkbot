@@ -1,6 +1,6 @@
 import type { APIApplicationCommandInteraction, APIChatInputApplicationCommandInteractionData } from 'discord-api-types/v10'
-import { ADMIN_COMMANDS } from '../discord/adminCommands'
-import { COMMANDS } from '../discord/commands'
+import { ADMIN_COMMANDS } from '@/discord/adminCommands'
+import { COMMANDS } from '@/discord/commands'
 
 export function findHandlerByName(name: string) {
   return COMMANDS.find(c => c.command.name.toLowerCase() === name.toLowerCase())?.handler || ADMIN_COMMANDS.find(c => c.command.name.toLowerCase() === name.toLowerCase())?.handler

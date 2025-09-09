@@ -1,8 +1,8 @@
 import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction } from 'discord-api-types/v10'
+import { buildErrorEmbed, updateInteraction } from '@discord-api'
 import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
 import { PermissionFlagsBits } from 'discord-api-types/v10'
-import { buildErrorEmbed, updateInteraction } from '../../discord'
-import { autoCompleteResponse, interactionEphemeralLoading } from '../../interactionHandler'
+import { autoCompleteResponse, interactionEphemeralLoading } from '@/discord/interactionHandler'
 import { CLIPS_TWITCH_SUBCOMMANDS, handleClipsTwitchAutoComplete, handleClipsTwitchCommands } from './twitch'
 
 export const CLIPS_COMMAND = {

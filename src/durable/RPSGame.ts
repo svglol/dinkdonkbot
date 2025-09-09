@@ -1,8 +1,8 @@
 import type { APIApplicationCommandInteraction, APIComponentInContainer, APIMessageComponentInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
+import { buildErrorEmbed, findBotCommandMarkdown, updateInteraction } from '@discord-api'
 import { DurableObject } from 'cloudflare:workers'
 import { isChatInputApplicationCommandInteraction, isGuildInteraction, isMessageComponentInteraction } from 'discord-api-types/utils'
-import { buildErrorEmbed, findBotCommandMarkdown, updateInteraction } from '../discord/discord'
-import { deferedUpdate, interactionEphemeralLoading } from '../discord/interactionHandler'
+import { deferedUpdate, interactionEphemeralLoading } from '@/discord/interactionHandler'
 
 interface PersistedState {
   interaction: APIApplicationCommandInteraction | null

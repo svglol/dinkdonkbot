@@ -1,11 +1,11 @@
 import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIApplicationCommandInteractionDataOption, APIApplicationCommandInteractionDataSubcommandOption, InteractionType } from 'discord-api-types/v10'
+import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '@discord-api'
+import { kickUnsubscribe } from '@kick-api'
 import { isGuildInteraction } from 'discord-api-types/utils'
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { and, eq, like } from 'drizzle-orm'
-import { tables, useDB } from '../../../../database/db'
-import { kickUnsubscribe } from '../../../../kick/kick'
-import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '../../../discord'
-import { autoCompleteResponse } from '../../../interactionHandler'
+import { tables, useDB } from '@/database/db'
+import { autoCompleteResponse } from '@/discord/interactionHandler'
 
 export const KICK_REMOVE_COMMAND = {
   type: 1,

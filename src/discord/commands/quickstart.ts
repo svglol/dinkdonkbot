@@ -1,7 +1,7 @@
 import type { APIApplicationCommandInteraction } from 'discord-api-types/v10'
-import { DINKDONK_EMOTE, KICK_EMOTE, TWITCH_EMOTE } from '../../util/discordEmotes'
-import { buildSuccessEmbed, findBotCommandMarkdown, updateInteraction } from '../discord'
-import { interactionEphemeralLoading } from '../interactionHandler'
+import { buildSuccessEmbed, findBotCommandMarkdown, updateInteraction } from '@discord-api'
+import { interactionEphemeralLoading } from '@/discord/interactionHandler'
+import { DINKDONK_EMOTE, KICK_EMOTE, TWITCH_EMOTE } from '@/utils/discordEmotes'
 
 const QUICKSTART_COMMAND = {
   name: 'quickstart',

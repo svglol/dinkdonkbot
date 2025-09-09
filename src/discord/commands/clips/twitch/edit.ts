@@ -1,10 +1,10 @@
 import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIApplicationCommandInteractionDataOption, APIApplicationCommandInteractionDataSubcommandOption, InteractionType } from 'discord-api-types/v10'
+import { buildErrorEmbed, buildSuccessEmbed, calculateChannelPermissions, updateInteraction } from '@discord-api'
 import { isGuildInteraction } from 'discord-api-types/utils'
 import { ApplicationCommandOptionType, PermissionFlagsBits } from 'discord-api-types/v10'
 import { and, eq, like } from 'drizzle-orm'
-import { tables, useDB } from '../../../../database/db'
-import { buildErrorEmbed, buildSuccessEmbed, calculateChannelPermissions, updateInteraction } from '../../../discord'
-import { autoCompleteResponse } from '../../../interactionHandler'
+import { tables, useDB } from '@/database/db'
+import { autoCompleteResponse } from '@/discord/interactionHandler'
 
 export const CLIPS_TWITCH_EDIT_COMMAND = {
   type: 1,

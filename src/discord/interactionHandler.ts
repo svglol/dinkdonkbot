@@ -1,11 +1,11 @@
 import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIMessageComponentInteraction, APIMessageTopLevelComponent, APIModalSubmitInteraction } from 'discord-api-types/v10'
+import { buildErrorEmbed, updateInteraction } from '@discord-api'
 import { escapeMarkdown } from '@discordjs/formatters'
+import { getClips } from '@twitch-api'
 import { ButtonStyle, ComponentType } from 'discord-api-types/v10'
 import { InteractionResponseFlags, InteractionResponseType } from 'discord-interactions'
-import { getClips } from '../twitch/twitch'
-import { findAutoCompleteHandlerByName, findHandlerByName, findMessageComponentHandlerByName, findModalSubmitHandlerByName, getSubcommandInfo } from '../util/commandsHelper'
-import { JsonResponse } from '../util/jsonResponse'
-import { buildErrorEmbed, updateInteraction } from './discord'
+import { findAutoCompleteHandlerByName, findHandlerByName, findMessageComponentHandlerByName, findModalSubmitHandlerByName, getSubcommandInfo } from '@/utils/commandsHelper'
+import { JsonResponse } from '@/utils/jsonResponse'
 
 /**
  * Handles an interaction from Discord.
