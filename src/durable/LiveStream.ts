@@ -277,7 +277,7 @@ export class LiveStream extends DurableObject {
    */
   private async sendNotification(streamMessage: StreamMessage): Promise<void> {
     try {
-      const discordMessage = bodyBuilder(streamMessage, this.env)
+      const discordMessage = await bodyBuilder(streamMessage, this.env)
       const messageId = await sendMessage(streamMessage.discordChannelId, discordMessage, this.env)
       await useDB(this.env).update(tables.streamMessages).set({ discordMessageId: messageId }).where(eq(tables.streamMessages.id, streamMessage.id))
     }
@@ -322,7 +322,7 @@ export class LiveStream extends DurableObject {
             })
             if (updatedMessageWithStreams) {
             // then we can update the existing discord message instead of sending a new one and close the durable object
-              const discordMessage = bodyBuilder(updatedMessageWithStreams, this.env)
+              const discordMessage = await bodyBuilder(updatedMessageWithStreams, this.env)
               await updateMessage(updatedMessageWithStreams.discordChannelId, updatedMessageWithStreams?.discordMessageId ?? '', this.env, discordMessage)
 
               this.reset()
@@ -411,7 +411,7 @@ export class LiveStream extends DurableObject {
             })
             if (updatedMessageWithStreams) {
             // then we can update the existing discord message instead of sending a new one and close the durable object
-              const discordMessage = bodyBuilder(updatedMessageWithStreams, this.env)
+              const discordMessage = await bodyBuilder(updatedMessageWithStreams, this.env)
               await updateMessage(updatedMessageWithStreams.discordChannelId, updatedMessageWithStreams?.discordMessageId ?? '', this.env, discordMessage)
 
               this.reset()

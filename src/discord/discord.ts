@@ -430,7 +430,7 @@ export async function fetchBotCommands(env: Env) {
  * @param env - The environment variables for accessing configuration and services.
  * @returns An object containing the body of the message, any embeds, and any components.
  */
-export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPIChannelMessageJSONBody {
+export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promise<RESTPostAPIChannelMessageJSONBody> {
   const TWITCH_COLOR = 0x6441A4
   const KICK_COLOR = 0x53FC18
   const MULTI_COLOR = 0xFFF200
@@ -765,7 +765,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     }
   }
 
-  function buildKickOnlineMessage(streamMessage: StreamMessage, _env: Env): Content {
+  async function buildKickOnlineMessage(streamMessage: StreamMessage, _env: Env): Promise<Content> {
     const roleMention = streamMessage.kickStream?.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
     const message = `${roleMention}${messageBuilder(streamMessage.kickStream?.liveMessage ? streamMessage.kickStream.liveMessage : '{{name}} is live!', streamMessage, 'online', 'kick')}`
     let title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream?.name} is live!`
@@ -773,7 +773,10 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     let game = streamMessage.kickStreamData?.category.name || 'No game'
     const status = 'Online'
     const timestamp = new Date(streamMessage.kickStreamData?.started_at || Date.now()).toISOString()
-    const image = streamMessage.kickStreamData?.thumbnail ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${new Date().getTime()}` : 'https://kick.com/img/default-channel-banners/offline.webp'
+    let image = streamMessage.kickStreamData?.thumbnail ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${new Date().getTime()}` : 'https://kick.com/img/default_livestream_thumbnail.webp'
+    if (!await validateThumbnail(image)) {
+      image = 'https://kick.com/img/default_livestream_thumbnail.webp'
+    }
     const url = `https://kick.com/${streamMessage.kickStream?.name}`
     const buttons: APIButtonComponent[] = []
 
@@ -811,7 +814,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     }
   }
 
-  function buildKickOfflineMessage(streamMessage: StreamMessage, env: Env): Content {
+  async function buildKickOfflineMessage(streamMessage: StreamMessage, env: Env): Promise<Content> {
     const buttons: APIButtonComponent[] = []
     if (streamMessage.kickVod) {
       buttons.push({
@@ -830,6 +833,11 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
     // current issue with some getLiveStream from kick api returning the wrong stream title/category
     if (streamMessage.kickStreamData?.stream_title !== streamMessage.kickStreamerData?.livestream?.session_title) {
       title = streamMessage.kickStreamerData?.livestream?.session_title || `${streamMessage.kickStream?.name} is live!`
+    }
+
+    let image = streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp' || `${env.WEBHOOK_URL}/static/default_image.png`
+    if (!await validateThumbnail(image)) {
+      image = 'https://kick.com/img/default-channel-banners/offline.webp'
     }
 
     const duration = streamMessage.kickVod && !Number.isNaN(streamMessage.kickVod.duration) && streamMessage.kickVod.duration > 0
@@ -882,7 +890,7 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
         }
         else {
         // Kick is live, Twitch is offline
-          content = mergeContent(content, buildKickOnlineMessage(streamMessage, env))
+          content = mergeContent(content, await buildKickOnlineMessage(streamMessage, env))
         }
       }
     }
@@ -897,10 +905,10 @@ export function bodyBuilder(streamMessage: StreamMessage, env: Env): RESTPostAPI
   }
   else if (streamMessage.kickStream) {
     if (streamMessage.kickOnline) {
-      content = mergeContent(content, buildKickOnlineMessage(streamMessage, env))
+      content = mergeContent(content, await buildKickOnlineMessage(streamMessage, env))
     }
     else {
-      content = mergeContent(content, buildKickOfflineMessage(streamMessage, env))
+      content = mergeContent(content, await buildKickOfflineMessage(streamMessage, env))
     }
   }
 
@@ -1087,5 +1095,19 @@ export async function directMessageUser(env: Env, userId: string, body: RESTPost
   }
   catch (error) {
     console.error('Error sending direct message:', error)
+  }
+}
+
+async function validateThumbnail(url: string) {
+  try {
+    const res = await fetch(url, { method: 'HEAD' })
+    if (!res.ok)
+      return false
+
+    const contentType = res.headers.get('content-type') || ''
+    return contentType.startsWith('image/')
+  }
+  catch {
+    return false
   }
 }
