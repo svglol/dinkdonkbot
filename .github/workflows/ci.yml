@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v4.1.0
+      - uses: pnpm/action-setup@v4.2.0
       - uses: actions/setup-node@v5
         with:
-          node-version: 22.20.0
+          node-version: 22.22.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run lint
@@ -22,10 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v4.1.0
+      - uses: pnpm/action-setup@v4.2.0
       - uses: actions/setup-node@v5
         with:
-          node-version: 22.20.0
+          node-version: 22.22.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run typecheck
@@ -35,10 +35,10 @@ jobs:
     needs: [lint, typecheck]
     steps:
       - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v4.1.0
+      - uses: pnpm/action-setup@v4.2.0
       - uses: actions/setup-node@v5
         with:
-          node-version: 22.20.0
+          node-version: 22.22.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run test
@@ -57,10 +57,10 @@ jobs:
     needs: [lint, typecheck, test]
     steps:
       - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v4.1.0
+      - uses: pnpm/action-setup@v4.2.0
       - uses: actions/setup-node@v5
         with:
-          node-version: 22.20.0
+          node-version: 22.22.0
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run register
@@ -77,11 +77,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4.1.0
+        uses: pnpm/action-setup@v4.2.0
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 22.20.0
+          node-version: 22.22.0
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
