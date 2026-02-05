@@ -1,6 +1,7 @@
 import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIApplicationCommandInteractionDataOption, InteractionType } from 'discord-api-types/v10'
 import { buildErrorEmbed, updateInteraction } from '@discord-api'
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
+import { handleMultistreamTestCommand, MULTISTREAM_TEST_COMMAND } from '@/discord/commands/streams/multistream/test'
 import { autoCompleteResponse } from '@/discord/interactionHandler'
 import { handleMultistreamDetailsCommand, MULTISTREAM_DETAILS_COMMAND } from './details'
 import { handleMultistreamEditCommand, MULTISTREAM_EDIT_COMMAND } from './edit'
@@ -16,6 +17,7 @@ export const MULTISTREAM_SUBCOMMANDS = {
     MULTISTREAM_UNLINK_COMMAND,
     MULTISTREAM_EDIT_COMMAND,
     MULTISTREAM_DETAILS_COMMAND,
+    MULTISTREAM_TEST_COMMAND,
   ],
 }
 
@@ -32,6 +34,8 @@ export async function handleMultistreamCommands(interaction: APIApplicationComma
           return handleMultistreamEditCommand(interaction, subCommand, env)
         case 'details':
           return handleMultistreamDetailsCommand(interaction, subCommand, env)
+        case 'test':
+          return handleMultistreamTestCommand(interaction, subCommand, env)
         default:
           return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Not implemented yet', env)] })
       }
@@ -51,6 +55,8 @@ export async function handleMultistreamAutoComplete(interaction: APIApplicationC
       case 'edit':
         return handleMultistreamUnlinkAutoComplete(interaction, subCommand, env)
       case 'details':
+        return handleMultistreamUnlinkAutoComplete(interaction, subCommand, env)
+      case 'test':
         return handleMultistreamUnlinkAutoComplete(interaction, subCommand, env)
       default:
         return autoCompleteResponse([])

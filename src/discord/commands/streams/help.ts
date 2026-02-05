@@ -72,6 +72,7 @@ To use this feature:
 - ${await findBotCommandMarkdown(env, 'streams', 'multistream', 'link')} - <twitch-streamer> <kick-streamer> <priority> <late-merge> - Setup a multistream connection between a Twitch & Kick Channel
 - ${await findBotCommandMarkdown(env, 'streams', 'multistream', 'unlink')} - <twitch-streamer> <kick-streamer> - Remove a multistream connection between a Twitch & Kick Channel
 - ${await findBotCommandMarkdown(env, 'streams', 'multistream', 'edit')} <twitch-streamer> <kick-streamer> <priority> <late-merge> - Edit a multistream connection
+- ${await findBotCommandMarkdown(env, 'streams', 'multistream', 'test')} <twitch-streamer> <kick-streamer> <message-type> <global> - Test a multistream notification
 - ${await findBotCommandMarkdown(env, 'streams', 'list')} - List your currently set up multistreams
  \n
 **Command Parameters**
