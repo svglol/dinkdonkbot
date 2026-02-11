@@ -1,6 +1,5 @@
 ---
-title: 'Privacy Policy'
-description: 'Privacy Policy for DinkDonk Bot - Your all-in-one Discord bot for Twitch notifications and Discord emotes.'
+title: Privacy Policy
 navigation:
   icon: i-lucide-shield-check
 ---

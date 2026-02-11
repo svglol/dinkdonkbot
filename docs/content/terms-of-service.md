@@ -1,6 +1,5 @@
 ---
-title: 'Terms of Service'
-description: 'Terms of Service for DinkDonk Bot - Your all-in-one Discord bot for Twitch notifications and Discord emotes.'
+title: Terms of Service
 navigation:
   icon: i-lucide-file-text
 ---
