@@ -1,21 +1,7 @@
-<script lang="ts" setup>
-import { computed } from 'vue'
-
-const props = withDefaults(defineProps<{ title?: string, description?: string, headline?: string }>(), {
-  title: 'title',
-  description: 'description',
-})
-
-const title = computed(() => (props.title || '').slice(0, 60))
-const description = computed(() => (props.description || '').slice(0, 200))
-
-const appConfig = useAppConfig()
-</script>
-
 <template>
-  <div class="w-full h-full flex items-center justify-center bg-neutral-900">
+  <div class="flex h-full w-full items-center justify-center bg-neutral-900">
     <svg
-      class="absolute right-0 top-0 opacity-50 "
+      class="absolute top-0 right-0 opacity-50"
       width="629"
       height="593"
       viewBox="0 0 629 593"
@@ -57,21 +43,33 @@ const appConfig = useAppConfig()
     </svg>
 
     <div class="flex flex-col justify-center p-8">
-      <div class="flex justify-center mb-8">
-          <img src="/dinkDonk-512.png" class="size-48">
+      <div class="mb-8 flex justify-center">
+        <img src="/dinkDonk-512.png" class="size-48">
       </div>
       <h1
         v-if="title"
-        class="flex justify-center m-0 text-5xl font-semibold mb-4 text-white"
+        class="m-0 mb-4 flex justify-center text-5xl font-semibold text-white"
       >
         <span>{{ title }}</span>
       </h1>
       <p
         v-if="description"
-        class="text-center text-2xl text-neutral-300 leading-tight"
+        class="text-center text-2xl leading-tight text-neutral-300"
       >
         {{ description }}
       </p>
     </div>
   </div>
 </template>
+
+<script lang="ts" setup>
+import { computed } from 'vue'
+
+const props = withDefaults(defineProps<{ title?: string, description?: string, headline?: string }>(), {
+  title: 'title',
+  description: 'description',
+})
+
+const title = computed(() => (props.title || '').slice(0, 60))
+const description = computed(() => (props.description || '').slice(0, 200))
+</script>

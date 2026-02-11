@@ -1,5 +1,6 @@
 {
   "name": "docs",
+  "type": "module",
   "version": "1.0.0",
   "packageManager": "pnpm@10.28.2",
   "description": "",
@@ -10,11 +11,21 @@
     "dev": "nuxt dev --extends docus",
     "build": "nuxt build --extends docus",
     "generate": "nuxt generate --preset github_pages --extends docus",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "lint": "pnpm lint:js && pnpm lint:style",
+    "lint:js": "eslint . --fix",
+    "lint:style": "stylelint **/*.{vue,css} --fix --ignore-path .gitignore",
+    "typecheck": "nuxt typecheck"
   },
   "dependencies": {
+    "@antfu/eslint-config": "5.4.1",
+    "@nuxt/eslint": "1.13.0",
     "better-sqlite3": "12.5.0",
     "docus": "latest",
-    "nuxt": "4.2.2"
+    "eslint-plugin-better-tailwindcss": "3.7.9",
+    "nuxt": "4.2.2",
+    "stylelint": "16.24.0",
+    "stylelint-config-recommended-vue": "1.6.1",
+    "stylelint-config-standard": "39.0.0"
   }
 }
