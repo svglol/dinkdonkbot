@@ -2,18 +2,10 @@
 title: Privacy Policy
 navigation:
   icon: i-lucide-shield-check
+
+sitemap:
+  lastmod: 2026-02-12
 ---
-
-::page-header
-#title
-Privacy Policy
-
-#subtitle
-Last Updated: March 24, 2025
-::
-
-::content-container
-
 ## Introduction
 
 This Privacy Policy describes how DinkDonk Bot ("we", "our", or "the Bot") collects, uses, and handles your information when you use our Discord bot. We are committed to ensuring the privacy and security of your data while providing you with a feature-rich Discord bot experience.
@@ -25,22 +17,40 @@ This Privacy Policy describes how DinkDonk Bot ("we", "our", or "the Bot") colle
 - Channel IDs and names
 - Role IDs (for notification pings)
 - Message IDs (for notification management)
-- Custom message templates that you configure for notifications
+- Custom message templates that you configure for stream notifications (live and offline messages)
 
 ### 2. Twitch Integration Data
-- Twitch usernames/channel names that you choose to follow
-- Public Twitch stream information (stream title, game, etc.)
+- Twitch usernames/channel names and broadcaster IDs that you choose to follow
+- Public Twitch stream information (stream title, game, viewer count, etc.)
 - Public Twitch clip information (clip titles, URLs, creator names)
 - Stream status (online/offline) for notification purposes
 - Clip creation timestamps for hourly clip aggregation
+- Stream and VOD metadata used to display and manage notification messages
 
-### 3. Emote Data
+### 3. Kick Integration Data
+- Kick usernames/channel names and broadcaster IDs that you choose to follow
+- Public Kick stream information (stream title, viewer count, etc.)
+- Stream status (online/offline) for notification purposes
+- Stream and VOD metadata used to display and manage notification messages
+
+### 4. Multistream Configuration Data
+- Links between Twitch and Kick stream subscriptions for the same creator
+- Platform priority (Twitch or Kick) and late-merge settings for unified notifications
+
+### 5. Stream Notification Message Data
+- Stored notification messages (Discord channel and message IDs) for live/offline alerts
+- Cached stream and streamer data (e.g., title, thumbnail, URL) used when posting or updating notifications
+
+### 6. Emote Data
 - Temporary storage of emote images during upload process
 - Emote names and source information (Discord server or 7TV)
 - Processing metadata required for emote conversion and optimization
 
-### 4. Usage Data
-- Command usage statistics (anonymized)
+### 7. Optional: Weather and Location Data
+- When you use the weather command, the location string you provide may be sent to geocoding and weather APIs (e.g., OpenStreetMap Nominatim, Open-Meteo) to fetch weather. Coordinates and results may be cached temporarily to improve performance. We do not use location data for purposes other than fulfilling the weather request.
+
+### 8. Usage Data
+- Command usage statistics (anonymized, e.g., command names and counts per server)
 - Bot performance metrics
 - Error logs for troubleshooting (temporarily stored)
 - Feature usage patterns to improve service quality
@@ -49,7 +59,7 @@ This Privacy Policy describes how DinkDonk Bot ("we", "our", or "the Bot") colle
 
 The information we collect is used exclusively for:
 
-1. **Core Functionality**: Providing Twitch stream notifications, clip updates, and emote management services
+1. **Core Functionality**: Providing Twitch and Kick stream notifications, multistream merging, clip updates, emote management, games, and utility commands (e.g., weather, time, timestamps)
 2. **Service Improvement**: Enhancing the Bot based on usage patterns
 3. **Technical Maintenance**: Ensuring the Bot operates correctly and efficiently
 
@@ -60,21 +70,24 @@ Your data is never:
 
 ### Examples of Data Usage
 
-- When you subscribe to a Twitch streamer, we store their name, your Discord channel ID, and any custom message template to deliver notifications when they go live or offline
+- When you subscribe to a Twitch or Kick streamer, we store their name and broadcaster ID, your Discord channel ID, role ID (if set), and custom message templates to deliver notifications when they go live or offline
+- When you link Twitch and Kick streams for multistream support, we store the link and your priority/late-merge settings to send a single merged notification
 - When you request emote uploads, we temporarily process the emote data to facilitate adding it to your Discord server
-- When you configure clip notifications, we periodically check for new clips and use your channel settings to post updates
+- When you configure clip notifications, we periodically check for new Twitch clips and use your channel settings to post hourly updates
+- When you use the weather command, we use your provided location to fetch and display weather via third-party APIs; location data is not used for any other purpose
 
 ## Data Storage and Security
 
-We store your data securely in a database with appropriate security measures. Data is retained only as long as necessary for providing the Bot's services. If you remove the Bot from your server, your server-specific data will be automatically deleted after 30 days.
+We store your data using Cloudflare services (e.g., D1 database, KV) with appropriate security measures. Data is retained only as long as necessary for providing the Bot's services. If you remove the Bot from your server, your server-specific data will be automatically deleted after 30 days.
 
 ### Data Retention Periods
 
-- **Active Data**: Data actively used for bot functionality is retained as long as you use the service
-- **Command Logs**: Usage statistics are retained for up to 90 days
+- **Active Data**: Data actively used for bot functionality (streams, clips, multistream links, notification messages) is retained as long as you use the service
+- **Command Logs**: Usage statistics (e.g., via Cloudflare Analytics Engine) are retained for up to 90 days
 - **Error Logs**: Technical error information is retained for up to 14 days
 - **Temporary Processing Data**: Data used for temporary operations (such as emote processing) is deleted immediately after use
-- **Removed Server Data**: As mentioned, data for servers that remove the bot is deleted after 30 days
+- **Cache Data**: Cached data (e.g., weather, geocoding) is stored with short expiration times (e.g., one hour to one day) and then removed
+- **Removed Server Data**: Data for servers that remove the bot is deleted after 30 days
 
 ## Cross-Border Data Transfers
 
@@ -84,8 +97,11 @@ DinkDonk Bot operates using Cloudflare Workers, which may process data in variou
 
 DinkDonk Bot interfaces with the following third-party services:
 - **Discord API**: To provide bot functionality within Discord
-- **Twitch API**: To retrieve stream and clip information
+- **Twitch API**: To retrieve stream, clip, and VOD information
+- **Kick API**: To retrieve Kick stream and VOD information
 - **7TV API**: For emote integration features
+- **OpenStreetMap Nominatim**: For geocoding when you use the weather command (location strings only)
+- **Open-Meteo**: For weather data when you use the weather command
 
 Information is shared with these services only as necessary for the Bot to function properly.
 
@@ -134,5 +150,3 @@ We process your data based on:
 - **Contractual Necessity**: To fulfill our obligations under our Terms of Service
 
 You can withdraw consent at any time by removing the Bot from your server or disabling specific features.
-
-::

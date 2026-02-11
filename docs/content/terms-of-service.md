@@ -2,17 +2,10 @@
 title: Terms of Service
 navigation:
   icon: i-lucide-file-text
+
+sitemap:
+  lastmod: 2026-02-12
 ---
-
-::page-header
-#title
-Terms of Service
-
-#subtitle
-Last Updated: March 24, 2025
-::
-
-::content-container
 
 ## 1. Acceptance of Terms
 
@@ -20,15 +13,22 @@ By inviting DinkDonk Bot to your Discord server or using any of its features, yo
 
 ## 2. Description of Service
 
-DinkDonk Bot ("the Bot") is a Discord bot that provides Twitch stream notifications, clip updates, and emote management functionality for Discord servers.
+DinkDonk Bot ("the Bot") is a Discord bot that provides:
+
+- **Stream notifications** for Twitch and Kick when streamers go live or go offline, with customizable messages and ping roles
+- **Multistream support** to merge Twitch and Kick notifications into a single alert for creators who stream on both platforms
+- **Clip highlights** with hourly updates of new Twitch clips from subscribed streamers
+- **Emote management** to add emotes from 7TV or other Discord servers, including stealing emotes from messages
+- **Interactive games** such as hangman, rock paper scissors, dice rolling, and coin flips
+- **Utility commands** including weather, world time, Discord timestamp generation, and other tools
 
 ## 3. Use of the Bot
 
 ### 3.1 Eligibility
 You must be at least 13 years old to use the Bot. By using the Bot, you represent that you are at least 13 years old.
 
-### 3.2 Discord and Twitch Terms
-Using the Bot requires compliance with both Discord's Terms of Service and Twitch's Terms of Service. The Bot interacts with both platforms, and your usage must comply with their respective policies.
+### 3.2 Discord, Twitch, and Kick Terms
+Using the Bot requires compliance with Discord's Terms of Service, Twitch's Terms of Service, and Kick's Terms of Service (where applicable). The Bot interacts with these platforms, and your usage must comply with their respective policies.
 
 ### 3.3 Permitted Use
 You may use the Bot for its intended purposes within your Discord server. You may not:
@@ -56,11 +56,11 @@ The Bot allows you to add emotes from other Discord servers or 7TV. By using thi
 You are solely responsible for any copyright or trademark violations related to emotes you add using the Bot.
 
 ### 3.6 API Usage Limitations
-The Bot interacts with third-party APIs such as Twitch, Discord, and 7TV. Your use of the Bot is subject to the rate limits and usage restrictions of these platforms. We may implement additional rate limiting to ensure fair usage across all users. Attempting to circumvent these limits may result in temporary or permanent suspension of your access to the Bot.
+The Bot interacts with third-party APIs such as Twitch, Kick, Discord, 7TV, and other services (e.g., for weather and geocoding). Your use of the Bot is subject to the rate limits and usage restrictions of these platforms. We may implement additional rate limiting to ensure fair usage across all users. Attempting to circumvent these limits may result in temporary or permanent suspension of your access to the Bot.
 
 ## 4. Data Collection and Privacy
 
-The Bot collects and stores specific data necessary for its operation, including Discord server IDs, channel IDs, and Twitch streamer information. Please refer to our [Privacy Policy](/privacy-policy) for more details on data collection, usage, and retention.
+The Bot collects and stores data necessary for its operation, including Discord server and channel IDs, Twitch and Kick streamer information, notification and multistream settings, and related message and stream data. Please refer to our [Privacy Policy](/privacy-policy) for more details on data collection, usage, and retention.
 
 ## 5. Changes to the Service
 
@@ -69,7 +69,7 @@ We reserve the right to modify, suspend, or discontinue any part of the Bot at a
 ### 5.1 Service Availability
 While we strive to maintain high uptime for the Bot, we do not guarantee uninterrupted service. The Bot may experience downtime due to:
 - Maintenance or updates
-- Discord or Twitch API limitations or outages
+- Discord, Twitch, Kick, or other third-party API limitations or outages
 - Technical issues or bugs
 - Other factors beyond our control
 
@@ -98,5 +98,3 @@ For questions or concerns regarding these Terms of Service, please contact us vi
 ## 10. Governing Law
 
 These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which the Bot developer resides, without regard to its conflict of law provisions.
-
-::
