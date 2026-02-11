@@ -28,6 +28,7 @@ modifiers: {'animated': true}
   size: xl
   to: https://discord.com/application-directory/1227866873220173824
   trailing-icon: i-lucide-rocket
+  target: _blank
   ---
   Add to Discord
   :::
