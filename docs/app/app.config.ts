@@ -4,6 +4,11 @@ export default defineAppConfig({
       primary: 'yellow',
       neutral: 'neutral',
     },
+    pageHero: {
+      slots: {
+        root: 'bg-radial from-yellow-500/20 via-[15%] to-[70%] via-yellow-600/20 to-transparent',
+      },
+    },
   },
   header: {
     title: 'DinkDonk Bot',
