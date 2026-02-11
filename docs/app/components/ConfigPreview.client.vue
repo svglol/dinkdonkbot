@@ -131,7 +131,7 @@
           <div
             class="
               flex h-145 w-full rounded-md border border-gray-50/5 bg-[#36393e]
-              text-white
+              text-white shadow-lg shadow-yellow-500/20
             "
           >
             <div
