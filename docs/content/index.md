@@ -1,6 +1,6 @@
 ---
 seo:
-  title: Discord Bot for Twitch & Kick notifications
+  title: Discord Bot for Twitch & Kick Notifications
   description: DinkDonk Bot is your all-in-one Discord bot for Twitch and Kick notifications, multistream support, interactive games, and emote management.
 ---
 
