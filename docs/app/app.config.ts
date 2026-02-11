@@ -2,14 +2,14 @@ export default defineAppConfig({
   ui: {
     colors: {
       primary: 'yellow',
-      neutral: 'zinc',
+      neutral: 'neutral',
     },
   },
   header: {
     title: 'DinkDonk Bot',
     logo: {
-      light: '/DinkDonk.webp',
-      dark: '/DinkDonk.webp',
+      light: '/dinkDonk-512.png',
+      dark: '/dinkDonk-512.png',
       alt: 'DinkDonk Bot Logo',
     },
   },
