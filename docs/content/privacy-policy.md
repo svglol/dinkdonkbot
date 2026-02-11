@@ -1,11 +1,8 @@
 ---
 title: 'Privacy Policy'
 description: 'Privacy Policy for DinkDonk Bot - Your all-in-one Discord bot for Twitch notifications and Discord emotes.'
-ogImage:
-  component: OgImageDefault
-  props:
-    title: 'Privacy Policy'
-    description: 'Privacy Policy for DinkDonk Bot - Your all-in-one Discord bot for Twitch notifications and Discord emotes.'
+navigation:
+  icon: i-lucide-shield-check
 ---
 
 ::page-header

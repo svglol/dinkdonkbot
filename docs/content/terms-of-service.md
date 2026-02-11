@@ -1,11 +1,8 @@
 ---
 title: 'Terms of Service'
 description: 'Terms of Service for DinkDonk Bot - Your all-in-one Discord bot for Twitch notifications and Discord emotes.'
-ogImage:
-  component: OgImageDefault
-  props:
-    title: 'Terms of Service'
-    description: 'Terms of Service for DinkDonk Bot - Your all-in-one Discord bot for Twitch notifications and Discord emotes.'
+navigation:
+  icon: i-lucide-file-text
 ---
 
 ::page-header
