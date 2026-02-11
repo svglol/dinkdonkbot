@@ -3,7 +3,7 @@ export default defineNuxtConfig({
     url: 'https://svglol.github.io/dinkdonkbot',
     name: 'DinkDonk Bot',
   },
-    app: {
+  app: {
     baseURL: '/dinkdonkbot',
   },
 })

@@ -1,7 +1,11 @@
 {
   "name": "docs",
   "version": "1.0.0",
+  "packageManager": "pnpm@10.28.2",
   "description": "",
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
   "scripts": {
     "dev": "nuxt dev --extends docus",
     "build": "nuxt build --extends docus",
@@ -9,12 +13,8 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "docus": "latest",
     "better-sqlite3": "12.5.0",
+    "docus": "latest",
     "nuxt": "4.2.2"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.28.2"
+  }
 }

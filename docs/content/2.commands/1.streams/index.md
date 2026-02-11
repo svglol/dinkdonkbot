@@ -16,7 +16,6 @@ description: The `/streams` command is your central hub for managing all stream 
 
 For detailed information about each subcommand, visit the dedicated pages:
 
-
 :::card-group
 ::card
 ---
@@ -54,7 +53,7 @@ Display all your stream subscriptions across both Twitch and Kick:
 
 This shows:
 - All Twitch streamers you're monitoring
-- All Kick streamers you're monitoring  
+- All Kick streamers you're monitoring
 - Multistream connections and settings
 
 ## Get Help
