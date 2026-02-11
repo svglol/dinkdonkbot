@@ -13,7 +13,7 @@ export const CLIPS_TWITCH_HELP_COMMAND = {
 
 export async function getClipsHelpMessage(env: Env) {
   return `Subscribe to automatic Twitch clip notifications from your favorite streamers. Get the best clips posted hourly to your Discord channels.
-- ${await findBotCommandMarkdown(env, 'clips', 'twitch', 'add')} <streamer> <discord-channel> - Add a Twitch streamer to receive clip notifications when they go live or offline.  
+- ${await findBotCommandMarkdown(env, 'clips', 'twitch', 'add')} <streamer> <discord-channel> - Add a Twitch streamer to receive hourly clip updates.  
 - ${await findBotCommandMarkdown(env, 'clips', 'twitch', 'remove')} <streamer> - Remove a Twitch streamer from receiving clip notifications.
 - ${await findBotCommandMarkdown(env, 'clips', 'twitch', 'edit')} <streamer> <discord-channel> - Edit the notification channel for a Twitch streamer.
 - ${await findBotCommandMarkdown(env, 'clips', 'twitch', 'list')} - List all the Twitch streamers you are subscribed to for clip notifications.  

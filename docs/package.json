@@ -1,40 +1,20 @@
 {
-  "name": "nuxt-app",
-  "type": "module",
-  "private": true,
-  "packageManager": "pnpm@10.28.2",
+  "name": "docs",
+  "version": "1.0.0",
+  "description": "",
   "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate --preset github_pages",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "lint": "pnpm lint:js && pnpm lint:style",
-    "lint:js": "eslint . --fix",
-    "lint:style": "stylelint **/*.{vue,css} --fix --ignore-path .gitignore",
-    "typecheck": "nuxt typecheck"
+    "dev": "nuxt dev --extends docus",
+    "build": "nuxt build --extends docus",
+    "generate": "nuxt generate --preset github_pages --extends docus",
+    "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@antfu/eslint-config": "5.4.1",
-    "@nuxt/content": "3.11.0",
-    "@nuxt/eslint": "1.13.0",
-    "@nuxt/fonts": "0.13.0",
-    "@nuxt/ui": "3.3.7",
-    "@unhead/vue": "2.1.2",
-    "@vueuse/core": "13.9.0",
-    "@vueuse/nuxt": "13.9.0",
-    "better-sqlite3": "12.6.2",
-    "eslint": "9.36.0",
-    "eslint-plugin-better-tailwindcss": "3.7.9",
-    "nuxt": "4.3.0",
-    "nuxt-og-image": "5.1.13",
-    "postcss-html": "1.8.1",
-    "stylelint": "16.24.0",
-    "stylelint-config-recommended-vue": "1.6.1",
-    "stylelint-config-standard": "39.0.0",
-    "unstorage": "1.17.4",
-    "vue": "3.5.27",
-    "vue-router": "4.6.4",
-    "vue-tsc": "3.2.4"
-  }
+    "docus": "latest",
+    "better-sqlite3": "12.5.0",
+    "nuxt": "4.2.2"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.28.2"
 }
