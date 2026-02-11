@@ -26,7 +26,7 @@
         <template #embeds>
           <DiscordEmbed
             :border-color="getBorderColor(variant)"
-            :thumbnail="streamer.NuxtImg "
+            :thumbnail="streamer.profile "
             :image="streamer.preview"
             :embed-title="streamer.title"
             :url="variant === 'kick' ? `https://kick.com/${streamer.handle}` : `https://twitch.tv/${streamer.handle}` "
@@ -83,7 +83,7 @@ const streamers = [
     name: 'TheBurntPeanut',
     handle: 'theburntpeanut',
     title: 'NUT RAIDERS | 1 MILLION SPACE DOLLAR CHALLENGE | FROM DUMB AND POOR TO RICH AND SEXY | #BUNGULATE',
-    NuxtImg: '/streamers/theburntpeanut.png',
+    profile: '/streamers/theburntpeanut.png',
     preview: '/streamers/theburntpeanut-preview.jpg',
   },
 ]

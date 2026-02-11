@@ -3,6 +3,8 @@ export default defineAppConfig({
     colors: {
       primary: 'yellow',
       neutral: 'neutral',
+      secondary: 'purple',
+      tertiary: 'green',
     },
     pageHero: {
       slots: {

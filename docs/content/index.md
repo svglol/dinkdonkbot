@@ -44,9 +44,23 @@ modifiers: {'animated': true}
   :::
 ::
 
+:::u-page-section
+#title
+Powerful Twitch & Kick Notifications
+
+#description
+Twitch and Kick stream notifications that are fully customizable, reliable, and easy to set up. Get instant alerts when your favorite streamers go live - even merge notifications for multistreams so you never miss a combined broadcast.
+
+#body
+::config-preview
+:::
+
 ::u-page-section
 #title
 Everything you need for stream notifications and more
+
+#description
+DinkDonk Bot is packed with features to keep your community engaged and informed about Twitch and Kick streams, all while providing fun extras to enhance your server experience.
 
 #features
   :::u-page-card
