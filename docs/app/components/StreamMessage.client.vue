@@ -25,7 +25,7 @@
 
         <template #embeds>
           <DiscordEmbed
-            border-color="#f1c40f"
+            :border-color="getBorderColor(variant)"
             :thumbnail="streamer.NuxtImg "
             :image="streamer.preview"
             :embed-title="streamer.title"
@@ -107,6 +107,22 @@ const streamer = streamers[
 const category = categories[
   Math.floor(Math.random() * categories.length)
 ]
+
+const COLORS = {
+  TWITCH: '#6441A4',
+  KICK: '#53FC18',
+  MULTI: '#FFF200',
+  OFFLINE: '#747F8D',
+}
+
+function getBorderColor(variant: 'twitch' | 'kick' | 'multistream') {
+  const colorMap = {
+    twitch: COLORS.TWITCH,
+    kick: COLORS.KICK,
+    multistream: COLORS.MULTI,
+  }
+  return colorMap[variant] || COLORS.OFFLINE
+}
 
 const colorMode = useColorMode()
 
