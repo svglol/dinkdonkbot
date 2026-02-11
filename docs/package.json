@@ -20,6 +20,7 @@
   "dependencies": {
     "@antfu/eslint-config": "5.4.1",
     "@nuxt/eslint": "1.13.0",
+    "@pycord/discord-message-components-vue": "^0.3.2",
     "better-sqlite3": "12.5.0",
     "docus": "latest",
     "eslint-plugin-better-tailwindcss": "3.7.9",

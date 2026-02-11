@@ -14,6 +14,9 @@ importers:
       '@nuxt/eslint':
         specifier: 1.13.0
         version: 1.13.0(@typescript-eslint/utils@8.55.0(eslint@10.0.0(jiti@2.6.1))(typescript@5.9.3))(@vue/compiler-sfc@3.5.28)(eslint@10.0.0(jiti@2.6.1))(magicast@0.5.2)(typescript@5.9.3)(vite@7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.46.0)(yaml@2.8.2))
+      '@pycord/discord-message-components-vue':
+        specifier: ^0.3.2
+        version: 0.3.2(vue@3.5.28(typescript@5.9.3))
       better-sqlite3:
         specifier: 12.5.0
         version: 12.5.0
@@ -1931,6 +1934,17 @@ packages:
   '@poppinss/exception@1.2.3':
     resolution: {integrity: sha512-dCED+QRChTVatE9ibtoaxc+WkdzOSjYTKi/+uacHWIsfodVfpsueo3+DKpgU5Px8qXjgmXkSvhXvSCz3fnP9lw==}
 
+  '@pycord/discord-message-components-core@0.3.2':
+    resolution: {integrity: sha512-1ADzxQtn7mT6VG0mBZFUslJgdvX1fn2De5mts3OMJWhXvAWmjqwge9W/35yZwPCU+sysScFlKJmPw+c2CmRNpQ==}
+
+  '@pycord/discord-message-components-markdown@0.3.1':
+    resolution: {integrity: sha512-GP6u9przW8fQuMtGSqtPfd8+CT98fM3CEhRmkTcfXx+Gzk8LJ54p8b/PBAmV72851P147Yx0et22tz5GahBu3A==}
+
+  '@pycord/discord-message-components-vue@0.3.2':
+    resolution: {integrity: sha512-uXCtbIhyXZG/z8icKZiEDMHYtpQmC+DU0JHvNQF1P2gtjy0+1pA20HYodRnpZ6NfggQN6Z5zM6GgQyxaYdxPOQ==}
+    peerDependencies:
+      vue: ^3.0.6
+
   '@remirror/core-constants@3.0.0':
     resolution: {integrity: sha512-42aWfPrimMfDKDi4YegyS7x+/0tlzaqwPQCULLanv3DMIlu96KTJR0fM5isWX2UViOqlGnX6YFgqWepcX+XMNg==}
 
@@ -2684,6 +2698,9 @@ packages:
   '@types/parse-path@7.1.0':
     resolution: {integrity: sha512-EULJ8LApcVEPbrfND0cRQqutIOdiIgJ1Mgrhpy755r14xMohPTEpkV/k28SJvuOs9bHRFW8x+KeDAEPiGQPB9Q==}
     deprecated: This is a stub types definition. parse-path provides its own type definitions, so you do not need this installed.
+
+  '@types/react@19.2.13':
+    resolution: {integrity: sha512-KkiJeU6VbYbUOp5ITMIc7kBfqlYkKA5KhEHVrGMmUUMt7NeaZg65ojdPk+FtNrBAOXNVM5QM72jnADjM+XVRAQ==}
 
   '@types/resolve@1.20.2':
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
@@ -3443,6 +3460,15 @@ packages:
 
   color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
+
+  color-parse@1.4.3:
+    resolution: {integrity: sha512-BADfVl/FHkQkyo8sRBwMYBqemqsgnu7JZAwUgvBvuwwuNUZAhSvLTbsEErS5bQXzOjDR0dWzJ4vXN2Q+QoPx0A==}
+
+  color-rgba@2.4.0:
+    resolution: {integrity: sha512-Nti4qbzr/z2LbUWySr7H9dk3Rl7gZt7ihHAxlgT4Ho90EXWkjtkL1avTleu9yeGuqrt/chxTB6GKK8nZZ6V0+Q==}
+
+  color-space@2.3.2:
+    resolution: {integrity: sha512-BcKnbOEsOarCwyoLstcoEztwT0IJxqqQkNwDuA3a65sICvvHL2yoeV13psoDFh5IuiOMnIOKdQDwB4Mk3BypiA==}
 
   colord@2.9.3:
     resolution: {integrity: sha512-jeC1axXpnb0/2nn/Y1LPuLdgXBLH7aDcHu4KEKfqw3CUhX7ZpfBSlPKyqXE6btIgEzfWtrX3/tyBCaCvXvMkOw==}
@@ -6588,6 +6614,9 @@ packages:
 
   simple-git@3.30.0:
     resolution: {integrity: sha512-q6lxyDsCmEal/MEGhP1aVyQ3oxnagGlBDOVSIB4XUVLl1iZh0Pah6ebC9V4xBap/RfgP2WlI8EKs0WS0rMEJHg==}
+
+  simple-markdown@0.7.3:
+    resolution: {integrity: sha512-uGXIc13NGpqfPeFJIt/7SHHxd6HekEJYtsdoCM06mEBPL9fQH/pSD7LRM6PZ7CKchpSvxKL4tvwMamqAaNDAyg==}
 
   sirv@3.0.2:
     resolution: {integrity: sha512-2wcC/oGxHis/BoHkkPwldgiPSYcpZK3JU28WoMVv55yHJgcZ8rlXvuG9iZggz+sU1d4bRgIGASwyWqjxu3FM0g==}
@@ -9746,6 +9775,20 @@ snapshots:
 
   '@poppinss/exception@1.2.3': {}
 
+  '@pycord/discord-message-components-core@0.3.2':
+    dependencies:
+      '@pycord/discord-message-components-markdown': 0.3.1
+      color-rgba: 2.4.0
+
+  '@pycord/discord-message-components-markdown@0.3.1':
+    dependencies:
+      simple-markdown: 0.7.3
+
+  '@pycord/discord-message-components-vue@0.3.2(vue@3.5.28(typescript@5.9.3))':
+    dependencies:
+      '@pycord/discord-message-components-core': 0.3.2
+      vue: 3.5.28(typescript@5.9.3)
+
   '@remirror/core-constants@3.0.0': {}
 
   '@resvg/resvg-js-android-arm-eabi@2.6.2':
@@ -10387,6 +10430,10 @@ snapshots:
   '@types/parse-path@7.1.0':
     dependencies:
       parse-path: 7.1.0
+
+  '@types/react@19.2.13':
+    dependencies:
+      csstype: 3.2.3
 
   '@types/resolve@1.20.2': {}
 
@@ -11196,6 +11243,17 @@ snapshots:
       color-name: 1.1.4
 
   color-name@1.1.4: {}
+
+  color-parse@1.4.3:
+    dependencies:
+      color-name: 1.1.4
+
+  color-rgba@2.4.0:
+    dependencies:
+      color-parse: 1.4.3
+      color-space: 2.3.2
+
+  color-space@2.3.2: {}
 
   colord@2.9.3: {}
 
@@ -15332,6 +15390,10 @@ snapshots:
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
+
+  simple-markdown@0.7.3:
+    dependencies:
+      '@types/react': 19.2.13
 
   sirv@3.0.2:
     dependencies:
