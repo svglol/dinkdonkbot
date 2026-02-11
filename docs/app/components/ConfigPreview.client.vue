@@ -185,7 +185,7 @@
       </client-only>
       <span class="text-sm text-neutral-400">This message is just a preview, actual messages may look slightly different.</span>
     </div>
-    <div class="flex flex-wrap gap-4">
+    <div class="flex flex-wrap justify-center gap-4">
       <UFieldGroup size="xl">
         <UButton
           size="xl"
