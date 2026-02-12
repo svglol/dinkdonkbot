@@ -24,4 +24,13 @@ export default defineNuxtConfig({
     preference: 'dark',
     fallback: 'dark',
   },
+  nitro: {
+    prerender: {
+      crawlLinks: true,
+      routes: [
+        '/_ipx/_/kick.webp',
+        '/_ipx/_/twitch.webp',
+      ],
+    },
+  },
 })

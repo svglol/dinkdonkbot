@@ -42,7 +42,7 @@
                 :image="messageType === 'live' ? streamer.preview : streamer.offlineImg"
                 :embed-title="streamer.title"
                 :url="platform === 'kick' ? `https://kick.com/${streamer.handle}` : `https://twitch.tv/${streamer.handle}`"
-                footer-icon="/dinkDonk-512.png"
+                :footer-icon="usePublicAsset('dinkDonk-512.png')"
               >
                 <b>
                   <template v-if="platform === 'multistream'">
