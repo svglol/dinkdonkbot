@@ -11,11 +11,11 @@
           :edited="messageType === 'offline'"
         >
           <DiscordMessage profile="bot">
+            <DiscordMention v-if="messageType === 'live'" :highlight="true">
+              everyone
+            </DiscordMention>
             <template v-if="messageType === 'live'">
-              <DiscordMention type="role">
-                everyone
-              </DiscordMention>
-              &nbsp;
+&nbsp;
               {{ streamer.name }}
               is now live @
 

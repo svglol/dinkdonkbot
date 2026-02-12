@@ -9,9 +9,9 @@
         <DiscordMessage
           profile="bot"
         >
-          <DiscordMention type="role">
+          <DiscordMention :highlight="true">
             everyone
-          </DiscordMention> {{ streamer.name }} is now live @
+          </DiscordMention>{{ streamer.name }} is now live @
 
           <template v-if="variant === 'multistream'">
             <a href="https://twitch.tv/{{ streamer.handle }}">https://twitch.tv/{{ streamer.handle }}</a> &
