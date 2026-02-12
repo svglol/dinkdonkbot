@@ -13,7 +13,7 @@ jobs:
       - uses: pnpm/action-setup@v4.2.0
       - uses: actions/setup-node@v5
         with:
-          node-version: 22.22.0
+          node-version: 24.13.1
       - run: pnpm install
         working-directory: ./docs
       - run: pnpm run generate
