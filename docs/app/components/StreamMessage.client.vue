@@ -143,6 +143,22 @@ const streamers = [
     profile: '/streamers/theburntpeanut.png',
     preview: '/streamers/theburntpeanut-preview.jpg',
   },
+  {
+    name: 'xQc',
+    handle: 'xqc',
+    title: '🍩LIVE🍩CLICK🍩HERE🍩DRAMA🍩NEWS🍩REACTS🍩CLIPS🍩VIDEOS🍩THINGS🍩LOCK IN🍩GAMES🍩COOL🍩PS TOMORROW ASWELL, COOL🍩',
+    profile: '/streamers/xqc.jpg',
+    preview: '/streamers/xqc-preview.jpg',
+    offlineImg: '/streamers/xqc-offline.png',
+  },
+  {
+    name: 'Pestily',
+    handle: 'pestily',
+    title: 'DUCK HUNT | LITTLE BIT OF PVE THEN OVER TO HARDCORE THEN RIP PACKS',
+    profile: '/streamers/pestily.png',
+    preview: '/streamers/pestily-preview.jpg',
+    offlineImg: '/streamers/pestily-offline.png',
+  },
 ]
 
 const categories = [
