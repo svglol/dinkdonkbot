@@ -7,6 +7,11 @@ export default defineNuxtConfig({
   app: {
     baseURL: '/dinkdonkbot',
   },
+  head: {
+    link: [
+      { rel: 'icon', type: 'image/x-icon', href: '/dinkdonkbot/favicon.ico' },
+    ],
+  },
   ui: {
     theme: {
       colors: [
