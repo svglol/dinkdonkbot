@@ -7,7 +7,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     profiles: {
       bot: {
         author: 'DinkDonk Bot',
-        avatar: '/dinkDonk-512.png',
+        avatar: usePublicAsset('dinkDonk-512.png'),
         roleColor: '#5865F2',
         bot: true,
       },

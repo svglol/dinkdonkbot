@@ -131,6 +131,8 @@
 </template>
 
 <script setup lang="ts">
+import { usePublicAsset } from '../composables/usePublicAsset'
+
 defineProps<{
   variant: 'twitch' | 'kick' | 'multistream'
 }>()
@@ -140,24 +142,25 @@ const streamers = [
     name: 'TheBurntPeanut',
     handle: 'theburntpeanut',
     title: 'NUT RAIDERS | 1 MILLION SPACE DOLLAR CHALLENGE | FROM DUMB AND POOR TO RICH AND SEXY | #BUNGULATE',
-    profile: '/streamers/theburntpeanut.png',
-    preview: '/streamers/theburntpeanut-preview.jpg',
+    profile: usePublicAsset('streamers/theburntpeanut.png'),
+    preview: usePublicAsset('streamers/theburntpeanut-preview.jpg'),
+    offlineImg: usePublicAsset('streamers/theburntpeanut-offline.jpg'),
   },
   {
     name: 'xQc',
     handle: 'xqc',
     title: '🍩LIVE🍩CLICK🍩HERE🍩DRAMA🍩NEWS🍩REACTS🍩CLIPS🍩VIDEOS🍩THINGS🍩LOCK IN🍩GAMES🍩COOL🍩PS TOMORROW ASWELL, COOL🍩',
-    profile: '/streamers/xqc.jpg',
-    preview: '/streamers/xqc-preview.jpg',
-    offlineImg: '/streamers/xqc-offline.png',
+    profile: usePublicAsset('streamers/xqc.jpg'),
+    preview: usePublicAsset('streamers/xqc-preview.jpg'),
+    offlineImg: usePublicAsset('streamers/xqc-offline.png'),
   },
   {
     name: 'Pestily',
     handle: 'pestily',
     title: 'DUCK HUNT | LITTLE BIT OF PVE THEN OVER TO HARDCORE THEN RIP PACKS',
-    profile: '/streamers/pestily.png',
-    preview: '/streamers/pestily-preview.jpg',
-    offlineImg: '/streamers/pestily-offline.png',
+    profile: usePublicAsset('streamers/pestily.png'),
+    preview: usePublicAsset('streamers/pestily-preview.jpg'),
+    offlineImg: usePublicAsset('streamers/pestily-offline.png'),
   },
 ]
 
