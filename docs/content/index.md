@@ -6,7 +6,7 @@ seo:
 
 ::u-page-hero
 #title
-Your Ultimate Twitch & Kick Companion for Discord
+Your Ultimate [Twitch & Kick]{class="text-yellow-500"} Companion for Discord
 
 #description
 DinkDonk Bot brings reliable Twitch and Kick notifications, multistream support, fun community games, and effortless emote management to your Discord server.
@@ -45,6 +45,10 @@ modifiers: {'animated': true}
 ::
 
 :::u-page-section
+---
+headline: Never Miss a Stream
+---
+
 #title
 Powerful Twitch & Kick Notifications
 
@@ -56,6 +60,9 @@ Twitch and Kick stream notifications that are fully customizable, reliable, and 
 :::
 
 ::u-page-section
+---
+headline: Built for Communities
+---
 #title
 Everything you need for stream notifications and more
 

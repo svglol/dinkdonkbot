@@ -8,7 +8,7 @@ export default defineAppConfig({
     },
     pageHero: {
       slots: {
-        root: 'bg-radial from-yellow-500/20 via-[15%] to-[70%] via-yellow-600/20 to-transparent',
+        root: 'bg-radial from-yellow-500/10 via-[15%] to-[50%] via-yellow-700/10 to-transparent',
       },
     },
   },
