@@ -238,7 +238,7 @@ export async function uploadSticker(guildId: string, env: Env, stickerName: stri
  */
 export function messageBuilder(message: string, streamMessage: StreamMessage, type: 'online' | 'offline', service: 'twitch' | 'kick' | 'both' = 'twitch') {
   const twitchUrl = `https://twitch.tv/${streamMessage.stream?.name}`
-  const kickUrl = `https://kick.com/${streamMessage.kickStream?.name}`
+  const kickUrl = `https://kick.com/${streamMessage.kickStreamerData?.slug}`
 
   let urlReplacement: string
   let nameReplacement: string
@@ -528,7 +528,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
 
     const url = priority === 'twitch'
       ? `https://twitch.tv/${streamMessage.stream?.name}`
-      : `https://kick.com/${streamMessage.kickStream?.name}`
+      : `https://kick.com/${streamMessage.kickStreamerData?.slug}`
 
     const buttons: APIButtonComponent[] = []
     // Add both platform buttons
@@ -546,7 +546,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     buttons.push({
       type: 2,
       label: 'Watch on Kick',
-      url: `https://kick.com/${streamMessage.kickStream?.name}`,
+      url: `https://kick.com/${streamMessage.kickStreamData?.slug}`,
       style: 5,
       emoji: {
         name: KICK_EMOTE.name,
@@ -617,7 +617,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
 
     const url = priority === 'twitch'
       ? `https://twitch.tv/${streamMessage.stream?.name}`
-      : `https://kick.com/${streamMessage.kickStream?.name}`
+      : `https://kick.com/${streamMessage.kickStreamData?.slug}`
 
     const buttons: APIButtonComponent[] = []
     // Add VOD buttons if available
@@ -638,7 +638,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
       buttons.push({
         type: 2,
         label: 'Watch KICK VOD',
-        url: `https://kick.com/${streamMessage.kickStream?.name}/videos/${streamMessage.kickVod.video.uuid}`,
+        url: `https://kick.com/${streamMessage.kickStreamerData?.slug}/videos/${streamMessage.kickVod.video.uuid}`,
         style: 5,
         emoji: {
           name: KICK_EMOTE.name,
@@ -777,7 +777,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     if (!await validateThumbnail(image)) {
       image = 'https://kick.com/img/default_livestream_thumbnail.webp'
     }
-    const url = `https://kick.com/${streamMessage.kickStream?.name}`
+    const url = `https://kick.com/${streamMessage.kickStreamData?.slug}`
     const buttons: APIButtonComponent[] = []
 
     // current issue with some getLiveStream from kick api returning the wrong stream title/category
@@ -791,7 +791,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     buttons.push({
       type: 2,
       label: 'Watch on KICK',
-      url: `https://kick.com/${streamMessage.kickStream?.name}`,
+      url: `https://kick.com/${streamMessage.kickStreamerData?.slug}`,
       style: 5,
       emoji: {
         name: KICK_EMOTE.name,
@@ -820,7 +820,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
       buttons.push({
         type: 2,
         label: 'Watch KICK VOD',
-        url: `https://kick.com/${streamMessage.kickStream?.name}/videos/${streamMessage.kickVod.video.uuid}`,
+        url: `https://kick.com/${streamMessage.kickStreamerData?.slug}/videos/${streamMessage.kickVod.video.uuid}`,
         style: 5,
         emoji: {
           name: KICK_EMOTE.name,
@@ -855,7 +855,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
       timestamp: new Date(streamMessage.kickStreamEndedAt || Date.now()).toISOString(),
       image: streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp' || `${env.WEBHOOK_URL}/static/default_image.png`,
       buttons,
-      url: `https://kick.com/${streamMessage.kickStream?.name}`,
+      url: `https://kick.com/${streamMessage.kickStreamerData?.slug}`,
     }
   }
 
