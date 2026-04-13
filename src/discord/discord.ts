@@ -23,7 +23,7 @@ import { formatDuration } from '@/utils/formatDuration'
  */
 export async function sendMessage(channelId: string, body: RESTPostAPIChannelMessageJSONBody, env: Env) {
   try {
-    const rest = new REST({ version: '10', api: `${env.DISCORD_PROXY}/api`, makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
     const message = await rest.post(Routes.channelMessages(channelId), {
       body,
     }) as RESTPostAPIChannelMessageResult
@@ -38,7 +38,7 @@ export async function sendMessage(channelId: string, body: RESTPostAPIChannelMes
         const kvKey = `channel:error:${channelId}`
         const channel = await env.KV.get(kvKey) as number | null
 
-        const rest = new REST({ version: '10', api: `${env.DISCORD_PROXY}/api`, makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+        const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
         const discordChannel = await rest.get(Routes.channel(channelId)) as RESTGetAPIChannelResult
         if (discordChannel) {
           // channel exists we just dont have permission to post in it (lets not delete their subscriptions)
@@ -74,7 +74,7 @@ export async function sendMessage(channelId: string, body: RESTPostAPIChannelMes
  */
 export async function updateMessage(channelId: string, messageId: string, env: Env, body: RESTPatchAPIChannelMessageJSONBody) {
   try {
-    const rest = new REST({ version: '10', api: `${env.DISCORD_PROXY}/api`, makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
     const message = await rest.patch(Routes.channelMessage(channelId, messageId), {
       body,
     }) as RESTPatchAPIChannelMessageResult
@@ -97,7 +97,7 @@ export async function updateMessage(channelId: string, messageId: string, env: E
  */
 export async function deleteMessage(channelId: string, messageId: string, env: Env) {
   try {
-    const rest = new REST({ version: '10', api: `${env.DISCORD_PROXY}/api`, makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
     await rest.delete(Routes.channelMessage(channelId, messageId))
   }
   catch (error: unknown) {
@@ -115,7 +115,7 @@ export async function deleteMessage(channelId: string, messageId: string, env: E
  */
 export async function updateInteraction(interaction: APIInteraction, env: Env, body: RESTPatchAPIChannelMessageJSONBody) {
   try {
-    const rest = new REST({ version: '10', api: `${env.DISCORD_PROXY}/api`, makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
     const message = await rest.patch(Routes.webhookMessage(env.DISCORD_APPLICATION_ID, interaction.token), {
       body,
     })
@@ -141,7 +141,7 @@ export async function updateInteraction(interaction: APIInteraction, env: Env, b
 // eslint-disable-next-line node/prefer-global/buffer
 export async function uploadEmoji(guildId: string, env: Env, emojiName: string, imageBuffer: Buffer) {
   try {
-    const rest = new REST({ version: '10', api: `${env.DISCORD_PROXY}/api`, makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
     const emoji = await rest.post(Routes.guildEmojis(guildId), {
       body: {
         name: emojiName,
@@ -187,7 +187,7 @@ export async function uploadSticker(guildId: string, env: Env, stickerName: stri
     })
     form.append('file', file)
 
-    const rest = new REST({ version: '10', api: `${env.DISCORD_PROXY}/api`, makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
     const sticker = await rest.post(Routes.guildStickers(guildId), {
       body: form,
       passThroughBody: true,
@@ -300,7 +300,7 @@ export function messageBuilder(message: string, streamMessage: StreamMessage, ty
 }
 
 export async function calculateChannelPermissions(guildId: string, channelId: string, botUserId: string, env: Env, permissionsToCheck?: bigint[]) {
-  const rest = new REST({ version: '10', api: `${env.DISCORD_PROXY}/api` }).setToken(env.DISCORD_TOKEN)
+  const rest = new REST({ version: '10' }).setToken(env.DISCORD_TOKEN)
 
   try {
     const channel = await rest.get(Routes.channel(channelId)) as RESTGetAPIChannelResult
@@ -391,7 +391,7 @@ export async function calculateChannelPermissions(guildId: string, channelId: st
  */
 export async function fetchGuildEmojis(guildId: string, env: Env) {
   try {
-    const rest = new REST({ version: '10', api: `${env.DISCORD_PROXY}/api`, makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
     const emojis = await rest.get(Routes.guildEmojis(guildId)) as RESTGetAPIGuildEmojisResult
     return emojis
   }
@@ -409,7 +409,7 @@ export async function fetchBotCommands(env: Env) {
       return commands
     }
 
-    const rest = new REST({ version: '10', api: `${env.DISCORD_PROXY}/api`, makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
 
     commands = await rest.get(Routes.applicationCommands(env.DISCORD_APPLICATION_ID)) as RESTGetAPIApplicationCommandsResult
 
