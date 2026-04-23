@@ -773,10 +773,10 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     let game = streamMessage.kickStreamData?.category.name || 'No game'
     const status = 'Online'
     const timestamp = new Date(streamMessage.kickStreamData?.started_at || Date.now()).toISOString()
-    let image = streamMessage.kickStreamData?.thumbnail ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${new Date().getTime()}` : 'https://kick.com/img/default_livestream_thumbnail.webp'
-    if (!await validateThumbnail(image)) {
-      image = 'https://kick.com/img/default_livestream_thumbnail.webp'
-    }
+    const image = streamMessage.kickStreamData?.thumbnail ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${new Date().getTime()}` : 'https://kick.com/img/default_livestream_thumbnail.webp'
+    // if (!await validateThumbnail(image)) {
+    //   image = 'https://kick.com/img/default_livestream_thumbnail.webp'
+    // }
     const url = `https://kick.com/${streamMessage.kickStreamData?.slug}`
     const buttons: APIButtonComponent[] = []
 
