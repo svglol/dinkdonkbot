@@ -29,6 +29,9 @@ export async function handleBirthdaysConfigEditCommand(interaction: APIApplicati
   if (!isGuildInteraction(interaction))
     return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in guilds', env)] })
 
+  if (!interaction.member?.permissions || !(BigInt(interaction.member.permissions) & PermissionFlagsBits.ManageGuild))
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('You do not have permission to use this command', env)] })
+
   const userId = interaction.member?.user.id || interaction.user?.id
   if (!userId)
     return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Unable to get user ID from interaction', env)] })

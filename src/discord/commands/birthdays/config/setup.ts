@@ -28,6 +28,9 @@ export async function handleBirthdaysConfigSetupCommand(interaction: APIApplicat
   if (!isGuildInteraction(interaction))
     return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in guilds', env)] })
 
+  if (!interaction.member?.permissions || !(BigInt(interaction.member.permissions) & PermissionFlagsBits.ManageGuild))
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('You do not have permission to use this command', env)] })
+
   const announcementChannelId = command.options?.find(option => option.name === 'announcement-channel')?.value as string | undefined
   const overviewChannelId = command.options?.find(option => option.name === 'overview-channel')?.value as string | undefined
   const roleId = command.options?.find(option => option.name === 'role')?.value as string | undefined

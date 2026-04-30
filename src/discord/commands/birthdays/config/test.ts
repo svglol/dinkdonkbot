@@ -20,6 +20,9 @@ export async function handleBirthdaysConfigTestCommand(interaction: APIApplicati
   if (!isGuildInteraction(interaction))
     return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This command can only be used in a guild', env)] })
 
+  if (!interaction.member?.permissions || !(BigInt(interaction.member.permissions) & PermissionFlagsBits.ManageGuild))
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('You do not have permission to use this command', env)] })
+
   const server = interaction.guild_id
 
   const birthdaysConfig = await useDB(env).query.birthdayConfig.findFirst({
