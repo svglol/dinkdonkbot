@@ -1,3 +1,4 @@
+import birthdays from './birthdays'
 import clips from './clips'
 import commands from './commands'
 import dinkdonk from './dinkdonk'
@@ -34,6 +35,7 @@ export const COMMANDS: Array<DiscordAPIApplicationCommand> = [
   quickstart,
   streams,
   clips,
+  birthdays,
 ]
 
 export const COMMAND_DEFINITIONS = COMMANDS.filter(c => c && c.command).map(c => c.command)

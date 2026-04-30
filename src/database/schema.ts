@@ -92,6 +92,44 @@ export const multiStream = sqliteTable('multistream', {
   index('multistream_kickStreamIdIdx').on(multiStream.kickStreamId),
 ])
 
+export const birthdayConfig = sqliteTable('birthday-config', {
+  guildId: text('guildId').primaryKey(),
+  overviewChannelId: text('overviewChannelId'),
+  overviewMessageId: text('overviewMessageId'),
+  announcementChannelId: text('announcementChannelId'),
+  birthdayRoleId: text('birthdayRoleId'),
+  timezone: text('timezone').default('UTC'),
+  disabled: integer('disabled', { mode: 'boolean' }).default(false),
+})
+
+export const birthday = sqliteTable('birthday', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  guildId: text('guildId').notNull(),
+  userId: text('userId').notNull(),
+  day: integer('day').notNull(),
+  month: integer('month').notNull(),
+  year: integer('year'),
+  timezone: text('timezone'),
+  announcedAt: integer('announced_at', { mode: 'timestamp' }),
+  disabled: integer('disabled', { mode: 'boolean' }).default(false),
+}, birthday => [
+  uniqueIndex('birthday_idIdx').on(birthday.id),
+  uniqueIndex('birthday_guildId_userId_Idx').on(birthday.guildId, birthday.userId),
+  index('birthday_userIdIdx').on(birthday.userId),
+  index('birthday_guildIdIdx').on(birthday.guildId),
+])
+
+export const birthdayRelations = relations(birthday, ({ one }) => ({
+  guild: one(birthdayConfig, {
+    fields: [birthday.guildId],
+    references: [birthdayConfig.guildId],
+  }),
+}))
+
+export const birthdayConfigRelations = relations(birthdayConfig, ({ many }) => ({
+  birthdays: many(birthday),
+}))
+
 export const streamMessageRelations = relations(streamMessages, ({ one }) => ({
   stream: one(streams, {
     fields: [streamMessages.streamId],

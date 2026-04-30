@@ -37,3 +37,7 @@ export type StreamMessage = typeof schema.streamMessages.$inferSelect & {
   stream?: Stream | null
   kickStream?: StreamKick | null
 }
+
+export type BirthdayConfig = typeof schema.birthdayConfig.$inferSelect
+export type Birthday = typeof schema.birthday.$inferSelect
+export type BirthdayConfigWithBirthdays = BirthdayConfig & { birthdays: Birthday[] }

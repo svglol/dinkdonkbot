@@ -1,5 +1,6 @@
 import type { APIApplicationCommandInteraction, APIMessageComponentInteraction, APIMessageTopLevelComponent } from 'discord-api-types/v10'
 import { findBotCommandMarkdown, updateInteraction } from '@discord-api'
+import { getBirthdaysHelpMessage } from '@/discord/commands/birthdays/help'
 import { deferedUpdate, interactionEphemeralLoading } from '@/discord/interactionHandler'
 import { CLIPPERS_EMOTE, DISCORD_EMOTE, GITHUB_EMOTE, KICK_EMOTE, TWITCH_EMOTE } from '@/utils/discordEmotes'
 import { getClipsHelpMessage } from './clips/twitch/help'
@@ -21,6 +22,8 @@ Subscribe to automatic stream notifications from your favorite streamers. Get no
 Subscribe to automatic Twitch clip notifications from your favorite streamers. Get the best clips posted hourly to your Discord channels.
 ### 🥳 Emote Management
 Easily add custom emotes to your Discord server from other servers or 7tv. Steal emotes from messages or add them directly by URL or emoji.
+### 🎂 Birthdays
+How to register your birthday and let people know when it's your birthday.
 ### 🎉 Misc Commands
 Various utility commands including time, weather, invites, fun interactions, and timestamp generation.
 ### ❓ Support
@@ -67,6 +70,8 @@ The fastest way to get assistance is on **[Discord](https://discord.gg/NuY7Tnrb6
 - [Join Discord](https://discord.gg/NuY7Tnrb6F)  
 - [Official Website](https://svglol.github.io/dinkdonkbot/)  
 - [GitHub Repository](https://github.com/svglol/dinkdonkbot)`,
+    page_birthdays: `## 🎂 **Birthdays**
+${await getBirthdaysHelpMessage(env)}`,
   }
 }
 
@@ -95,6 +100,7 @@ async function handleHelpCommand(interaction: APIMessageComponentInteraction | A
           { label: 'Stream Notifications', value: 'page_stream', emoji: { name: '📺' }, default: page === 'page_stream' },
           { label: 'Clips', value: 'page_clips', emoji: { id: CLIPPERS_EMOTE.id, name: CLIPPERS_EMOTE.name }, default: page === 'page_clips' },
           { label: 'Emote Management', value: 'page_emotes', emoji: { name: '🥳' }, default: page === 'page_emotes' },
+          { label: 'Birthdays', value: 'page_birthdays', emoji: { name: '🎂' }, default: page === 'page_birthdays' },
           { label: 'Misc Commands', value: 'page_misc', emoji: { name: '🎉' }, default: page === 'page_misc' },
           { label: 'Support', value: 'page_support', emoji: { name: '❓' }, default: page === 'page_support' },
         ],

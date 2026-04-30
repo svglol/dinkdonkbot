@@ -5,6 +5,7 @@ import { REST } from '@discordjs/rest'
 import { getKickSubscriptions, getKickUser, kickSubscribe, kickUnsubscribe } from '@kick-api'
 import { getClipsLastHour, getSubscriptions, getUserbyID, removeFailedSubscriptions, removeSubscription, subscribe } from '@twitch-api'
 import { Routes } from 'discord-api-types/v10'
+import { scheduledBirthdayCheck, scheduledBirthdayOverviewUpdate } from '@/birthdays'
 import { CLIPPERS_EMOTE } from '@/utils/discordEmotes'
 
 export default {
@@ -15,6 +16,13 @@ export default {
         break
       case '0 * * * *':
         ctx.waitUntil(scheduledTwitchClips(env))
+        ctx.waitUntil(scheduledBirthdayCheck(env))
+        break
+      case '0 0 * * 0':
+        ctx.waitUntil(scheduledBirthdayOverviewUpdate(env))
+        break
+      default:
+        console.warn(`No scheduled task found for cron: ${event.cron}`)
         break
     }
   },

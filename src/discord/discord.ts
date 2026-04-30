@@ -1,7 +1,6 @@
 import type { StreamMessage } from '@database'
-import type { RESTPostAPICurrentUserCreateDMChannelResult } from 'discord-api-types/v9'
 
-import type { APIApplicationCommandOption, APIButtonComponent, APIEmbed, APIEmbedField, APIInteraction, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTGetAPIGuildMemberResult, RESTGetAPIGuildRolesResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPatchAPIWebhookResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
+import type { APIApplicationCommandOption, APIButtonComponent, APIEmbed, APIEmbedField, APIInteraction, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTGetAPIGuildMemberResult, RESTGetAPIGuildResult, RESTGetAPIGuildRolesResult, RESTGetAPIUserResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPatchAPIWebhookResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPICurrentUserCreateDMChannelResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
 
 import { eq, tables, useDB } from '@database'
 import { chatInputApplicationCommandMention, escapeMarkdown } from '@discordjs/formatters'
@@ -377,6 +376,129 @@ export async function calculateChannelPermissions(guildId: string, channelId: st
     }
     console.error('Error calculating permissions:', error)
     return { permissions: 0n, checks: { Erorr: false } }
+  }
+}
+
+export async function calculateGuildPermissions(guildId: string, env: Env, permissionsToCheck?: bigint[]) {
+  const rest = new REST({ version: '10' }).setToken(env.DISCORD_TOKEN)
+
+  try {
+    const member = await rest.get(Routes.guildMember(guildId, env.DISCORD_APPLICATION_ID)) as RESTGetAPIGuildMemberResult
+    const guildRoles = await rest.get(Routes.guildRoles(guildId)) as RESTGetAPIGuildRolesResult
+    const guild = await rest.get(Routes.guild(guildId)) as RESTGetAPIGuildResult
+
+    // Guild owner has all permissions
+    if (guild.owner_id === env.DISCORD_APPLICATION_ID) {
+      return { permissions: Object.values(PermissionFlagsBits).reduce((a, b) => a | b, 0n), checks: {}, isOwner: true }
+    }
+
+    let basePermissions = 0n
+
+    const everyoneRole = guildRoles.find(r => r.id === guildId)
+    if (everyoneRole) {
+      basePermissions |= BigInt(everyoneRole.permissions)
+    }
+
+    for (const roleId of member.roles) {
+      const role = guildRoles.find(r => r.id === roleId)
+      if (role) {
+        basePermissions |= BigInt(role.permissions)
+      }
+    }
+
+    // Administrator grants all permissions
+    if ((basePermissions & PermissionFlagsBits.Administrator) === PermissionFlagsBits.Administrator) {
+      return { permissions: basePermissions, checks: {}, isAdministrator: true }
+    }
+
+    const hasPermission = (permission: bigint) => {
+      return (basePermissions & BigInt(permission)) === BigInt(permission)
+    }
+
+    function getPermissionName(permission: bigint): string {
+      const entry = Object.entries(PermissionFlagsBits).find(([_, value]) => value === permission)
+      return entry ? entry[0] : `Unknown_${permission.toString()}`
+    }
+
+    const checks: Record<string, boolean> = {}
+
+    if (permissionsToCheck) {
+      permissionsToCheck.forEach((permission) => {
+        const permissionName = getPermissionName(permission)
+        checks[permissionName] = hasPermission(permission)
+      })
+    }
+
+    return { permissions: basePermissions, checks, isOwner: false, isAdministrator: false }
+  }
+  catch (error: DiscordAPIError | unknown) {
+    if (error instanceof DiscordAPIError) {
+      if (error.code === 50001) {
+        console.error(`Bot lacks access to guild ${guildId}`)
+        return { permissions: 0n, checks: { ViewGuild: false } }
+      }
+    }
+    console.error('Error calculating guild permissions:', error)
+    return { permissions: 0n, checks: { Error: false } }
+  }
+}
+
+export async function fetchGuild(guildId: string, env: Env) {
+  try {
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+    const guild = await rest.get(Routes.guild(guildId)) as RESTGetAPIGuildResult
+    return guild
+  }
+  catch (error: unknown) {
+    console.error('Failed to fetch guild:', error)
+    return null
+  }
+}
+
+export async function isUserInGuild(guildId: string, userId: string, env: Env) {
+  const rest = new REST({ version: '10' }).setToken(env.DISCORD_TOKEN)
+  try {
+    await rest.get(Routes.guildMember(guildId, userId))
+    return true
+  }
+  catch {
+    return false
+  }
+}
+
+export async function fetchUser(userId: string, env: Env) {
+  try {
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+    const user = await rest.get(Routes.user(userId)) as RESTGetAPIUserResult
+    return user
+  }
+  catch (error: unknown) {
+    console.error('Failed to fetch user:', error)
+    return null
+  }
+}
+
+export async function setRole(guildId: string, userId: string, roleId: string, env: Env) {
+  try {
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+    await rest.put(Routes.guildMemberRole(guildId, userId, roleId))
+    return true
+  }
+  catch (error: unknown) {
+    console.error('Failed to set role:', error)
+    return false
+  }
+}
+
+export async function removeRole(guildId: string, userId: string, roleId: string, env: Env) {
+  try {
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+    await rest.delete(Routes.guildMemberRole(guildId, userId, roleId))
+    return true
+  }
+  catch (error: unknown) {
+    console.error('Failed to remove role:', error)
+    return false
   }
 }
 

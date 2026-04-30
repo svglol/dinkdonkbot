@@ -8,7 +8,8 @@ tail_consumers = [ { service = "dinkdonkbot-tail" } ]
 [triggers]
 crons = [
   "0 0 * * *",
-  "0 * * * *"
+  "0 * * * *",
+  "0 0 * * 0"
 ]
 
 [[d1_databases]]
