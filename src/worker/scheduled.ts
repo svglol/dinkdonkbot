@@ -18,7 +18,7 @@ export default {
         ctx.waitUntil(scheduledTwitchClips(env))
         ctx.waitUntil(scheduledBirthdayCheck(env))
         break
-      case '0 0 * * 0':
+      case '0 0 * * sun':
         ctx.waitUntil(scheduledBirthdayOverviewUpdate(env))
         break
       default:

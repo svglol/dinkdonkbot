@@ -9,7 +9,7 @@ tail_consumers = [ { service = "dinkdonkbot-tail" } ]
 crons = [
   "0 0 * * *",
   "0 * * * *",
-  "0 0 * * 0"
+  "0 0 * * sun",
 ]
 
 [[d1_databases]]
