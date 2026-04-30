@@ -4,7 +4,6 @@ import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'di
 
 import { BIRTHDAYS_SHOW_COMMAND, handleBirthdaysShowCommand } from '@/discord/commands/birthdays/show'
 import { autoCompleteResponse, interactionEphemeralLoading, interactionLoading } from '@/discord/interactionHandler'
-import { BIRTHDAYS_CONFIG_SUBCOMMANDS, handleBirthdaysConfigAutoComplete, handleBirthdaysConfigCommands } from './config'
 import { BIRTHDAYS_HELP_COMMAND, handleBirthdaysHelpCommand } from './help'
 import { BIRTHDAYS_LIST_COMMAND, handleBirthdaysListCommand, handleBirthdaysListMessageComponent } from './list'
 import { BIRTHDAYS_REGISTER_COMMAND, handleBirthdaysRegisterCommand, handleBirthdaysRegisterCommandAutoComplete } from './register'
@@ -22,7 +21,6 @@ export const BIRTHDAYS_COMMAND = {
     BIRTHDAYS_UPCOMING_COMMAND,
     BIRTHDAYS_LIST_COMMAND,
     BIRTHDAYS_HELP_COMMAND,
-    BIRTHDAYS_CONFIG_SUBCOMMANDS,
     BIRTHDAYS_SHOW_COMMAND,
   ],
 }
@@ -61,8 +59,6 @@ async function handleBirthdays(interaction: APIApplicationCommandInteraction, en
       return await handleBirthdaysListCommand(interaction, option, env)
     case 'help':
       return await handleBirthdaysHelpCommand(interaction, option, env)
-    case 'config':
-      return await handleBirthdaysConfigCommands(interaction, option, env)
     case 'show':
       return await handleBirthdaysShowCommand(interaction, option, env)
     default:
@@ -78,8 +74,6 @@ async function autoCompleteHandler(interaction: APIApplicationCommandAutocomplet
   switch (option.name) {
     case 'register':
       return handleBirthdaysRegisterCommandAutoComplete(interaction, option, env)
-    case 'config':
-      return handleBirthdaysConfigAutoComplete(interaction, option, env)
     default:
       return autoCompleteResponse([])
   }

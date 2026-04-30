@@ -33,10 +33,10 @@ export async function handleBirthdaysShowCommand(interaction: APIApplicationComm
   })
 
   if (!birthdayConfig)
-    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`This server does not have a birthday config setup yet, if you are an admin use ${await findBotCommandMarkdown(env, 'birthdays', 'config', 'setup')} to setup one`, env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`This server does not have a birthday config setup yet, if you are an admin use ${await findBotCommandMarkdown(env, 'birthdays-config', 'setup')} to setup one`, env)] })
 
   if (birthdayConfig.disabled)
-    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`This server has birthdays disabled, if you are an admin use ${await findBotCommandMarkdown(env, 'birthdays', 'config', 'edit')} to enable them`, env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`This server has birthdays disabled, if you are an admin use ${await findBotCommandMarkdown(env, 'birthdays-config', 'edit')} to enable them`, env)] })
 
   const birthday = await useDB(env).query.birthday.findFirst({
     where: (birthday, { eq, and }) => and(eq(birthday.userId, user), eq(birthday.guildId, serverId), eq(birthday.disabled, false)),

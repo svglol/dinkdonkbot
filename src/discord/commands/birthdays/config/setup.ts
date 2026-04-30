@@ -1,4 +1,4 @@
-import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIApplicationCommandInteractionDataOption, APIApplicationCommandInteractionDataSubcommandOption, InteractionType } from 'discord-api-types/v10'
+import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIApplicationCommandInteractionDataOption, InteractionType } from 'discord-api-types/v10'
 import { buildErrorEmbed, buildSuccessEmbed, calculateChannelPermissions, calculateGuildPermissions, findBotCommandMarkdown, removeRole, setRole, updateInteraction } from '@discord-api'
 import { isGuildInteraction } from 'discord-api-types/utils'
 import { ApplicationCommandOptionType, PermissionFlagsBits } from 'discord-api-types/v10'
@@ -21,7 +21,7 @@ export const BIRTHDAYS_CONFIG_SETUP_COMMAND = {
   ],
 }
 
-export async function handleBirthdaysConfigSetupCommand(interaction: APIApplicationCommandInteraction, command: APIApplicationCommandInteractionDataSubcommandOption, env: Env) {
+export async function handleBirthdaysConfigSetupCommand(interaction: APIApplicationCommandInteraction, command: APIApplicationCommandInteractionDataOption, env: Env) {
   if (command.type !== ApplicationCommandOptionType.Subcommand)
     return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
 
@@ -42,7 +42,7 @@ export async function handleBirthdaysConfigSetupCommand(interaction: APIApplicat
     where: (config, { eq }) => eq(config.guildId, server!),
   })
   if (existingConfig) {
-    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`A birthday config already exists for this server, if you wish to edit it use ${await findBotCommandMarkdown(env, 'birthdays', 'config', 'edit')}`, env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`A birthday config already exists for this server, if you wish to edit it use ${await findBotCommandMarkdown(env, 'birthdays-config', 'edit')}`, env)] })
   }
 
   if (!announcementChannelId || !overviewChannelId) {

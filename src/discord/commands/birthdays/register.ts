@@ -83,7 +83,7 @@ export async function handleBirthdaysRegisterCommand(interaction: APIApplication
     return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This server does not have a birthday config setup. A server admin needs to set the birthday config first!', env)] })
 
   if (birthdayConfig.disabled)
-    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`Birthday notifications are currently disabled in this server. A server admin can enable them using ${await findBotCommandMarkdown(env, 'birthdays', 'config', 'edit')}`, env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`Birthday notifications are currently disabled in this server. A server admin can enable them using ${await findBotCommandMarkdown(env, 'birthdays-config', 'edit')}`, env)] })
 
   if (timezone && !validateTimezone(timezone))
     return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Timezone is not valid it should be a valid IANA timezone (e.g. Pacific/Auckland)', env)] })

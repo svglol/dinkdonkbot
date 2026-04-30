@@ -1,4 +1,4 @@
-import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIApplicationCommandInteractionDataOption, APIApplicationCommandInteractionDataSubcommandOption, APIEmbed, InteractionType } from 'discord-api-types/v10'
+import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIApplicationCommandInteractionDataOption, APIEmbed, InteractionType } from 'discord-api-types/v10'
 import { buildErrorEmbed, buildSuccessEmbed, calculateChannelPermissions, calculateGuildPermissions, findBotCommandMarkdown, removeRole, setRole, updateInteraction } from '@discord-api'
 import { isGuildInteraction } from 'discord-api-types/utils'
 import { ApplicationCommandOptionType, PermissionFlagsBits } from 'discord-api-types/v10'
@@ -22,7 +22,7 @@ export const BIRTHDAYS_CONFIG_EDIT_COMMAND = {
   ],
 }
 
-export async function handleBirthdaysConfigEditCommand(interaction: APIApplicationCommandInteraction, command: APIApplicationCommandInteractionDataSubcommandOption, env: Env) {
+export async function handleBirthdaysConfigEditCommand(interaction: APIApplicationCommandInteraction, command: APIApplicationCommandInteractionDataOption, env: Env) {
   if (command.type !== ApplicationCommandOptionType.Subcommand)
     return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Invalid interaction', env)] })
 
@@ -47,7 +47,7 @@ export async function handleBirthdaysConfigEditCommand(interaction: APIApplicati
     where: (config, { eq }) => eq(config.guildId, server!),
   })
   if (!existingConfig) {
-    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`A birthday config does not exist for this server, use ${await findBotCommandMarkdown(env, 'birthdays', 'config', 'setup')} to setup one`, env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`A birthday config does not exist for this server, use ${await findBotCommandMarkdown(env, 'birthdays-config', 'setup')} to setup one`, env)] })
   }
 
   if (!announcementChannelId && !overviewChannelId && !roleId && !timezone && enable === undefined) {

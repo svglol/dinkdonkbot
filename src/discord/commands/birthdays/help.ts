@@ -18,10 +18,10 @@ Year and timezone are optional - Timezone must be in IANA format or search for y
 - ${await findBotCommandMarkdown(env, 'birthdays', 'upcoming')} - Show upcoming birthdays
 - ${await findBotCommandMarkdown(env, 'birthdays', 'help')} - Show this help message
 
-- ${await findBotCommandMarkdown(env, 'birthdays', 'config', 'setup')} - Setup birthday announcements config - <announcement-channel> <overview-channel> <role> <timezone>
-- ${await findBotCommandMarkdown(env, 'birthdays', 'config', 'edit')} - Edit birthday announcements config - <announcement-channel> <overview-channel> <role> <timezone> <enable>
-- ${await findBotCommandMarkdown(env, 'birthdays', 'config', 'details')} - Show the current birthday announcements configuration
-- ${await findBotCommandMarkdown(env, 'birthdays', 'config', 'test')} - Post a test message to the announcement channel`
+- ${await findBotCommandMarkdown(env, 'birthdays-config', 'setup')} - Setup birthday announcements config - <announcement-channel> <overview-channel> <role> <timezone>
+- ${await findBotCommandMarkdown(env, 'birthdays-config', 'edit')} - Edit birthday announcements config - <announcement-channel> <overview-channel> <role> <timezone> <enable>
+- ${await findBotCommandMarkdown(env, 'birthdays-config', 'details')} - Show the current birthday announcements configuration
+- ${await findBotCommandMarkdown(env, 'birthdays-config', 'test')} - Post a test message to the announcement channel`
 }
 
 export async function handleBirthdaysHelpCommand(interaction: APIApplicationCommandInteraction, option: APIApplicationCommandInteractionDataOption, env: Env) {

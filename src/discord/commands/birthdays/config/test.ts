@@ -29,10 +29,10 @@ export async function handleBirthdaysConfigTestCommand(interaction: APIApplicati
     where: (config, { eq }) => eq(config.guildId, server!),
   })
   if (!birthdaysConfig)
-    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`This server does not have a birthday config setup yet, use ${await findBotCommandMarkdown(env, 'birthdays', 'config', 'setup')} to setup one`, env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`This server does not have a birthday config setup yet, use ${await findBotCommandMarkdown(env, 'birthdays-config', 'setup')} to setup one`, env)] })
 
   if (birthdaysConfig.disabled)
-    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`This server has birthdays disabled, use ${await findBotCommandMarkdown(env, 'birthdays', 'config', 'edit')} to enable them`, env)] })
+    return updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`This server has birthdays disabled, use ${await findBotCommandMarkdown(env, 'birthdays-config', 'edit')} to enable them`, env)] })
 
   if (!birthdaysConfig.announcementChannelId)
     return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('This server does not have an announcement channel setup yet', env)] })
