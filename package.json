@@ -3,7 +3,7 @@
   "type": "module",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "pnpm@10.28.2",
+  "packageManager": "pnpm@10.33.2",
   "description": "A discord bot that posts notifications when twitch streamers go live",
   "author": "Matthew Trotman <savageguy@gmail.com>",
   "license": "MIT",
@@ -26,27 +26,27 @@
   },
   "dependencies": {
     "@discordjs/formatters": "0.6.2",
-    "@discordjs/rest": "2.6.0",
+    "@discordjs/rest": "2.6.1",
     "date-fns-tz": "3.2.0",
-    "discord-api-types": "0.38.38",
+    "discord-api-types": "0.38.47",
     "discord-interactions": "4.4.0",
     "drizzle-orm": "0.45.2",
-    "itty-router": "5.0.22",
+    "itty-router": "5.0.23",
     "tz-lookup": "6.1.25"
   },
   "devDependencies": {
     "@antfu/eslint-config": "5.4.1",
-    "@cloudflare/vitest-pool-workers": "0.12.8",
-    "@cloudflare/workers-types": "4.20260131.0",
+    "@cloudflare/vitest-pool-workers": "0.15.0",
+    "@cloudflare/workers-types": "4.20260426.1",
     "@types/tz-lookup": "6.1.2",
-    "dotenv": "17.2.3",
-    "drizzle-kit": "0.31.8",
+    "dotenv": "17.4.2",
+    "drizzle-kit": "0.31.10",
     "eslint": "9.39.4",
     "ngrok": "5.0.0-beta.2",
     "tsx": "4.21.0",
     "typescript": "5.9.3",
     "vite-tsconfig-paths": "5.1.4",
     "vitest": "3.2.4",
-    "wrangler": "4.59.1"
+    "wrangler": "4.85.0"
   }
 }
