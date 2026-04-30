@@ -21,21 +21,6 @@ describe('birthdays', () => {
     ])
   })
 
-  // it('should have all expected config subcommands configured', () => {
-  //   const birthdaysCommand = COMMAND_DEFINITIONS.find(c => c.name === 'birthdays')
-  //   const configSubcommands = birthdaysCommand?.options?.find(option => option.name === 'config')
-  //   if (!configSubcommands || !('options' in configSubcommands) || !configSubcommands.options)
-  //     throw new Error('Config subcommand group is missing options')
-  //   const configSubcommandNames = configSubcommands.options.map(option => option.name)
-
-  //   expect(configSubcommandNames).toStrictEqual([
-  //     'details',
-  //     'setup',
-  //     'edit',
-  //     'test',
-  //   ])
-  // })
-
   it('should have handler defined', () => {
     expect(findHandlerByName('birthdays')).toBeDefined()
   })
