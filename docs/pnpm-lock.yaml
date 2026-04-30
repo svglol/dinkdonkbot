@@ -15,7 +15,7 @@ importers:
         specifier: 1.13.0
         version: 1.13.0(@typescript-eslint/utils@8.55.0(eslint@10.0.0(jiti@2.6.1))(typescript@5.9.3))(@vue/compiler-sfc@3.5.33)(eslint@10.0.0(jiti@2.6.1))(magicast@0.5.2)(typescript@5.9.3)(vite@7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.2))
       '@pycord/discord-message-components-vue':
-        specifier: ^0.3.2
+        specifier: 0.3.2
         version: 0.3.2(vue@3.5.28(typescript@5.9.3))
       better-sqlite3:
         specifier: 12.5.0
@@ -8590,7 +8590,7 @@ snapshots:
     dependencies:
       '@eslint/object-schema': 3.0.1
       debug: 4.4.3
-      minimatch: 10.1.2
+      minimatch: 10.2.5
     transitivePeerDependencies:
       - supports-color
 
@@ -12829,7 +12829,7 @@ snapshots:
       imurmurhash: 0.1.4
       is-glob: 4.0.3
       json-stable-stringify-without-jsonify: 1.0.1
-      minimatch: 10.1.2
+      minimatch: 10.2.5
       natural-compare: 1.4.0
       optionator: 0.9.4
     optionalDependencies:
@@ -15280,8 +15280,8 @@ snapshots:
     dependencies:
       htmlparser2: 8.0.2
       js-tokens: 9.0.1
-      postcss: 8.5.6
-      postcss-safe-parser: 6.0.0(postcss@8.5.6)
+      postcss: 8.5.12
+      postcss-safe-parser: 6.0.0(postcss@8.5.12)
 
   postcss-import@16.1.1(postcss@8.5.6):
     dependencies:
@@ -15393,9 +15393,9 @@ snapshots:
 
   postcss-resolve-nested-selector@0.1.6: {}
 
-  postcss-safe-parser@6.0.0(postcss@8.5.6):
+  postcss-safe-parser@6.0.0(postcss@8.5.12):
     dependencies:
-      postcss: 8.5.6
+      postcss: 8.5.12
 
   postcss-safe-parser@7.0.1(postcss@8.5.6):
     dependencies:
