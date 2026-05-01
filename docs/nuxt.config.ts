@@ -35,6 +35,7 @@ export default defineNuxtConfig({
       routes: [
         '/_ipx/_/kick.webp',
         '/_ipx/_/twitch.webp',
+        '/_ipx/_/dinkDonk-512.png',
       ],
     },
   },
