@@ -177,7 +177,7 @@ async function buildBirthdayOverviewMessage(guildId: string, birthdayConfig: Bir
     : await buildDescription(header, birthdayConfig!, env)
 
   return {
-    color: 0xFFF200,
+    color: 0xFF69B4,
     title: `🎂 Birthday List - ${guild?.name}`,
     thumbnail: {
       url: guild?.icon ? `https://cdn.discordapp.com/icons/${guildId}/${guild.icon}.png` : env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
