@@ -133,6 +133,17 @@ DinkDonk Bot is packed with features to keep your community engaged and informed
   :::u-page-card
   ---
   spotlight: true
+  icon: i-lucide-cake
+  ---
+  #title
+  Birthday Management
+  #description
+  Track and celebrate your community's birthdays automatically. Set up birthday roles and announcements so no one's special day goes unnoticed.
+  :::
+
+  :::u-page-card
+  ---
+  spotlight: true
   icon: i-lucide-wrench
   ---
   #title
@@ -140,5 +151,17 @@ DinkDonk Bot is packed with features to keep your community engaged and informed
 
   #description
   Handy tools like weather updates, world clocks, Discord timestamp generation, and fun extras like coin flips — all built right in.
+  :::
+
+  :::u-page-card
+  ---
+  spotlight: true
+  icon: i-lucide-sparkles
+  coming-soon: true
+  ---
+  #title
+  Coming Soon
+  #description
+  More exciting features are on the way. Stay tuned for updates!
   :::
 ::
