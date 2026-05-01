@@ -184,7 +184,7 @@ async function buildBirthdayOverviewMessage(guildId: string, birthdayConfig: Bir
     },
     description,
     footer: {
-      text: `DinkDonk Bot - Server Timezone (${birthdayConfig.timezone})`,
+      text: `DinkDonk Bot • Server Timezone (${birthdayConfig.timezone})`,
       icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
     },
     timestamp: new Date().toISOString(),
