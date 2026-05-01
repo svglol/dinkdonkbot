@@ -153,7 +153,7 @@ export async function birthdayOverviewUpdate(guildId: string, env: Env) {
 
 async function buildBirthdayOverviewMessage(guildId: string, birthdayConfig: BirthdayConfigWithBirthdays, env: Env) {
   const guild = await fetchGuild(guildId, env)
-  const header = `Register your birthday with ${await findBotCommandMarkdown(env, 'birthdays', 'register')} command!\n`
+  const header = `Register your birthday with the ${await findBotCommandMarkdown(env, 'birthdays', 'register')} command!\n`
 
   // if the birthday config is disabled we show a different message prompting the user to enable it instead of showing the birthday overview
   if (birthdayConfig.disabled) {
@@ -173,7 +173,7 @@ async function buildBirthdayOverviewMessage(guildId: string, birthdayConfig: Bir
   }
 
   const description = birthdayConfig?.birthdays.length === 0
-    ? `${header}No birthdays registered yet.`
+    ? `${header}\nNo birthdays registered yet. 😢`
     : await buildDescription(header, birthdayConfig!, env)
 
   return {
