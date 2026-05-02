@@ -73,6 +73,8 @@ export async function sendMessage(channelId: string, body: RESTPostAPIChannelMes
  */
 export async function updateMessage(channelId: string, messageId: string, env: Env, body: RESTPatchAPIChannelMessageJSONBody) {
   try {
+    if (!channelId || !messageId || channelId === '' || messageId === '')
+      throw new Error('Missing channelId or messageId')
     const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
     const message = await rest.patch(Routes.channelMessage(channelId, messageId), {
       body,
@@ -96,6 +98,8 @@ export async function updateMessage(channelId: string, messageId: string, env: E
  */
 export async function deleteMessage(channelId: string, messageId: string, env: Env) {
   try {
+    if (!channelId || !messageId || channelId === '' || messageId === '')
+      throw new Error('Missing channelId or messageId')
     const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
     await rest.delete(Routes.channelMessage(channelId, messageId))
   }

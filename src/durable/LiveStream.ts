@@ -282,7 +282,7 @@ export class LiveStream extends DurableObject {
       await useDB(this.env).update(tables.streamMessages).set({ discordMessageId: messageId }).where(eq(tables.streamMessages.id, streamMessage.id))
     }
     catch (error) {
-      console.error(`Failed to send notification for stream message ${streamMessage.id}:`, error)
+      console.error(`Failed to send notification for stream message ${streamMessage.id}:`, error, { streamMessage })
     }
   }
 
@@ -320,10 +320,10 @@ export class LiveStream extends DurableObject {
                 kickStream: true,
               },
             })
-            if (updatedMessageWithStreams) {
+            if (updatedMessageWithStreams && updatedMessageWithStreams?.discordMessageId) {
             // then we can update the existing discord message instead of sending a new one and close the durable object
               const discordMessage = await bodyBuilder(updatedMessageWithStreams, this.env)
-              await updateMessage(updatedMessageWithStreams.discordChannelId, updatedMessageWithStreams?.discordMessageId ?? '', this.env, discordMessage)
+              await updateMessage(updatedMessageWithStreams.discordChannelId, updatedMessageWithStreams.discordMessageId!, this.env, discordMessage)
 
               this.reset()
               return
@@ -409,10 +409,10 @@ export class LiveStream extends DurableObject {
                 kickStream: true,
               },
             })
-            if (updatedMessageWithStreams) {
+            if (updatedMessageWithStreams && updatedMessageWithStreams.discordMessageId) {
             // then we can update the existing discord message instead of sending a new one and close the durable object
               const discordMessage = await bodyBuilder(updatedMessageWithStreams, this.env)
-              await updateMessage(updatedMessageWithStreams.discordChannelId, updatedMessageWithStreams?.discordMessageId ?? '', this.env, discordMessage)
+              await updateMessage(updatedMessageWithStreams.discordChannelId, updatedMessageWithStreams.discordMessageId, this.env, discordMessage)
 
               this.reset()
               return
