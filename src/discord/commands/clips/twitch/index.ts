@@ -54,7 +54,7 @@ export async function handleClipsTwitchAutoComplete(interaction: APIApplicationC
     const subCommand = option.options[0]
     switch (subCommand.name) {
       case 'add':
-        return handleClipsTwitchAutoComplete(interaction, option, env)
+        return handleClipsTwitchAutoComplete(interaction, subCommand, env)
       case 'remove':
         return handleClipsTwitchDBAutoComplete(interaction, subCommand, env)
       case 'edit':
