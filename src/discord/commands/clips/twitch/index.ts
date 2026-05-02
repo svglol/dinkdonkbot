@@ -2,7 +2,7 @@ import type { APIApplicationCommandAutocompleteInteraction, APIApplicationComman
 import { buildErrorEmbed, updateInteraction } from '@discord-api'
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { autoCompleteResponse } from '@/discord/interactionHandler'
-import { CLIPS_TWITCH_ADD_COMMAND, handleClipsTwitchAddCommand } from './add'
+import { CLIPS_TWITCH_ADD_COMMAND, handleClipsTwitchAddAutoComplete, handleClipsTwitchAddCommand } from './add'
 import { CLIPS_TWITCH_EDIT_COMMAND, handleClipsTwitchDBAutoComplete, handleClipsTwitchEditCommand } from './edit'
 import { CLIPS_TWITCH_HELP_COMMAND, handleClipsTwitchHelpCommand } from './help'
 import { CLIPS_TWITCH_LIST_COMMAND, handleClipsTwitchListCommand } from './list'
@@ -54,7 +54,7 @@ export async function handleClipsTwitchAutoComplete(interaction: APIApplicationC
     const subCommand = option.options[0]
     switch (subCommand.name) {
       case 'add':
-        return handleClipsTwitchAutoComplete(interaction, subCommand, env)
+        return handleClipsTwitchAddAutoComplete(interaction, subCommand, env)
       case 'remove':
         return handleClipsTwitchDBAutoComplete(interaction, subCommand, env)
       case 'edit':
