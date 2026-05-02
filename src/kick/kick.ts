@@ -85,7 +85,7 @@ export async function kickSubscribe(broadcasterUserId: number, env: Env) {
     return response
   }
   catch (error) {
-    console.error('Error subscribing to Kick EventSub:', { broadcasterUserId }, error)
+    console.error('Error subscribing to Kick EventSub:', error, { broadcasterUserId })
     return false
   }
 }
@@ -122,7 +122,7 @@ export async function kickUnsubscribe(broadcasterUserId: number, env: Env) {
       }
     }
     catch (error: unknown) {
-      console.error(`Error unsubscribing from Kick EventSub for broadcaster:`, { broadcasterUserId }, error)
+      console.error(`Error unsubscribing from Kick EventSub for broadcaster:`, error, { broadcasterUserId })
     }
   }
 }
@@ -334,7 +334,7 @@ export async function getKickChannelV2(slug: string) {
     return channels
   }
   catch (error) {
-    console.error('Error fetching kick v2 channel:', { slug }, error)
+    console.error('Error fetching kick v2 channel:', error, { slug })
     return undefined
   }
 }
@@ -412,10 +412,10 @@ export async function getKickLatestVod(startedAt: string, slug: string) {
   }
   catch (error) {
     if (error instanceof Error) {
-      console.error(`Error fetching latest VOD for channel:`, { startedAt, slug }, error.message)
+      console.error(`Error fetching latest VOD for channel:`, error.message, { startedAt, slug })
     }
     else {
-      console.error(`Error fetching latest VOD for channel:`, { startedAt, slug }, error)
+      console.error(`Error fetching latest VOD for channel:`, error, { startedAt, slug })
     }
     return null
   }

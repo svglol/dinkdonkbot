@@ -57,7 +57,7 @@ export async function getChannelId(broadcasterLoginName: string, env: Env) {
     return broadcasterUserId as string
   }
   catch (error) {
-    console.error('Error fetching channel id:', { broadcasterLoginName }, error)
+    console.error('Error fetching channel id:', error, { broadcasterLoginName })
   }
 }
 
@@ -115,11 +115,11 @@ export async function subscribe(broadcasterUserId: string, env: Env) {
           success = true
         }
         else {
-          console.error('Failed to create stream.online subscription:', { broadcasterUserId }, await onlineResponse.json())
+          console.error('Failed to create stream.online subscription:', await onlineResponse.json(), { broadcasterUserId })
         }
       }
       catch (err) {
-        console.error('Error creating stream.online subscription:', { broadcasterUserId }, err)
+        console.error('Error creating stream.online subscription:', err, { broadcasterUserId })
       }
     }
 
@@ -149,11 +149,11 @@ export async function subscribe(broadcasterUserId: string, env: Env) {
           success = true
         }
         else {
-          console.error('Failed to create stream.offline subscription:', { broadcasterUserId }, await offlineResponse.json())
+          console.error('Failed to create stream.offline subscription:', await offlineResponse.json(), { broadcasterUserId })
         }
       }
       catch (err) {
-        console.error('Error creating stream.offline subscription:', { broadcasterUserId }, err)
+        console.error('Error creating stream.offline subscription:', err, { broadcasterUserId })
       }
     }
 
@@ -182,18 +182,18 @@ export async function subscribe(broadcasterUserId: string, env: Env) {
           success = true
         }
         else {
-          console.error('Failed to create channel.update subscription:', { broadcasterUserId }, await updateResponse.json())
+          console.error('Failed to create channel.update subscription:', await updateResponse.json(), { broadcasterUserId })
         }
       }
       catch (err) {
-        console.error('Error creating channel.update subscription:', { broadcasterUserId }, err)
+        console.error('Error creating channel.update subscription:', err, { broadcasterUserId })
       }
     }
 
     return success
   }
   catch (error) {
-    console.error('Error subscribing:', { broadcasterUserId }, error)
+    console.error('Error subscribing:', error, { broadcasterUserId })
     return false
   }
 }
@@ -236,14 +236,14 @@ export async function removeSubscription(broadcasterUserId: string, env: Env) {
         return res
       }
       catch (error) {
-        console.error('Error deleting subscription:', { broadcasterUserId }, error)
+        console.error('Error deleting subscription:', error, { broadcasterUserId })
       }
     })
     await Promise.allSettled(promises)
     return true
   }
   catch (error) {
-    console.error('Error unsubscribing:', { broadcasterUserId }, error)
+    console.error('Error unsubscribing:', error, { broadcasterUserId })
   }
 }
 
@@ -438,7 +438,7 @@ export async function getStreamerDetails(user: string, env: Env) {
     return streamer
   }
   catch (error) {
-    console.error('Error fetching streamer details:', { user }, error)
+    console.error('Error fetching streamer details:', error, { user })
     return null
   }
 }
@@ -474,7 +474,7 @@ export async function getLatestVOD(userid: string, streamID: string, env: Env) {
     return vod
   }
   catch (error) {
-    console.error('Error fetching streamer details:', { userid, streamID }, error)
+    console.error('Error fetching streamer details:', error, { userid, streamID })
   }
 }
 
@@ -537,7 +537,7 @@ export async function getClipsLastHour(broadcasterId: string, env: Env) {
     return clips
   }
   catch (error) {
-    console.error('Error fetching clips:', { broadcasterId }, error)
+    console.error('Error fetching clips:', error, { broadcasterId })
   }
 }
 
@@ -574,7 +574,7 @@ export async function getClips(broadcasterId: string, startDate: Date, endDate: 
     return clips
   }
   catch (error) {
-    console.error('Error fetching clips:', { broadcasterId, startDate, endDate }, error)
+    console.error('Error fetching clips:', error, { broadcasterId, startDate, endDate })
   }
 }
 
@@ -594,7 +594,7 @@ export async function getUserbyID(userId: string, env: Env) {
     return userData.data[0]
   }
   catch (error) {
-    console.error('Error fetching user by ID:', { userId }, error)
+    console.error('Error fetching user by ID:', error, { userId })
   }
 }
 
@@ -618,7 +618,7 @@ export async function searchStreamers(query: string, env: Env, limit = 25) {
     return data.data
   }
   catch (error) {
-    console.error('Error searching streamers:', { query, limit }, error)
+    console.error('Error searching streamers:', error, { query, limit })
     return []
   }
 }

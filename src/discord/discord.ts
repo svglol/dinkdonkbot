@@ -30,7 +30,7 @@ export async function sendMessage(channelId: string, body: RESTPostAPIChannelMes
     return message.id
   }
   catch (error: DiscordAPIError | unknown) {
-    console.error('Error sending message:', { channelId, body }, error)
+    console.error('Error sending message:', error, { channelId, body })
     if (error instanceof DiscordAPIError) {
       // If the channel isnt found or the bot doesn't have permission to post in the channel
       if (error.status === 404 || error.status === 403) {
@@ -81,7 +81,7 @@ export async function updateMessage(channelId: string, messageId: string, env: E
     return message.id
   }
   catch (error: unknown) {
-    console.error('Failed to update message:', { channelId, messageId, body }, error)
+    console.error('Failed to update message:', error, { channelId, messageId, body })
   }
 }
 
@@ -100,7 +100,7 @@ export async function deleteMessage(channelId: string, messageId: string, env: E
     await rest.delete(Routes.channelMessage(channelId, messageId))
   }
   catch (error: unknown) {
-    console.error('Failed to delete message:', { channelId, messageId }, error)
+    console.error('Failed to delete message:', error, { channelId, messageId })
   }
 }
 
@@ -122,7 +122,7 @@ export async function updateInteraction(interaction: APIInteraction, env: Env, b
     return message as RESTPatchAPIWebhookResult
   }
   catch (error: unknown) {
-    console.error('Failed to update interaction:', { interaction, body }, error)
+    console.error('Failed to update interaction:', error, { interaction, body })
   }
 }
 
@@ -374,7 +374,7 @@ export async function calculateChannelPermissions(guildId: string, channelId: st
         return { permissions: 0n, checks: { ViewChannel: false } }
       }
     }
-    console.error('Error calculating permissions:', { guildId, channelId, botUserId }, error)
+    console.error('Error calculating permissions:', error, { guildId, channelId, botUserId })
     return { permissions: 0n, checks: { Erorr: false } }
   }
 }
@@ -434,11 +434,11 @@ export async function calculateGuildPermissions(guildId: string, env: Env, permi
   catch (error: DiscordAPIError | unknown) {
     if (error instanceof DiscordAPIError) {
       if (error.code === 50001) {
-        console.error(`Bot lacks access to guild`, { guildId }, error)
+        console.error(`Bot lacks access to guild`, error, { guildId })
         return { permissions: 0n, checks: { ViewGuild: false } }
       }
     }
-    console.error('Error calculating guild permissions:', { guildId }, error)
+    console.error('Error calculating guild permissions:', error, { guildId })
     return { permissions: 0n, checks: { Error: false } }
   }
 }
@@ -450,7 +450,7 @@ export async function fetchGuild(guildId: string, env: Env) {
     return guild
   }
   catch (error: unknown) {
-    console.error('Failed to fetch guild:', { guildId }, error)
+    console.error('Failed to fetch guild:', error, { guildId })
     return null
   }
 }
@@ -473,7 +473,7 @@ export async function fetchUser(userId: string, env: Env) {
     return user
   }
   catch (error: unknown) {
-    console.error('Failed to fetch user:', { userId }, error)
+    console.error('Failed to fetch user:', error, { userId })
     return null
   }
 }
@@ -485,7 +485,7 @@ export async function setRole(guildId: string, userId: string, roleId: string, e
     return true
   }
   catch (error: unknown) {
-    console.error('Failed to set role:', { guildId, userId, roleId }, error)
+    console.error('Failed to set role:', error, { guildId, userId, roleId })
     return false
   }
 }
@@ -497,7 +497,7 @@ export async function removeRole(guildId: string, userId: string, roleId: string
     return true
   }
   catch (error: unknown) {
-    console.error('Failed to remove role:', { guildId, userId, roleId }, error)
+    console.error('Failed to remove role:', error, { guildId, userId, roleId })
     return false
   }
 }
@@ -1216,7 +1216,7 @@ export async function directMessageUser(env: Env, userId: string, body: RESTPost
     return message
   }
   catch (error) {
-    console.error('Error sending direct message:', { userId, body }, error)
+    console.error('Error sending direct message:', error, { userId, body })
   }
 }
 
