@@ -33,6 +33,7 @@ async function handleStatsCommand(interaction: APIApplicationCommandInteraction,
     kickStreams,
     clips,
     multistreams,
+    birthdayConfigs,
     twitchSubscriptions,
     kickSubscriptions,
   ] = await Promise.all([
@@ -41,6 +42,7 @@ async function handleStatsCommand(interaction: APIApplicationCommandInteraction,
     db.query.kickStreams.findMany(),
     db.query.clips.findMany(),
     db.query.multiStream.findMany(),
+    db.query.birthdayConfig.findMany({ where: (config, { eq }) => eq(config.disabled, false), with: { birthdays: { where: (b, { eq }) => eq(b.disabled, false) } } }),
     getSubscriptions(env),
     getKickSubscriptions(env),
   ])
@@ -59,6 +61,9 @@ async function handleStatsCommand(interaction: APIApplicationCommandInteraction,
     .map(sub => sub.broadcaster_user_id),
   )
 
+  const storedBirthdayConfigs = birthdayConfigs.filter(config => config.birthdays.length > 0)
+  const storedBirthdays = storedBirthdayConfigs.reduce((count, config) => count + config.birthdays.length, 0)
+
   const content = `
 - Connected Discord Servers: ${serverCount}
 - Stored Twitch Streams (DB): ${streamCount}
@@ -68,6 +73,8 @@ async function handleStatsCommand(interaction: APIApplicationCommandInteraction,
 - Active Kick Webhook Subscriptions (API): ${uniqueKickSubscriptions.size}
 - Stored Clips (DB): ${clipCount}
 - Stored Multistream Configurations (DB): ${multistreamCount}
+- Stored Birthday Configurations (DB): ${storedBirthdayConfigs.length}
+- Stored Birthdays (DB): ${storedBirthdays}
 `
 
   return updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(content, env, { title: `${DINKDONK_EMOTE.formatted} Stats`, color: 0xFFF200 })] })
