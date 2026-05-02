@@ -21,7 +21,6 @@ declare global {
     ANALYTICS_DATASET: string
     ACCOUNT_ID: string
     API_TOKEN: string
-    DISCORD_PROXY: string
     ANALYTICS: AnalyticsEngineDataset
     RPSGAME: DurableObjectNamespace<RPSGame>
     HANGMANGAME: DurableObjectNamespace<HangmanGame>

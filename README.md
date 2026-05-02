@@ -128,7 +128,6 @@ KICK_CLIENT_SECRET: "your_kick_client_secret"
 ANALYTICS_DATASET: "dinkdonk_bot_events" // used for analytics (not required for dev)
 ACCOUNT_ID: "your_cloudflare_account_id" // used for analytics (not required for dev)
 API_TOKEN: "your_cloudflare_api_token" // used for analytics (not required for dev)
-DISCORD_PROXY: "https://discord.com" // we use a proxy on production, but can be set to "https://discord.com" for local development
 ```
 
 ## Running Locally
