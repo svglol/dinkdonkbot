@@ -88,6 +88,18 @@ Use `/help` for detailed commands or join our [Discord server](https://discord.g
 - `/clips twitch list` - View your subscribed Twitch clip channels
 - `/clips twitch help` - Show help for the Twitch clips command
 
+### 🎂 Birthdays
+- `/birthdays register <day> <month> [year] [timezone] [user]` - Register or update a birthday
+- `/birthdays remove [user]` - Remove a birthday
+- `/birthdays upcoming [days]` - Show upcoming birthdays in the server
+- `/birthdays list [month]` - List all birthdays for a specific month
+- `/birthdays show [user]` - Show the birthday for a specific user
+- `/birthdays help` - Show help for the birthdays command
+- `/birthdays-config setup <announcement-channel> <overview-channel> [role] [timezone]` - (Admin) Setup the birthday config for this server
+- `/birthdays-config edit [announcement-channel] [overview-channel] [role] [timezone] [enable]` - (Admin) Edit the birthday config for this server
+- `/birthdays-config details` - (Admin) Show the current birthday configuration for this server
+- `/birthdays-config test` - (Admin) Send a test birthday announcement
+
 ### 🥳 Emote Management
 - `/emote add <url_or_emoji>` - Add an emote from another Discord server or 7TV
 - `/emote help` - Show help for the emote command
