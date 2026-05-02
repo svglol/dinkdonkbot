@@ -59,7 +59,7 @@ async function handleUsageCommand(interaction: APIApplicationCommandInteraction,
     })
   }
   catch (error) {
-    console.error('Error getting command usage stats:', error)
+    console.error('Error getting command usage stats:', { interaction }, error)
     return updateInteraction(interaction, env, {
       embeds: [buildErrorEmbed(`Error getting command usage stats` + `\n${error}`, env)],
     })
@@ -103,7 +103,7 @@ async function getCommandUsageStats(env: Env, days: number): Promise<CommandUsag
 
   if (queryResponse.status !== 200) {
     const errorText = await queryResponse.text()
-    console.error('Analytics Engine query failed:', errorText)
+    console.error('Analytics Engine query failed:', { query }, errorText)
     throw new Error(`Analytics query failed: ${queryResponse.status}`)
   }
 

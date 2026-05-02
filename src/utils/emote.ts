@@ -118,7 +118,7 @@ export async function fetch7tvEmoteImageBuffer(emote: { name: string, id: string
       continue
     }
     catch (error) {
-      console.error(`Failed to download ${emote.name} at size ${size}: ${error}`)
+      console.error(`Failed to download ${emote.name} at size ${size}: ${error}`, error)
       continue
     }
   }
