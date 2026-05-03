@@ -68,7 +68,7 @@ async function handleStatsCommand(interaction: APIApplicationCommandInteraction,
 - Connected Discord Servers: ${serverCount}
 - Stored Twitch Streams (DB): ${streamCount}
 - Active Twitch Webhook Subscriptions (API): ${uniqueTwitchSubscriptions.size}
-- Twitch Subscriptions Total Cost (API): ${twitchSubscriptions?.total_cost}
+- Twitch Subscriptions Total Cost (API): ${twitchSubscriptions?.total_cost} / ${twitchSubscriptions?.max_total_cost}
 - Stored Kick Streams (DB): ${kickStreamCount}
 - Active Kick Webhook Subscriptions (API): ${uniqueKickSubscriptions.size}
 - Stored Clips (DB): ${clipCount}
