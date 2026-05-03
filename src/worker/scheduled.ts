@@ -145,23 +145,27 @@ export async function scheduledCheck(env: Env) {
           || !channelUpdateSubs.includes(broadcasterId),
       )
 
-      console.warn('attempting to subscribe to', broadcasterIdsWithoutSubs.length, 'twitch streams')
-      const subsciptionPromises = broadcasterIdsWithoutSubs.map(async (broadcasterId) => {
-        return await subscribe(broadcasterId, env)
-      })
+      if (broadcasterIdsWithoutSubs.length > 0) {
+        console.warn('attempting to subscribe to', broadcasterIdsWithoutSubs.length, 'twitch streams')
+        const subsciptionPromises = broadcasterIdsWithoutSubs.map(async (broadcasterId) => {
+          return await subscribe(broadcasterId, env)
+        })
 
-      await Promise.allSettled(subsciptionPromises)
+        await Promise.allSettled(subsciptionPromises)
+      }
 
       // check if there are any subscriptions to remove
       const broadcasterIdsToRemove = [...new Set(twitchSubscriptions.data.filter(sub => !broadcasterIds.includes(sub.condition.broadcaster_user_id ?? '')).map(sub => sub.condition.broadcaster_user_id))]
 
-      console.warn('attempting to remove', broadcasterIdsToRemove.length, 'twitch subscriptions', { broadcasterIdsToRemove })
-      const removeSubscriptions = broadcasterIdsToRemove.map(async (broadcasterId) => {
-        if (broadcasterId)
-          await removeSubscription(broadcasterId, env)
-      })
+      if (broadcasterIdsToRemove.length > 0) {
+        console.warn('attempting to remove', broadcasterIdsToRemove.length, 'twitch subscriptions', { broadcasterIdsToRemove })
+        const removeSubscriptions = broadcasterIdsToRemove.map(async (broadcasterId) => {
+          if (broadcasterId)
+            await removeSubscription(broadcasterId, env)
+        })
 
-      await Promise.allSettled(removeSubscriptions)
+        await Promise.allSettled(removeSubscriptions)
+      }
     }
 
     // ensure all twitch streams have the correct name
@@ -184,20 +188,24 @@ export async function scheduledCheck(env: Env) {
       const broadcasterIds = [...new Set(kickStreams.map(stream => stream.broadcasterId))]
       const broadcasterIdsWithoutSubs = broadcasterIds.filter(broadcasterId => !statusSubs.includes(broadcasterId) || !metaSubs.includes(broadcasterId))
 
-      console.warn('attempting to subscribe to', broadcasterIdsWithoutSubs.length, 'kick streams')
-      const kickSubscriptionsPromises = broadcasterIdsWithoutSubs.map(async (kickStream) => {
-        await kickSubscribe(Number(kickStream), env)
-      })
-      await Promise.allSettled(kickSubscriptionsPromises)
+      if (broadcasterIdsWithoutSubs.length > 0) {
+        console.warn('attempting to subscribe to', broadcasterIdsWithoutSubs.length, 'kick streams')
+        const kickSubscriptionsPromises = broadcasterIdsWithoutSubs.map(async (kickStream) => {
+          await kickSubscribe(Number(kickStream), env)
+        })
+        await Promise.allSettled(kickSubscriptionsPromises)
+      }
 
       // check if the bot is subscribed to any channels it shouldnt be
       const subscriptionsToRemove = kickSubscriptions.data.filter(sub => !kickStreamIds.includes(sub.broadcaster_user_id.toString()))
-      console.warn('attempting to remove', subscriptionsToRemove.length, 'kick subscriptions')
-      const unsubscribePromises = subscriptionsToRemove.map(sub =>
-        kickUnsubscribe(Number(sub.broadcaster_user_id), env),
-      )
+      if (subscriptionsToRemove.length > 0) {
+        console.warn('attempting to remove', subscriptionsToRemove.length, 'kick subscriptions')
+        const unsubscribePromises = subscriptionsToRemove.map(sub =>
+          kickUnsubscribe(Number(sub.broadcaster_user_id), env),
+        )
 
-      await Promise.allSettled(unsubscribePromises)
+        await Promise.allSettled(unsubscribePromises)
+      }
     }
 
     // ensure all kick streams have the correct name
