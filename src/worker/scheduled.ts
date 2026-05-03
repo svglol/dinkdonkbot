@@ -153,14 +153,12 @@ export async function scheduledCheck(env: Env) {
       await Promise.allSettled(subsciptionPromises)
 
       // check if there are any subscriptions to remove
-      const subscriptionsToRemove = twitchSubscriptions.data.filter(sub => !broadcasterIds.includes(sub.condition.broadcaster_user_id ?? ''))
+      const broadcasterIdsToRemove = [...new Set(twitchSubscriptions.data.filter(sub => !broadcasterIds.includes(sub.condition.broadcaster_user_id ?? '')).map(sub => sub.condition.broadcaster_user_id))]
 
-      console.warn('attempting to remove', subscriptionsToRemove.length, 'twitch subscriptions', {
-        subscriptionsToRemove: subscriptionsToRemove.map(sub => sub.condition.broadcaster_user_id),
-      })
-      const removeSubscriptions = subscriptionsToRemove.map(async (sub) => {
-        if (sub.condition.broadcaster_user_id)
-          await removeSubscription(sub.condition.broadcaster_user_id, env)
+      console.warn('attempting to remove', broadcasterIdsToRemove.length, 'twitch subscriptions', { broadcasterIdsToRemove })
+      const removeSubscriptions = broadcasterIdsToRemove.map(async (broadcasterId) => {
+        if (broadcasterId)
+          await removeSubscription(broadcasterId, env)
       })
 
       await Promise.allSettled(removeSubscriptions)
