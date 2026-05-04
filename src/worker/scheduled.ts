@@ -155,7 +155,7 @@ export async function scheduledCheck(env: Env) {
       }
 
       // check if there are any subscriptions to remove
-      const broadcasterIdsToRemove = [...new Set(twitchSubscriptions.data.filter(sub => !broadcasterIds.includes(sub.condition.broadcaster_user_id ?? '')).map(sub => sub.condition.broadcaster_user_id))]
+      const broadcasterIdsToRemove = [...new Set(twitchSubscriptions.data.filter(sub => !broadcasterIds.includes(sub.condition.broadcaster_user_id ?? '') && sub.status === 'enabled').map(sub => sub.condition.broadcaster_user_id))]
 
       if (broadcasterIdsToRemove.length > 0) {
         console.warn('attempting to remove', broadcasterIdsToRemove.length, 'twitch subscriptions', { broadcasterIdsToRemove })
