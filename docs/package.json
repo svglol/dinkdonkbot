@@ -23,10 +23,10 @@
     "@pycord/discord-message-components-vue": "0.3.2",
     "better-sqlite3": "12.9.0",
     "docus": "latest",
-    "eslint-plugin-better-tailwindcss": "3.8.0",
+    "eslint-plugin-better-tailwindcss": "4.5.0",
     "nuxt": "4.4.2",
-    "stylelint": "16.26.1",
+    "stylelint": "17.9.1",
     "stylelint-config-recommended-vue": "1.6.1",
-    "stylelint-config-standard": "39.0.1"
+    "stylelint-config-standard": "40.0.0"
   }
 }
