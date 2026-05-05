@@ -230,8 +230,8 @@ export async function removeSubscription(broadcasterUserId: string, env: Env) {
             'Authorization': `Bearer ${await getToken(env)}`,
           },
         })
-        if (!res.ok)
-          throw new Error(`Failed to delete subscription: ${JSON.stringify(await res.json())}`)
+        if (res.status !== 204)
+          throw new Error(`Failed to delete subscription: ${res.status} ${JSON.stringify(await res.json())}`)
 
         return res
       }
