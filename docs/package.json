@@ -24,7 +24,7 @@
     "better-sqlite3": "12.9.0",
     "docus": "latest",
     "eslint-plugin-better-tailwindcss": "3.8.0",
-    "nuxt": "4.4.2",
+    "nuxt": "4.4.4",
     "stylelint": "16.26.1",
     "stylelint-config-recommended-vue": "1.6.1",
     "stylelint-config-standard": "39.0.1"
