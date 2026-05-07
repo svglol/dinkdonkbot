@@ -36,6 +36,7 @@ export async function sendMessage(channelId: string, body: RESTPostAPIChannelMes
       if (error.status === 404 || error.status === 403) {
         await sendErrorMessage(`DinkDonk Bot was unable to post in channel <#${channelId}>, please make sure the bot has the correct permissions to post in this channel, or update the appropriate subscriptions.`, channelId, env)
       }
+      return null
     }
   }
 }
