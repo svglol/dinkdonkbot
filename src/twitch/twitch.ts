@@ -209,42 +209,30 @@ export async function subscribe(broadcasterUserId: string, env: Env) {
  * deleted, or false if there was an error.
  */
 export async function removeSubscription(broadcasterUserId: string, env: Env) {
-  try {
-    const subscriptionsRes = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
-      headers: {
-        'Client-ID': env.TWITCH_CLIENT_ID,
-        'Authorization': `Bearer ${await getToken(env)}`,
-      },
-    })
-    if (!subscriptionsRes.ok)
-      throw new Error(`Failed to fetch subscriptions: ${JSON.stringify(await subscriptionsRes.json())}`)
+  const subscriptions = await getSubscriptions(env)
+  if (!subscriptions)
+    throw new Error(`Failed to fetch subscriptions for ${broadcasterUserId}`)
+  const subscriptionsToDelete = subscriptions.data.filter(sub => (sub.type === 'stream.online' || sub.type === 'stream.offline' || sub.type === 'channel.update') && sub.condition.broadcaster_user_id === broadcasterUserId)
+  const promises = subscriptionsToDelete.map(async (sub) => {
+    try {
+      const res = await fetch(`https://api.twitch.tv/helix/eventsub/subscriptions?id=${sub.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Client-ID': env.TWITCH_CLIENT_ID,
+          'Authorization': `Bearer ${await getToken(env)}`,
+        },
+      })
+      if (res.status !== 204)
+        throw new Error(`Failed to delete subscription: ${res.status} ${JSON.stringify(await res.json())}`)
 
-    const subscriptions = await subscriptionsRes.json() as SubscriptionResponse
-    const subscriptionsToDelete = subscriptions.data.filter(sub => (sub.type === 'stream.online' || sub.type === 'stream.offline' || sub.type === 'channel.update') && sub.condition.broadcaster_user_id === broadcasterUserId)
-    const promises = subscriptionsToDelete.map(async (sub) => {
-      try {
-        const res = await fetch(`https://api.twitch.tv/helix/eventsub/subscriptions?id=${sub.id}`, {
-          method: 'DELETE',
-          headers: {
-            'Client-ID': env.TWITCH_CLIENT_ID,
-            'Authorization': `Bearer ${await getToken(env)}`,
-          },
-        })
-        if (res.status !== 204)
-          throw new Error(`Failed to delete subscription: ${res.status} ${JSON.stringify(await res.json())}`)
-
-        return res
-      }
-      catch (error) {
-        console.error('Error deleting subscription:', error, { broadcasterUserId })
-      }
-    })
-    await Promise.allSettled(promises)
-    return true
-  }
-  catch (error) {
-    console.error('Error unsubscribing:', error, { broadcasterUserId })
-  }
+      return res
+    }
+    catch (error) {
+      console.error('Error deleting subscription:', error, { broadcasterUserId })
+    }
+  })
+  await Promise.allSettled(promises)
+  return true
 }
 
 /**
