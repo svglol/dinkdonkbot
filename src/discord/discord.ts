@@ -7,6 +7,7 @@ import { chatInputApplicationCommandMention, escapeMarkdown } from '@discordjs/f
 import { DiscordAPIError, REST } from '@discordjs/rest'
 
 import { ChannelType, PermissionFlagsBits, Routes } from 'discord-api-types/v10'
+import { cachedFunction } from '@/utils/cache'
 import { KICK_EMOTE, TWITCH_EMOTE } from '@/utils/discordEmotes'
 import { formatDuration } from '@/utils/formatDuration'
 
@@ -427,11 +428,6 @@ export async function calculateGuildPermissions(guildId: string, env: Env, permi
 
 export async function fetchGuild(guildId: string, env: Env) {
   try {
-    const kvKey = `guild:${guildId}`
-    const cached = await env.KV.get(kvKey)
-    if (cached)
-      return JSON.parse(cached) as RESTGetAPIGuildResult
-
     const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
     const guild = await rest.get(Routes.guild(guildId)) as RESTGetAPIGuildResult
 
@@ -1312,7 +1308,7 @@ async function sendErrorMessage(errorMessage: string, channelId: string, env: En
   if (!guildId)
     return
 
-  const guild = await fetchGuild(guildId, env)
+  const guild = await cachedFunction(`guild:${guildId}`, () => fetchGuild(guildId, env), env)
   if (!guild)
     return
 
