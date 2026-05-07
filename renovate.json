@@ -14,7 +14,7 @@
     "group:allNonMajor",
     "group:testNonMajor",
     "group:linters",
-    "npm:unpublishSafe"
+    "security:minimumReleaseAgeNpm"
   ],
   "packageRules": [
     {
