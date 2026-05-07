@@ -31,6 +31,7 @@ export async function sendMessage(channelId: string, body: RESTPostAPIChannelMes
     return message.id
   }
   catch (error: DiscordAPIError | unknown) {
+    console.error('Error sending message:', error, { channelId, body })
     if (error instanceof DiscordAPIError) {
       // If the channel isnt found or the bot doesn't have permission to post in the channel
       if (error.status === 404 || error.status === 403) {
