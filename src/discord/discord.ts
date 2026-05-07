@@ -715,12 +715,21 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     const timestamp = priority === 'twitch'
       ? new Date(streamMessage.twitchStreamEndedAt || streamMessage.kickStreamEndedAt || Date.now()).toISOString()
       : new Date(streamMessage.kickStreamEndedAt || streamMessage.twitchStreamEndedAt || Date.now()).toISOString()
-    const twitchImage = streamMessage.twitchStreamerData?.offline_image_url || 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
-    const kickImage = streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp'
+
+    const TWITCH_FALLBACK = 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
+    const KICK_FALLBACK = 'https://kick.com/img/default-channel-banners/offline.webp'
+
+    const twitchBackupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : TWITCH_FALLBACK
+    const twitchImage = streamMessage.twitchStreamerData?.offline_image_url || twitchBackupImage
+    const kickBackupImage = streamMessage.kickVod ? streamMessage.kickVod.thumbnail.src : KICK_FALLBACK
+    const kickImage = streamMessage.kickStreamerData?.offline_banner_image?.src || kickBackupImage
+
+    const twitchImageResolved = twitchImage === TWITCH_FALLBACK ? null : twitchImage
+    const kickImageResolved = kickImage === KICK_FALLBACK ? null : kickImage
 
     const image = priority === 'twitch'
-      ? twitchImage || kickImage || `${env.WEBHOOK_URL}/static/default_image.png`
-      : kickImage || twitchImage || `${env.WEBHOOK_URL}/static/default_image.png`
+      ? twitchImageResolved || kickImageResolved || `${env.WEBHOOK_URL}/static/default_image.png`
+      : kickImageResolved || twitchImageResolved || `${env.WEBHOOK_URL}/static/default_image.png`
 
     const url = priority === 'twitch'
       ? `https://twitch.tv/${streamMessage.stream?.name}`
@@ -829,7 +838,9 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     const description = `${TWITCH_EMOTE.formatted} ${streamMessage.twitchStreamerData?.display_name ?? streamMessage.stream?.name} is no longer live on Twitch!`
     const status = 'Last online'
     const timestamp = new Date(streamMessage.twitchStreamEndedAt || Date.now()).toISOString()
-    const backupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
+    const backupImage = streamMessage.twitchVod
+      ? `${streamMessage.twitchVod.thumbnail_url.replace('%{width}', '1280').replace('%{height}', '720')}?b=${streamMessage.twitchVod.id}&t=${new Date().getTime()}`
+      : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
     const image = streamMessage.twitchStreamerData?.offline_image_url || backupImage
     const url = `https://twitch.tv/${streamMessage.stream?.name}`
 
@@ -941,8 +952,8 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     if (streamMessage.kickStreamData?.stream_title !== streamMessage.kickStreamerData?.livestream?.session_title) {
       title = streamMessage.kickStreamerData?.livestream?.session_title || `${streamMessage.kickStream?.name} is live!`
     }
-
-    let image = streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp' || `${env.WEBHOOK_URL}/static/default_image.png`
+    const kickBackupImage = streamMessage.kickVod ? streamMessage.kickVod.thumbnail.src : 'https://kick.com/img/default-channel-banners/offline.webp'
+    let image = streamMessage.kickStreamerData?.offline_banner_image?.src || kickBackupImage
     if (!await validateThumbnail(image)) {
       image = 'https://kick.com/img/default-channel-banners/offline.webp'
     }
