@@ -717,7 +717,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
       : new Date(streamMessage.kickStreamEndedAt || streamMessage.twitchStreamEndedAt || Date.now()).toISOString()
 
     const TWITCH_FALLBACK = 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
-    const KICK_FALLBACK = 'https://kick.com/img/default-channel-banners/offline.webp'
+    const KICK_FALLBACK = 'https://kick.com/img/default-channel-banners/offline-banner.webp'
 
     const twitchBackupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : TWITCH_FALLBACK
     const twitchImage = streamMessage.twitchStreamerData?.offline_image_url || twitchBackupImage
@@ -952,10 +952,10 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     if (streamMessage.kickStreamData?.stream_title !== streamMessage.kickStreamerData?.livestream?.session_title) {
       title = streamMessage.kickStreamerData?.livestream?.session_title || `${streamMessage.kickStream?.name} is live!`
     }
-    const kickBackupImage = streamMessage.kickVod ? streamMessage.kickVod.thumbnail.src : 'https://kick.com/img/default-channel-banners/offline.webp'
+    const kickBackupImage = streamMessage.kickVod ? streamMessage.kickVod.thumbnail.src : 'https://kick.com/img/default-channel-banners/offline-banner.webp'
     let image = streamMessage.kickStreamerData?.offline_banner_image?.src || kickBackupImage
     if (!await validateThumbnail(image)) {
-      image = 'https://kick.com/img/default-channel-banners/offline.webp'
+      image = 'https://kick.com/img/default-channel-banners/offline-banner.webp'
     }
 
     const duration = streamMessage.kickVod && !Number.isNaN(streamMessage.kickVod.duration) && streamMessage.kickVod.duration > 0
@@ -971,7 +971,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
       duration,
       status: '‎Last Online',
       timestamp: new Date(streamMessage.kickStreamEndedAt || Date.now()).toISOString(),
-      image: streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline.webp' || `${env.WEBHOOK_URL}/static/default_image.png`,
+      image: streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline-banner.webp' || `${env.WEBHOOK_URL}/static/default_image.png`,
       buttons,
       url: `https://kick.com/${streamMessage.kickStreamerData?.slug}`,
     }
