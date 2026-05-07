@@ -6,10 +6,11 @@ on:
 name: ci
 permissions:
   contents: read
-
 jobs:
   lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4.4.0
@@ -19,9 +20,10 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run lint
-
   typecheck:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4.4.0
@@ -31,9 +33,10 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run typecheck
-
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: [lint, typecheck]
     steps:
       - uses: actions/checkout@v6
@@ -52,10 +55,11 @@ jobs:
           TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
           TWITCH_EVENT_SECRET: ${{ secrets.TWITCH_EVENT_SECRET }}
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-
   register:
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: [lint, typecheck, test]
     steps:
       - uses: actions/checkout@v6
@@ -70,10 +74,11 @@ jobs:
           DISCORD_APPLICATION_ID: ${{ secrets.DISCORD_APPLICATION_ID }}
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
-
   migrations:
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: [lint, typecheck, test]
     steps:
       - name: Checkout repository
