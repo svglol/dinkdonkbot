@@ -1,12 +1,12 @@
 import type { StreamMessage } from '@database'
 
-import type { APIApplicationCommandOption, APIButtonComponent, APIEmbed, APIEmbedField, APIInteraction, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildEmojisResult, RESTGetAPIGuildMemberResult, RESTGetAPIGuildResult, RESTGetAPIGuildRolesResult, RESTGetAPIUserResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPatchAPIWebhookResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPICurrentUserCreateDMChannelResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
+import type { APIApplicationCommandOption, APIButtonComponent, APIEmbed, APIEmbedField, APIInteraction, APIMessageTopLevelComponent, RESTGetAPIApplicationCommandsResult, RESTGetAPIChannelResult, RESTGetAPIGuildChannelsResult, RESTGetAPIGuildEmojisResult, RESTGetAPIGuildMemberResult, RESTGetAPIGuildResult, RESTGetAPIGuildRolesResult, RESTGetAPIUserResult, RESTPatchAPIChannelMessageJSONBody, RESTPatchAPIChannelMessageResult, RESTPatchAPIWebhookResult, RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelMessageResult, RESTPostAPICurrentUserCreateDMChannelResult, RESTPostAPIGuildEmojiResult, RESTPostAPIGuildStickerResult } from 'discord-api-types/v10'
 
-import { eq, tables, useDB } from '@database'
+import { eq, or, sql, tables, useDB } from '@database'
 import { chatInputApplicationCommandMention, escapeMarkdown } from '@discordjs/formatters'
 import { DiscordAPIError, REST } from '@discordjs/rest'
 
-import { PermissionFlagsBits, Routes } from 'discord-api-types/v10'
+import { ChannelType, PermissionFlagsBits, Routes } from 'discord-api-types/v10'
 import { KICK_EMOTE, TWITCH_EMOTE } from '@/utils/discordEmotes'
 import { formatDuration } from '@/utils/formatDuration'
 
@@ -30,31 +30,10 @@ export async function sendMessage(channelId: string, body: RESTPostAPIChannelMes
     return message.id
   }
   catch (error: DiscordAPIError | unknown) {
-    console.error('Error sending message:', error, { channelId, body })
     if (error instanceof DiscordAPIError) {
       // If the channel isnt found or the bot doesn't have permission to post in the channel
       if (error.status === 404 || error.status === 403) {
-        const kvKey = `channel:error:${channelId}`
-        const channel = await env.KV.get(kvKey) as number | null
-
-        const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
-        const discordChannel = await rest.get(Routes.channel(channelId)) as RESTGetAPIChannelResult
-        if (discordChannel) {
-          // channel exists we just dont have permission to post in it (lets not delete their subscriptions)
-          return null
-        }
-
-        // If we havnt been able to post in the channel 3 times in the last week, then we can assume the channel has been deleted
-        if (channel && channel > 2) {
-          await useDB(env).delete(tables.streams).where(eq(tables.streams.channelId, channelId))
-          await useDB(env).delete(tables.clips).where(eq(tables.clips.channelId, channelId))
-          await useDB(env).delete(tables.kickStreams).where(eq(tables.kickStreams.channelId, channelId))
-          await env.KV.delete(kvKey)
-        }
-        else {
-          await env.KV.put(kvKey, JSON.stringify((channel || 0) + 1), { expirationTtl: 60 * 60 * 24 * 7 })
-        }
-        return null
+        await sendErrorMessage(`DinkDonk Bot was unable to post in channel <#${channelId}>, please make sure the bot has the correct permissions to post in this channel, or update the appropriate subscriptions.`, channelId, env)
       }
     }
   }
@@ -304,7 +283,6 @@ export function messageBuilder(message: string, streamMessage: StreamMessage, ty
 
 export async function calculateChannelPermissions(guildId: string, channelId: string, botUserId: string, env: Env, permissionsToCheck?: bigint[]) {
   const rest = new REST({ version: '10' }).setToken(env.DISCORD_TOKEN)
-
   try {
     const channel = await rest.get(Routes.channel(channelId)) as RESTGetAPIChannelResult
 
@@ -449,8 +427,14 @@ export async function calculateGuildPermissions(guildId: string, env: Env, permi
 
 export async function fetchGuild(guildId: string, env: Env) {
   try {
+    const kvKey = `guild:${guildId}`
+    const cached = await env.KV.get(kvKey)
+    if (cached)
+      return JSON.parse(cached) as RESTGetAPIGuildResult
+
     const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
     const guild = await rest.get(Routes.guild(guildId)) as RESTGetAPIGuildResult
+
     return guild
   }
   catch (error: unknown) {
@@ -458,7 +442,6 @@ export async function fetchGuild(guildId: string, env: Env) {
     return null
   }
 }
-
 export async function isUserInGuild(guildId: string, userId: string, env: Env) {
   const rest = new REST({ version: '10' }).setToken(env.DISCORD_TOKEN)
   try {
@@ -1235,5 +1218,114 @@ async function validateThumbnail(url: string) {
   }
   catch {
     return false
+  }
+}
+
+async function findFallbackChannel(guildId: string, env: Env, excludeChannelId?: string, preferredChannelId?: string): Promise<string | null> {
+  try {
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+
+    const [channels, member, roles] = await Promise.all([
+      rest.get(Routes.guildChannels(guildId)) as Promise<RESTGetAPIGuildChannelsResult>,
+      rest.get(Routes.guildMember(guildId, env.DISCORD_APPLICATION_ID)) as Promise<RESTGetAPIGuildMemberResult>,
+      rest.get(Routes.guildRoles(guildId)) as Promise<RESTGetAPIGuildRolesResult>,
+    ])
+
+    return channels
+      .filter(c => c.type === ChannelType.GuildText && c.id !== excludeChannelId)
+      .sort((a, b) => {
+        if (a.id === preferredChannelId)
+          return -1
+        if (b.id === preferredChannelId)
+          return 1
+        return a.id.localeCompare(b.id)
+      })
+      .find((channel) => {
+        const overwrites = channel.permission_overwrites ?? []
+        const everyoneOverwrite = overwrites.find(o => o.id === guildId)
+        const memberOverwrite = overwrites.find(o => o.id === env.DISCORD_APPLICATION_ID)
+        const roleOverwrites = overwrites.filter(o => member.roles.includes(o.id))
+
+        let perms = BigInt(roles.find(r => r.id === guildId)?.permissions ?? 0)
+        for (const role of roles.filter(r => member.roles.includes(r.id)))
+          perms |= BigInt(role.permissions)
+        if (everyoneOverwrite) {
+          perms &= ~BigInt(everyoneOverwrite.deny)
+          perms |= BigInt(everyoneOverwrite.allow)
+        }
+        for (const overwrite of roleOverwrites) {
+          perms &= ~BigInt(overwrite.deny)
+          perms |= BigInt(overwrite.allow)
+        }
+        if (memberOverwrite) {
+          perms &= ~BigInt(memberOverwrite.deny)
+          perms |= BigInt(memberOverwrite.allow)
+        }
+
+        return (perms & PermissionFlagsBits.SendMessages) === PermissionFlagsBits.SendMessages
+          && (perms & PermissionFlagsBits.ViewChannel) === PermissionFlagsBits.ViewChannel
+      })
+      ?.id ?? null
+  }
+  catch (error) {
+    console.error('Error finding fallback channel:', error, { guildId })
+    return null
+  }
+}
+
+async function sendErrorMessage(errorMessage: string, channelId: string, env: Env) {
+  // avoid spamming error messages
+  const kvKey = `channel:error:${channelId}`
+  const alreadyNotified = await env.KV.get(kvKey)
+  if (alreadyNotified)
+    return
+
+  // find guildId from channelId
+  const result = await useDB(env)
+    .select({ guildId: tables.streams.guildId, type: sql<string>`'Twitch Stream'`, name: tables.streams.name })
+    .from(tables.streams)
+    .where(eq(tables.streams.channelId, channelId))
+    .union(
+      useDB(env)
+        .select({ guildId: tables.clips.guildId, type: sql<string>`'Twitch Clips'`, name: tables.clips.streamer })
+        .from(tables.clips)
+        .where(eq(tables.clips.channelId, channelId)),
+    )
+    .union(
+      useDB(env)
+        .select({ guildId: tables.kickStreams.guildId, type: sql<string>`'Kick Stream'`, name: tables.kickStreams.name })
+        .from(tables.kickStreams)
+        .where(eq(tables.kickStreams.channelId, channelId)),
+    )
+    .union(
+      useDB(env)
+        .select({ guildId: tables.birthdayConfig.guildId, type: sql<string>`'Birthday'`, name: sql<string>`'Birthday Announcements'` })
+        .from(tables.birthdayConfig)
+        .where(or(
+          eq(tables.birthdayConfig.announcementChannelId, channelId),
+          eq(tables.birthdayConfig.overviewChannelId, channelId),
+        )),
+    )
+
+  const guildId = result[0]?.guildId
+
+  if (!guildId)
+    return
+
+  const guild = await fetchGuild(guildId, env)
+  if (!guild)
+    return
+
+  const fallbackChannelId = await findFallbackChannel(guildId, env, channelId, guild.system_channel_id ?? undefined)
+  if (!fallbackChannelId)
+    return
+
+  const subscriptionList = result.map(r => `• **${r.name}** (${r.type})`).join('\n')
+  const fields = [{ name: '📋 Affected Subscriptions', value: subscriptionList, inline: false }]
+  const messageId = await sendMessage(fallbackChannelId, {
+    embeds: [buildErrorEmbed(errorMessage, env, { fields })],
+  }, env)
+  if (messageId) {
+    await env.KV.put(kvKey, 'true', { expirationTtl: 60 * 60 * 24 * 7 })
   }
 }
