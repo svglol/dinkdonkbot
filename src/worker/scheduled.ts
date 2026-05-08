@@ -29,6 +29,12 @@ export default {
   },
 }
 
+const CLIPS_PER_MESSAGE = 5
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
+    arr.slice(i * size, i * size + size))
+}
+
 /**
  * This function is scheduled to run every hour and fetches the latest Twitch clips
  * from the past hour for all subscribed streamers. It sends a notification to the
@@ -41,32 +47,49 @@ export default {
 async function scheduledTwitchClips(env: Env) {
   try {
     const clips = await useDB(env).query.clips.findMany()
-
     const uniqueBroadcasterIds = Array.from(new Set(clips.map(clip => clip.broadcasterId)))
-    const twitchClipsPromises = uniqueBroadcasterIds.map(async (broadcasterId) => {
-      return { broadcasterId, clips: await getClipsLastHour(broadcasterId, env) }
-    })
-    const clipsData = await Promise.all(twitchClipsPromises)
+
+    const clipsData = await Promise.all(
+      uniqueBroadcasterIds.map(async broadcasterId => ({
+        broadcasterId,
+        clips: await getClipsLastHour(broadcasterId, env),
+      })),
+    )
     const twitchClips = new Map(clipsData.map(({ broadcasterId, clips }) => [broadcasterId, clips]))
 
+    // Group all clip entries by channelId first
+    const byChannel = new Map<string, { platform: 'twitch', channelUsername: string, title: string, clipUrl: string, thumbnailUrl: string, creatorUsername: string, unixTimestamp: number }[]>()
+
     for (const clip of clips) {
-      if (twitchClips.has(clip.broadcasterId)) {
-        for (const twitchClip of twitchClips.get(clip.broadcasterId)!.data) {
-          const createdDate = new Date(twitchClip.created_at)
-          const unixTimestamp = Math.floor(createdDate.getTime() / 1000)
-          const body = buildClipMessage(
-            'twitch',
-            twitchClip.broadcaster_name,
-            twitchClip.title,
-            twitchClip.url,
-            twitchClip.thumbnail_url,
-            twitchClip.creator_name,
-            unixTimestamp,
-          )
-          await sendMessage(clip.channelId, body, env)
+      const fetched = twitchClips.get(clip.broadcasterId)
+      if (!fetched)
+        continue
+
+      for (const twitchClip of fetched.data) {
+        const unixTimestamp = Math.floor(new Date(twitchClip.created_at).getTime() / 1000)
+        const entry = {
+          platform: 'twitch' as const,
+          channelUsername: twitchClip.broadcaster_name,
+          title: twitchClip.title,
+          clipUrl: twitchClip.url,
+          thumbnailUrl: twitchClip.thumbnail_url,
+          creatorUsername: twitchClip.creator_name,
+          unixTimestamp,
         }
+
+        const existing = byChannel.get(clip.channelId) ?? []
+        existing.push(entry)
+        byChannel.set(clip.channelId, existing)
       }
     }
+
+    // Send batched messages per channel
+    for (const [channelId, entries] of byChannel) {
+      for (const batch of chunkArray(entries, CLIPS_PER_MESSAGE)) {
+        await sendMessage(channelId, buildClipMessage(batch), env)
+      }
+    }
+
     return true
   }
   catch (error) {
@@ -79,32 +102,46 @@ async function scheduledKickClips(env: Env) {
   try {
     const clips = await useDB(env).query.kickClips.findMany()
     const uniqueBroadcasters = Array.from(new Set(clips.map(clip => clip.streamer)))
-    const kickClipsPromises = uniqueBroadcasters.map(async (streamer) => {
-      return { streamer, clips: await getKickClipsLastHour(streamer, env) }
-    })
-    const clipsData = await Promise.all(kickClipsPromises)
+
+    const clipsData = await Promise.all(
+      uniqueBroadcasters.map(async streamer => ({
+        streamer,
+        clips: await getKickClipsLastHour(streamer, env),
+      })),
+    )
     const kickClips = new Map(clipsData.map(({ streamer, clips }) => [streamer, clips]))
 
+    const byChannel = new Map<string, { platform: 'kick', channelUsername: string, title: string, clipUrl: string, thumbnailUrl: string, creatorUsername: string, unixTimestamp: number }[]>()
+
     for (const clip of clips) {
-      if (kickClips.has(clip.streamer)) {
-        for (const kickClip of kickClips.get(clip.streamer)!) {
-          const createdDate = new Date(kickClip.created_at)
-          const unixTimestamp = Math.floor(createdDate.getTime() / 1000)
+      const fetched = kickClips.get(clip.streamer)
+      if (!fetched)
+        continue
 
-          const body = buildClipMessage(
-            'kick',
-            kickClip.channel.username,
-            kickClip.title,
-            kickClip.clip_url,
-            kickClip.thumbnail_url,
-            kickClip.creator.username,
-            unixTimestamp,
-          )
-
-          await sendMessage(clip.channelId, body, env)
+      for (const kickClip of fetched) {
+        const unixTimestamp = Math.floor(new Date(kickClip.created_at).getTime() / 1000)
+        const entry = {
+          platform: 'kick' as const,
+          channelUsername: kickClip.channel.username,
+          title: kickClip.title,
+          clipUrl: kickClip.clip_url,
+          thumbnailUrl: kickClip.thumbnail_url,
+          creatorUsername: kickClip.creator.username,
+          unixTimestamp,
         }
+
+        const existing = byChannel.get(clip.channelId) ?? []
+        existing.push(entry)
+        byChannel.set(clip.channelId, existing)
       }
     }
+
+    for (const [channelId, entries] of byChannel) {
+      for (const batch of chunkArray(entries, CLIPS_PER_MESSAGE)) {
+        await sendMessage(channelId, buildClipMessage(batch), env)
+      }
+    }
+
     return true
   }
   catch (error) {
