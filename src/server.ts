@@ -1,3 +1,4 @@
+import { KickStreamUpdater } from '@/durable/KickStreamUpdater'
 import { HangmanGame } from './durable/HangmanGame'
 import { LiveStream } from './durable/LiveStream'
 import { RPSGame } from './durable/RPSGame'
@@ -10,4 +11,4 @@ const server = {
 } satisfies ExportedHandler<Env>
 
 export default server
-export { HangmanGame, LiveStream, RPSGame }
+export { HangmanGame, KickStreamUpdater, LiveStream, RPSGame }

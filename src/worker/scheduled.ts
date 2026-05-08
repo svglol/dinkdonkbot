@@ -1,6 +1,6 @@
 import type { RESTGetAPICurrentUserGuildsResult } from 'discord-api-types/rest'
 import { eq, tables, useDB } from '@database'
-import { bodyBuilder, sendMessage, updateMessage } from '@discord-api'
+import { sendMessage } from '@discord-api'
 import { REST } from '@discordjs/rest'
 import { getKickSubscriptions, getKickUser, kickSubscribe, kickUnsubscribe } from '@kick-api'
 import { getClipsLastHour, getSubscriptions, getUserbyID, removeFailedSubscriptions, removeSubscription, subscribe } from '@twitch-api'
@@ -20,9 +20,6 @@ export default {
         break
       case '0 0 * * sun':
         ctx.waitUntil(scheduledBirthdayOverviewUpdate(env))
-        break
-      case '*/5 * * * *':
-        ctx.waitUntil(updateEmbeds(env))
         break
       default:
         console.warn(`No scheduled task found for cron: ${event.cron}`)
@@ -242,37 +239,4 @@ export async function scheduledCheck(env: Env) {
     console.error('Error running scheduled check:', error)
     return false
   }
-}
-
-/**
- * Updates Discord embeds for active Kick streams that started in the last 5 minutes.
- * This ensures stream thumbnails are refreshed after they become available.
- *
- * @param {Env} env - The Cloudflare Workers environment bindings
- */
-async function updateEmbeds(env: Env): Promise<void> {
-  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
-
-  const streamMessages = await useDB(env).query.streamMessages.findMany({
-    with: {
-      stream: true,
-      kickStream: true,
-    },
-    where: (messages, { eq, and, gte, isNotNull }) =>
-      and(
-        eq(messages.kickOnline, true),
-        isNotNull(messages.kickStreamStartedAt),
-        gte(messages.kickStreamStartedAt, tenMinutesAgo),
-      ),
-  })
-
-  const kickEmbedsPromises = streamMessages.map(async (message) => {
-    if (!message.discordMessageId)
-      return
-
-    const discordMessage = await bodyBuilder(message, env)
-    return await updateMessage(message.discordChannelId, message.discordMessageId, env, discordMessage)
-  })
-
-  await Promise.allSettled(kickEmbedsPromises)
 }

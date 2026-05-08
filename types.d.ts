@@ -1,5 +1,6 @@
 import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIMessageComponentInteraction, APIModalSubmitInteraction, RESTPostAPIApplicationCommandsJSONBody } from 'discord-api-types/v10'
 import type { HangmanGame } from './durable/HangmanGame'
+import type { KickStreamUpdater } from './durable/KickStreamUpdate'
 import type { LiveStream } from './durable/LiveStream'
 import type { RPSGame } from './durable/RPSGame'
 
@@ -25,6 +26,7 @@ declare global {
     RPSGAME: DurableObjectNamespace<RPSGame>
     HANGMANGAME: DurableObjectNamespace<HangmanGame>
     LIVESTREAM: DurableObjectNamespace<LiveStream>
+    KICK_STREAM_UPDATER: DurableObjectNamespace<KickStreamUpdater>
   }
 
   interface TwitchToken {

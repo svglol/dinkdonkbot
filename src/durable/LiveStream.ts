@@ -280,6 +280,13 @@ export class LiveStream extends DurableObject {
       const discordMessage = await bodyBuilder(streamMessage, this.env)
       const messageId = await sendMessage(streamMessage.discordChannelId, discordMessage, this.env)
       await useDB(this.env).update(tables.streamMessages).set({ discordMessageId: messageId }).where(eq(tables.streamMessages.id, streamMessage.id))
+
+      if (this.kickLive && messageId) {
+        // schedule kick message update in 5 minutes to update thumbnail
+        const id = this.env.KICK_STREAM_UPDATER.idFromName(`kick-update-${streamMessage.id}`)
+        const updater = this.env.KICK_STREAM_UPDATER.get(id)
+        await updater.scheduleUpdate(streamMessage.id)
+      }
     }
     catch (error) {
       console.error(`Failed to send notification for stream message ${streamMessage.id}:`, error, { streamMessage })

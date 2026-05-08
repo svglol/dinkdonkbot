@@ -10,7 +10,6 @@ crons = [
   "0 0 * * *",
   "0 * * * *",
   "0 0 * * sun",
-  "*/5 * * * *",
 ]
 
 [[d1_databases]]
@@ -41,6 +40,10 @@ class_name = "HangmanGame"
 name = "LIVESTREAM"
 class_name = "LiveStream"
 
+[[durable_objects.bindings]]
+name = "KICK_STREAM_UPDATER"
+class_name = "KickStreamUpdater"
+
 [[migrations]]
 tag = "v1"
 new_classes = [ "ChannelState" ]
@@ -57,6 +60,10 @@ new_classes = [ "HangmanGame" ]
 tag = "v4"
 new_classes = [ "LiveStream" ]
 deleted_classes = [ "ChannelState" ]
+
+[[migrations]]
+tag = "v5"
+new_classes = [ "KickStreamUpdater" ]
 
 [[analytics_engine_datasets]]
 binding = "ANALYTICS"
