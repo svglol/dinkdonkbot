@@ -251,7 +251,7 @@ export async function scheduledCheck(env: Env) {
  * @param {Env} env - The Cloudflare Workers environment bindings
  */
 async function updateEmbeds(env: Env): Promise<void> {
-  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
 
   const streamMessages = await useDB(env).query.streamMessages.findMany({
     with: {
@@ -262,7 +262,7 @@ async function updateEmbeds(env: Env): Promise<void> {
       and(
         eq(messages.kickOnline, true),
         isNotNull(messages.kickStreamStartedAt),
-        gte(messages.kickStreamStartedAt, fiveMinutesAgo),
+        gte(messages.kickStreamStartedAt, tenMinutesAgo),
       ),
   })
 
