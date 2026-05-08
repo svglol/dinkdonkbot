@@ -719,7 +719,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     const TWITCH_FALLBACK = 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
     const KICK_FALLBACK = 'https://kick.com/img/default-channel-banners/offline-banner.webp'
 
-    const twitchBackupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : TWITCH_FALLBACK
+    const twitchBackupImage = streamMessage.twitchVod ? `${streamMessage.twitchVod.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchVod.id}&t=${new Date().getTime()}` : TWITCH_FALLBACK
     const twitchImage = streamMessage.twitchStreamerData?.offline_image_url || twitchBackupImage
     const kickBackupImage = streamMessage.kickVod ? streamMessage.kickVod.thumbnail.src : KICK_FALLBACK
     const kickImage = (streamMessage.kickStreamerData?.offline_banner_image?.srcset && getBestImageFromSrcset(streamMessage.kickStreamerData?.offline_banner_image.srcset)) || kickBackupImage
