@@ -955,7 +955,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     const kickBackupImage = streamMessage.kickVod ? streamMessage.kickVod.thumbnail.src : 'https://kick.com/img/default-channel-banners/offline-banner.webp'
     let image = streamMessage.kickStreamerData?.offline_banner_image?.src || kickBackupImage
     if (!await validateThumbnail(image)) {
-      image = 'https://kick.com/img/default-channel-banners/offline-banner.webp'
+      image = kickBackupImage
     }
 
     const duration = streamMessage.kickVod && !Number.isNaN(streamMessage.kickVod.duration) && streamMessage.kickVod.duration > 0
