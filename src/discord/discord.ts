@@ -722,7 +722,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     const twitchBackupImage = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : TWITCH_FALLBACK
     const twitchImage = streamMessage.twitchStreamerData?.offline_image_url || twitchBackupImage
     const kickBackupImage = streamMessage.kickVod ? streamMessage.kickVod.thumbnail.src : KICK_FALLBACK
-    const kickImage = streamMessage.kickStreamerData?.offline_banner_image?.src || kickBackupImage
+    const kickImage = (streamMessage.kickStreamerData?.offline_banner_image?.srcset && getBestImageFromSrcset(streamMessage.kickStreamerData?.offline_banner_image.srcset)) || kickBackupImage
 
     const twitchImageResolved = twitchImage === TWITCH_FALLBACK ? null : twitchImage
     const kickImageResolved = kickImage === KICK_FALLBACK ? null : kickImage
@@ -932,7 +932,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     }
   }
 
-  async function buildKickOfflineMessage(streamMessage: StreamMessage, env: Env): Promise<Content> {
+  async function buildKickOfflineMessage(streamMessage: StreamMessage, _env: Env): Promise<Content> {
     const buttons: APIButtonComponent[] = []
     if (streamMessage.kickVod) {
       buttons.push({
@@ -953,7 +953,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
       title = streamMessage.kickStreamerData?.livestream?.session_title || `${streamMessage.kickStream?.name} is live!`
     }
     const kickBackupImage = streamMessage.kickVod ? streamMessage.kickVod.thumbnail.src : 'https://kick.com/img/default-channel-banners/offline-banner.webp'
-    let image = streamMessage.kickStreamerData?.offline_banner_image?.src || kickBackupImage
+    let image = (streamMessage.kickStreamerData?.offline_banner_image?.srcset && getBestImageFromSrcset(streamMessage.kickStreamerData?.offline_banner_image.srcset)) || kickBackupImage
     if (!await validateThumbnail(image)) {
       image = kickBackupImage
     }
@@ -971,7 +971,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
       duration,
       status: '‎Last Online',
       timestamp: new Date(streamMessage.kickStreamEndedAt || Date.now()).toISOString(),
-      image: streamMessage.kickStreamerData?.offline_banner_image?.src || 'https://kick.com/img/default-channel-banners/offline-banner.webp' || `${env.WEBHOOK_URL}/static/default_image.png`,
+      image,
       buttons,
       url: `https://kick.com/${streamMessage.kickStreamerData?.slug}`,
     }
@@ -1337,4 +1337,11 @@ async function sendErrorMessage(errorMessage: string, channelId: string, env: En
   if (messageId) {
     await env.KV.put(kvKey, 'true', { expirationTtl: 60 * 60 * 24 * 7 })
   }
+}
+
+function getBestImageFromSrcset(srcset: string): string | null {
+  const entries = srcset.split(',').map(s => s.trim())
+  // Each entry is "url widthw" e.g. "https://... 1200w"
+  const urls = entries.map(entry => entry.split(' ')[0])
+  return urls[0] || null // first = largest
 }
