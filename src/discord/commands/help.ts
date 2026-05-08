@@ -3,7 +3,7 @@ import { findBotCommandMarkdown, updateInteraction } from '@discord-api'
 import { getBirthdaysHelpMessage } from '@/discord/commands/birthdays/help'
 import { deferedUpdate, interactionEphemeralLoading } from '@/discord/interactionHandler'
 import { CLIPPERS_EMOTE, DISCORD_EMOTE, GITHUB_EMOTE, KICK_EMOTE, TWITCH_EMOTE } from '@/utils/discordEmotes'
-import { getClipsHelpMessage } from './clips/twitch/help'
+import { getClipsHelpMessage } from './clips/help'
 import { getEmoteHelpMessage } from './emote'
 
 const HELP_COMMAND = {

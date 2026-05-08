@@ -2,11 +2,11 @@ import type { RESTGetAPICurrentUserGuildsResult } from 'discord-api-types/rest'
 import { eq, tables, useDB } from '@database'
 import { sendMessage } from '@discord-api'
 import { REST } from '@discordjs/rest'
-import { getKickSubscriptions, getKickUser, kickSubscribe, kickUnsubscribe } from '@kick-api'
+import { getKickClipsLastHour, getKickSubscriptions, getKickUser, kickSubscribe, kickUnsubscribe } from '@kick-api'
 import { getClipsLastHour, getSubscriptions, getUserbyID, removeFailedSubscriptions, removeSubscription, subscribe } from '@twitch-api'
 import { Routes } from 'discord-api-types/v10'
 import { scheduledBirthdayCheck, scheduledBirthdayOverviewUpdate } from '@/birthdays'
-import { CLIPPERS_EMOTE } from '@/utils/discordEmotes'
+import { buildClipMessage } from '@/utils/discordBuilders'
 
 export default {
   async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext) {
@@ -17,6 +17,7 @@ export default {
       case '0 * * * *':
         ctx.waitUntil(scheduledTwitchClips(env))
         ctx.waitUntil(scheduledBirthdayCheck(env))
+        ctx.waitUntil(scheduledKickClips(env))
         break
       case '0 0 * * sun':
         ctx.waitUntil(scheduledBirthdayOverviewUpdate(env))
@@ -53,13 +54,15 @@ async function scheduledTwitchClips(env: Env) {
         for (const twitchClip of twitchClips.get(clip.broadcasterId)!.data) {
           const createdDate = new Date(twitchClip.created_at)
           const unixTimestamp = Math.floor(createdDate.getTime() / 1000)
-          const removeEmojis = (str: string) => str.replace(/[^\w\s.,!?'\-":;()&%$#@]/g, '')
-          const clipInfo = [
-            `${CLIPPERS_EMOTE.formatted} [**${twitchClip.broadcaster_name} - ${removeEmojis(twitchClip.title)}**](${twitchClip.url}??)`,
-            `*Created By:* \`${twitchClip.creator_name}\``,
-            `*Created At:* <t:${unixTimestamp}:F>`,
-          ].join('\n')
-          const body = { content: clipInfo }
+          const body = buildClipMessage(
+            'twitch',
+            twitchClip.broadcaster_name,
+            twitchClip.title,
+            twitchClip.url,
+            twitchClip.thumbnail_url,
+            twitchClip.creator_name,
+            unixTimestamp,
+          )
           await sendMessage(clip.channelId, body, env)
         }
       }
@@ -68,6 +71,44 @@ async function scheduledTwitchClips(env: Env) {
   }
   catch (error) {
     console.error('Error running scheduled twitch clips function:', error)
+    return false
+  }
+}
+
+async function scheduledKickClips(env: Env) {
+  try {
+    const clips = await useDB(env).query.kickClips.findMany()
+    const uniqueBroadcasters = Array.from(new Set(clips.map(clip => clip.streamer)))
+    const kickClipsPromises = uniqueBroadcasters.map(async (streamer) => {
+      return { streamer, clips: await getKickClipsLastHour(streamer, env) }
+    })
+    const clipsData = await Promise.all(kickClipsPromises)
+    const kickClips = new Map(clipsData.map(({ streamer, clips }) => [streamer, clips]))
+
+    for (const clip of clips) {
+      if (kickClips.has(clip.streamer)) {
+        for (const kickClip of kickClips.get(clip.streamer)!) {
+          const createdDate = new Date(kickClip.created_at)
+          const unixTimestamp = Math.floor(createdDate.getTime() / 1000)
+
+          const body = buildClipMessage(
+            'kick',
+            kickClip.channel.username,
+            kickClip.title,
+            kickClip.clip_url,
+            kickClip.thumbnail_url,
+            kickClip.creator.username,
+            unixTimestamp,
+          )
+
+          await sendMessage(clip.channelId, body, env)
+        }
+      }
+    }
+    return true
+  }
+  catch (error) {
+    console.error('Error running scheduled kick clips function:', error)
     return false
   }
 }
@@ -91,6 +132,7 @@ export async function scheduledCheck(env: Env) {
     const streams = await useDB(env).select().from(tables.streams)
     const kickStreams = await useDB(env).select().from(tables.kickStreams)
     const clips = await useDB(env).select().from(tables.clips)
+    const kickClips = await useDB(env).select().from(tables.kickClips)
 
     // check if the bot has been removed from any servers (we can then remove the subscriptions from the database and stop sending notifications for that server)
     try {
@@ -217,6 +259,16 @@ export async function scheduledCheck(env: Env) {
     })
 
     await Promise.allSettled(kickStreamsPromises)
+
+    // ensure all kick clips streams have the correct name
+    const kickClipsPromises = kickClips.map(async (kickClip) => {
+      const kickUser = await getKickUser(Number(kickClip.broadcasterId), env)
+      if (kickUser && kickUser.name !== kickClip.streamer) {
+        await useDB(env).update(tables.kickClips).set({ streamer: kickUser.name }).where(eq(tables.kickClips.id, kickClip.id))
+      }
+    })
+
+    await Promise.allSettled(kickClipsPromises)
 
     // Clean up any discord messages for kick/twitch that are older than 48h
     const streamMesages = await useDB(env).query.streamMessages.findMany({ })

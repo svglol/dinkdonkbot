@@ -2,6 +2,8 @@ import type { APIApplicationCommandAutocompleteInteraction, APIApplicationComman
 import { buildErrorEmbed, updateInteraction } from '@discord-api'
 import { isChatInputApplicationCommandInteraction, isGuildInteraction } from 'discord-api-types/utils'
 import { PermissionFlagsBits } from 'discord-api-types/v10'
+import { CLIPS_HELP_COMMAND, handleClipsHelpCommand } from '@/discord/commands/clips/help'
+import { CLIPS_KICK_SUBCOMMANDS, handleClipsKickAutoComplete, handleClipsKickCommands } from '@/discord/commands/clips/kick'
 import { autoCompleteResponse, interactionEphemeralLoading } from '@/discord/interactionHandler'
 import { CLIPS_TWITCH_SUBCOMMANDS, handleClipsTwitchAutoComplete, handleClipsTwitchCommands } from './twitch'
 
@@ -11,7 +13,7 @@ export const CLIPS_COMMAND = {
   type: 1,
   default_member_permissions: PermissionFlagsBits.Administrator.toString(),
   dm_permission: false,
-  options: [CLIPS_TWITCH_SUBCOMMANDS],
+  options: [CLIPS_TWITCH_SUBCOMMANDS, CLIPS_HELP_COMMAND, CLIPS_KICK_SUBCOMMANDS],
 }
 
 async function handler(interaction: APIApplicationCommandInteraction, env: Env, ctx: ExecutionContext) {
@@ -28,6 +30,10 @@ async function handleClips(interaction: APIApplicationCommandInteraction, env: E
   switch (option.name) {
     case 'twitch':
       return await handleClipsTwitchCommands(interaction, option, env)
+    case 'kick':
+      return await handleClipsKickCommands(interaction, option, env)
+    case 'help':
+      return await handleClipsHelpCommand(interaction, option, env)
     default:
       return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`${option.name} command is not implemented yet`, env)] })
   }
@@ -40,6 +46,8 @@ async function autoCompleteHandler(interaction: APIApplicationCommandAutocomplet
   switch (option.name) {
     case 'twitch':
       return handleClipsTwitchAutoComplete(interaction, option, env)
+    case 'kick':
+      return handleClipsKickAutoComplete(interaction, option, env)
     default:
       return autoCompleteResponse([])
   }

@@ -536,6 +536,51 @@ declare global {
     modalSubmitHandlers?: Record<string, (interaction: APIModalSubmitInteraction, env: Env, ctx: ExecutionContext) => Promise<Response>>
     messageComponentHandlers?: Record<string, (interaction: APIMessageComponentInteraction, env: Env, ctx: ExecutionContext) => Promise<Response>>
   }
+
+  export interface KickClip {
+    id: string
+    livestream_id: string
+    category_id: string
+    channel_id: number
+    user_id: number
+    title: string
+    clip_url: string
+    thumbnail_url: string
+    privacy: 'public' | 'private'
+    likes: number
+    liked: boolean
+    views: number
+    duration: number
+    started_at: string
+    created_at: string
+    vod_starts_at: number
+    is_mature: boolean
+    video_url: string
+    view_count: number
+    likes_count: number
+    category: {
+      id: number
+      name: string
+      slug: string
+      parent_category: string
+    }
+    creator: {
+      id: number
+      username: string
+      slug: string
+    }
+    channel: {
+      id: number
+      username: string
+      slug: string
+      profile_picture: string
+    }
+  }
+
+  export interface KickClipsResponse {
+    clips: KickClip[]
+    nextCursor: string | null
+  }
 }
 
 declare module 'cloudflare:test' {

@@ -4,7 +4,6 @@ import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { autoCompleteResponse } from '@/discord/interactionHandler'
 import { CLIPS_TWITCH_ADD_COMMAND, handleClipsTwitchAddAutoComplete, handleClipsTwitchAddCommand } from './add'
 import { CLIPS_TWITCH_EDIT_COMMAND, handleClipsTwitchDBAutoComplete, handleClipsTwitchEditCommand } from './edit'
-import { CLIPS_TWITCH_HELP_COMMAND, handleClipsTwitchHelpCommand } from './help'
 import { CLIPS_TWITCH_LIST_COMMAND, handleClipsTwitchListCommand } from './list'
 import { CLIPS_TWITCH_REMOVE_COMMAND, handleClipsTwitchRemoveCommand } from './remove'
 
@@ -17,7 +16,6 @@ export const CLIPS_TWITCH_SUBCOMMANDS = {
     CLIPS_TWITCH_REMOVE_COMMAND,
     CLIPS_TWITCH_EDIT_COMMAND,
     CLIPS_TWITCH_LIST_COMMAND,
-    CLIPS_TWITCH_HELP_COMMAND,
   ],
 }
 
@@ -37,9 +35,6 @@ export async function handleClipsTwitchCommands(interaction: APIApplicationComma
         }
         case 'list':{
           return handleClipsTwitchListCommand(interaction, subCommand, env)
-        }
-        case 'help':{
-          return handleClipsTwitchHelpCommand(interaction, subCommand, env)
         }
         default:
           return updateInteraction(interaction, env, { embeds: [buildErrorEmbed('Not implemented yet', env)] })

@@ -58,7 +58,7 @@ export async function handleClipsTwitchAddCommand(interaction: APIApplicationCom
     where: (clips, { eq, and, like }) => and(eq(clips.guildId, server), like(clips.streamer, streamer)),
   })
   if (subscriptions.length > 0)
-    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`You are not subscribed to notifications for this streamer: \`${streamer}\``, env)] })
+    return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`You are already subscribed to notifications for this streamer: \`${streamer}\``, env)] })
 
   // check if twitch channel exists
   const channelId = await getChannelId(streamer, env)

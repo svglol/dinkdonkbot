@@ -430,3 +430,58 @@ export async function getKickStatus(env: Env) {
   })
   return response
 }
+
+export async function getKickClips(slug: string, env: Env, sort?: 'views' | 'date', time?: 'day' | 'week' | 'month' | 'all', cursor?: string) {
+  try {
+    const params = new URLSearchParams()
+    if (sort)
+      params.set('sort', sort)
+    if (time)
+      params.set('time', time)
+    if (cursor)
+      params.set('cursor', cursor)
+
+    const url = `https://kick.com/api/v2/channels/${slug.toLowerCase().replace(/_/g, '-')}/clips${params.size ? `?${params}` : ''}`
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+          + '(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+      },
+    })
+
+    const clips = await response.json() as KickClipsResponse
+    for (const clip of clips.clips) {
+      clip.clip_url = `https://kick.com/${slug.toLowerCase().replace(/_/g, '-')}}/clips/${clip.id}`
+    }
+    return clips
+  }
+  catch (error) {
+    console.error('Error fetching kick clips:', error, { slug, sort, time, cursor })
+  }
+}
+
+export async function getKickClipsLastHour(slug: string, env: Env) {
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+  const allClips: KickClip[] = []
+  let cursor: string | undefined
+
+  while (true) {
+    const response = await getKickClips(slug, env, 'date', 'day', cursor)
+    if (!response?.clips?.length)
+      break
+
+    const filtered = response.clips.filter(clip => new Date(clip.created_at) >= oneHourAgo)
+    allClips.push(...filtered)
+
+    // If we got fewer clips than the page or the oldest clip is already older than 1h, stop
+    if (filtered.length < response.clips.length || !response.nextCursor)
+      break
+
+    cursor = response.nextCursor
+  }
+  return allClips
+}
