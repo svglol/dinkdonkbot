@@ -21,7 +21,7 @@ export default {
       case '0 0 * * sun':
         ctx.waitUntil(scheduledBirthdayOverviewUpdate(env))
         break
-      case '*/10 * * * *':
+      case '*/5 * * * *':
         ctx.waitUntil(updateEmbeds(env))
         break
       default:
@@ -245,13 +245,13 @@ export async function scheduledCheck(env: Env) {
 }
 
 /**
- * Updates Discord embeds for active Kick streams that started in the last 10 minutes.
+ * Updates Discord embeds for active Kick streams that started in the last 5 minutes.
  * This ensures stream thumbnails are refreshed after they become available.
  *
  * @param {Env} env - The Cloudflare Workers environment bindings
  */
 async function updateEmbeds(env: Env): Promise<void> {
-  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
 
   const streamMessages = await useDB(env).query.streamMessages.findMany({
     with: {
@@ -262,7 +262,7 @@ async function updateEmbeds(env: Env): Promise<void> {
       and(
         eq(messages.kickOnline, true),
         isNotNull(messages.kickStreamStartedAt),
-        gte(messages.kickStreamStartedAt, tenMinutesAgo),
+        gte(messages.kickStreamStartedAt, fiveMinutesAgo),
       ),
   })
 
