@@ -455,7 +455,7 @@ export async function getKickClips(slug: string, env: Env, sort?: 'views' | 'dat
 
     const clips = await response.json() as KickClipsResponse
     for (const clip of clips.clips) {
-      clip.clip_url = `https://kick.com/${slug.toLowerCase().replace(/_/g, '-')}}/clips/${clip.id}`
+      clip.clip_url = `https://kick.com/${slug.toLowerCase().replace(/_/g, '-')}/clips/${clip.id}`
     }
     return clips
   }
