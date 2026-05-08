@@ -903,7 +903,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
       title = streamMessage.kickStreamerData?.livestream?.session_title || `${streamMessage.kickStream?.name} is live!`
     }
     if (streamMessage.kickStreamData?.category.name !== streamMessage.kickStreamerData?.livestream?.categories[0].name) {
-      game = streamMessage.kickStreamerData?.livestream?.categories[0].name || 'No game'
+      game = streamMessage.kickStreamerData?.livestream?.categories[0].name || streamMessage.kickStreamData?.category.name || 'No game'
     }
 
     buttons.push({
