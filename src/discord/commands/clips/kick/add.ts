@@ -1,9 +1,10 @@
-import type { APIApplicationCommandInteraction, APIApplicationCommandInteractionDataSubcommandOption } from 'discord-api-types/v10'
+import type { APIApplicationCommandAutocompleteInteraction, APIApplicationCommandInteraction, APIApplicationCommandInteractionDataOption, APIApplicationCommandInteractionDataSubcommandOption, InteractionType } from 'discord-api-types/v10'
 import { tables, useDB } from '@database'
 import { buildErrorEmbed, buildSuccessEmbed, calculateChannelPermissions, updateInteraction } from '@discord-api'
 import { isGuildInteraction } from 'discord-api-types/utils'
 import { ApplicationCommandOptionType, PermissionFlagsBits } from 'discord-api-types/v10'
-import { getKickChannelV2 } from '@/kick/kick'
+import { autoCompleteResponse } from '@/discord/interactionHandler'
+import { getKickChannelV2, searchKickChannels } from '@/kick/kick'
 import { KICK_EMOTE } from '@/utils/discordEmotes'
 
 export const CLIPS_KICK_ADD_COMMAND = {
@@ -16,6 +17,7 @@ export const CLIPS_KICK_ADD_COMMAND = {
     name: 'streamer',
     description: 'The name of the KICK streamer to subscribe to',
     required: true,
+    autocomplete: true,
   }, {
     type: 7,
     name: 'discord-channel',
@@ -81,4 +83,41 @@ export async function handleClipsKickAddCommand(interaction: APIApplicationComma
       thumbnail: { url: kickChannel.user.profile_pic },
     }),
   })] })
+}
+
+export async function handleClipsKickAddAutoComplete(interaction: APIApplicationCommandAutocompleteInteraction, option: APIApplicationCommandInteractionDataOption<InteractionType.ApplicationCommandAutocomplete>, env: Env) {
+  if (option.type === ApplicationCommandOptionType.Subcommand) {
+    const streamerOption = option.options?.find(option => option.name === 'streamer')
+    if (!streamerOption || !('value' in streamerOption) || !('focused' in streamerOption))
+      return autoCompleteResponse([])
+
+    if (streamerOption.focused) {
+      // we can auto complete the streamer field
+      const input = streamerOption.value.toLowerCase()
+      const cacheKey = `autocomplete:${interaction.guild_id}:kick:${option.name}:${input}`
+
+      // Try KV cache
+      const cached = await env.KV.get(cacheKey, { type: 'json' }) as { name: string, value: string }[] | null
+      if (cached)
+        return autoCompleteResponse(cached)
+
+      const streamers = await searchKickChannels(input)
+
+      const choices = streamers
+        .map(stream => ({ name: stream.username, value: stream.slug }))
+        .sort((a, b) => {
+          if (a.name.toLowerCase() === input.toLowerCase() && b.name.toLowerCase() !== input.toLowerCase()) {
+            return -1
+          }
+          if (b.name.toLowerCase() === input.toLowerCase() && a.name.toLowerCase() !== input.toLowerCase()) {
+            return 1
+          }
+          return a.name.localeCompare(b.name)
+        })
+      await env.KV.put(cacheKey, JSON.stringify(choices), { expirationTtl: 60 })
+
+      return autoCompleteResponse(choices)
+    }
+  }
+  return autoCompleteResponse([])
 }

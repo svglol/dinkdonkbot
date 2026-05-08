@@ -485,3 +485,32 @@ export async function getKickClipsLastHour(slug: string, env: Env) {
   }
   return allClips
 }
+
+export async function searchKickChannels(query: string) {
+  try {
+    const res = await fetch('https://search.kick.com/multi_search', {
+      method: 'POST',
+      headers: {
+        'User-Agent':
+           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+           + '(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'X-TYPESENSE-API-KEY': 'nXIMW0iEN6sMujFYjFuhdrSwVow3pDQu',
+        'Content-Type': 'text/plain;charset=UTF-8',
+      },
+      body: JSON.stringify({
+        searches: [{ preset: 'channel_search', q: query }],
+      }),
+    })
+
+    if (!res.ok)
+      throw new Error(`HTTP error! status: ${res.status}`)
+
+    const json = await res.json<KickMultiSearchResponse>()
+    return json.results[0]?.hits?.map(h => h.document) ?? []
+  }
+  catch (error) {
+    console.error('Error searching kick channels:', error, { query })
+    return []
+  }
+}

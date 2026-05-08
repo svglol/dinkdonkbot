@@ -2,7 +2,7 @@ import type { APIApplicationCommandAutocompleteInteraction, APIApplicationComman
 import { buildErrorEmbed, updateInteraction } from '@discord-api'
 import { ApplicationCommandOptionType } from 'discord-api-types/v10'
 import { autoCompleteResponse } from '@/discord/interactionHandler'
-import { handleKickAddCommand, KICK_ADD_COMMAND } from './add'
+import { handleKickAddAutoComplete, handleKickAddCommand, KICK_ADD_COMMAND } from './add'
 import { handleKickDetailsCommand, KICK_DETAILS_COMMAND } from './details'
 import { handleKickEditCommand, KICK_EDIT_COMMAND } from './edit'
 import { handleKickDBAutoComplete, handleKickRemoveCommand, KICK_REMOVE_COMMAND } from './remove'
@@ -53,6 +53,8 @@ export async function handleKickAutoComplete(interaction: APIApplicationCommandA
   if (option.type === ApplicationCommandOptionType.SubcommandGroup) {
     const subCommand = option.options[0]
     switch (subCommand.name) {
+      case 'add':
+        return handleKickAddAutoComplete(interaction, subCommand, env)
       case 'remove':
         return handleKickDBAutoComplete(interaction, subCommand, env)
       case 'edit':

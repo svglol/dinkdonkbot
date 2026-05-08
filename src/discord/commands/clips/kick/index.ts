@@ -5,7 +5,7 @@ import { CLIPS_KICK_EDIT_COMMAND, handleClipsKickDBAutoComplete, handleClipsKick
 import { CLIPS_KICK_LIST_COMMAND, handleClipsKickListCommand } from '@/discord/commands/clips/kick/list'
 import { CLIPS_KICK_REMOVE_COMMAND, handleClipsKickRemoveCommand } from '@/discord/commands/clips/kick/remove'
 import { autoCompleteResponse } from '@/discord/interactionHandler'
-import { CLIPS_KICK_ADD_COMMAND, handleClipsKickAddCommand } from './add'
+import { CLIPS_KICK_ADD_COMMAND, handleClipsKickAddAutoComplete, handleClipsKickAddCommand } from './add'
 
 export const CLIPS_KICK_SUBCOMMANDS = {
   type: 2,
@@ -48,6 +48,8 @@ export async function handleClipsKickAutoComplete(interaction: APIApplicationCom
   if (option.type === ApplicationCommandOptionType.SubcommandGroup) {
     const subCommand = option.options[0]
     switch (subCommand.name) {
+      case 'add':
+        return handleClipsKickAddAutoComplete(interaction, subCommand, env)
       case 'remove':
         return handleClipsKickDBAutoComplete(interaction, subCommand, env)
       case 'edit':

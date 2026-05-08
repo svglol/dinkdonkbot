@@ -581,6 +581,49 @@ declare global {
     clips: KickClip[]
     nextCursor: string | null
   }
+
+  export interface KickChannel {
+    followers_count: number
+    id: string
+    is_banned: boolean
+    is_live: boolean
+    slug: string
+    username: string
+    verified: boolean
+  }
+
+  interface HighlightField {
+    matched_tokens: string[]
+    snippet: string
+  }
+
+  interface KickChannelHit {
+    document: KickChannel
+    highlight: Partial<Record<keyof KickChannel, HighlightField>>
+    highlights: Array<{
+      field: keyof KickChannel
+      matched_tokens: string[]
+      snippet: string
+    }>
+    text_match: number
+    text_match_info: {
+      best_field_score: string
+      best_field_weight: number
+      fields_matched: number
+      num_tokens_dropped: number
+      score: string
+      tokens_matched: number
+      typo_prefix_score: number
+    }
+  }
+
+  interface KickSearchResult {
+    hits: KickChannelHit[]
+  }
+
+  export interface KickMultiSearchResponse {
+    results: KickSearchResult[]
+  }
 }
 
 declare module 'cloudflare:test' {
