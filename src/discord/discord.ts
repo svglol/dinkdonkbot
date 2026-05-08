@@ -625,9 +625,9 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
 
     const twitchImage = streamMessage.twitchStreamData
       ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${Date.now()}`
-      : streamMessage.twitchStreamerData?.offline_image_url
+      : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
 
-    const kickImage = streamMessage.kickStreamData ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${Date.now()}` : streamMessage.kickStreamerData?.offline_banner_image?.src
+    const kickImage = streamMessage.kickStreamData ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${Date.now()}` : 'https://kick.com/img/default_livestream_thumbnail.webp'
 
     const image = priority === 'twitch'
       ? twitchImage || kickImage || `${env.WEBHOOK_URL}/static/default_image.png`
@@ -789,7 +789,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     }
   }
 
-  function buildTwitchOnlineMessage(streamMessage: StreamMessage, env: Env): Content {
+  function buildTwitchOnlineMessage(streamMessage: StreamMessage, _env: Env): Content {
     const color = TWITCH_COLOR
     const message = `${streamMessage.stream?.roleId && streamMessage.stream.roleId !== streamMessage.stream.guildId ? `<@&${streamMessage.stream.roleId}> ` : ''}${messageBuilder(streamMessage.stream?.liveMessage ? streamMessage.stream.liveMessage : '{{name}} is live!', streamMessage, 'online', 'twitch')}`
     const title = streamMessage.twitchStreamData?.title || `${streamMessage.twitchStreamerData?.display_name} is live!`
@@ -797,7 +797,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     const game = streamMessage.twitchStreamData?.game_name || 'No game'
     const status = 'Online'
     const timestamp = new Date(streamMessage.twitchStreamData?.started_at || Date.now()).toISOString()
-    const image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : streamMessage.twitchStreamerData?.offline_image_url || streamMessage.twitchStreamerData?.profile_image_url || `${env.WEBHOOK_URL}/static/default_profile.png`
+    const image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
     const url = `https://twitch.tv/${streamMessage.stream?.name}`
     const buttons: APIButtonComponent[] = []
     buttons.push({
