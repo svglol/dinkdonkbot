@@ -200,6 +200,12 @@ export async function scheduledCheck(env: Env) {
           await useDB(env).delete(tables.kickStreams).where(eq(tables.kickStreams.id, stream.id))
         })
         await Promise.allSettled(deleteKickStreams)
+
+        const kickClipsToDelete = kickClips.filter(clip => !serverIds.includes(clip.guildId))
+        const deleteKickClips = kickClipsToDelete.map(async (clip) => {
+          await useDB(env).delete(tables.kickClips).where(eq(tables.kickClips.id, clip.id))
+        })
+        await Promise.allSettled(deleteKickClips)
       }
     }
     catch (error: unknown) {
