@@ -12,7 +12,7 @@ export function buildClipMessage(clips: {
   const removeEmojis = (str: string) => str.replace(/[^\w\s.,!?'\-":;()&%$#@]/g, '')
 
   const sections = clips.map((clip) => {
-    const cleanTitle = removeEmojis(clip.title)
+    const cleanTitle = removeEmojis(clip.title).trim() || 'No title'
     const isKick = clip.platform === 'kick'
     const accentColor = isKick ? 0x53FC18 : 0x6441A4
     const platformLabel = isKick ? KICK_EMOTE.formatted : TWITCH_EMOTE.formatted
