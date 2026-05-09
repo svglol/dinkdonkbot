@@ -1258,6 +1258,10 @@ async function findFallbackChannel(guildId: string, env: Env, excludeChannelId?:
         let perms = BigInt(roles.find(r => r.id === guildId)?.permissions ?? 0)
         for (const role of roles.filter(r => member.roles.includes(r.id)))
           perms |= BigInt(role.permissions)
+
+        if ((perms & PermissionFlagsBits.Administrator) === PermissionFlagsBits.Administrator)
+          return true
+
         if (everyoneOverwrite) {
           perms &= ~BigInt(everyoneOverwrite.deny)
           perms |= BigInt(everyoneOverwrite.allow)
