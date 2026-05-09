@@ -900,7 +900,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
 
     // current issue with some getLiveStream from kick api returning the wrong stream title/category
     if (streamMessage.kickStreamData?.stream_title !== streamMessage.kickStreamerData?.livestream?.session_title) {
-      title = streamMessage.kickStreamerData?.livestream?.session_title || `${streamMessage.kickStream?.name} is live!`
+      title = streamMessage.kickStreamerData?.livestream?.session_title || streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStream?.name} is live!`
     }
     if (streamMessage.kickStreamData?.category.name !== streamMessage.kickStreamerData?.livestream?.categories[0].name) {
       game = streamMessage.kickStreamerData?.livestream?.categories[0].name || streamMessage.kickStreamData?.category.name || 'No game'
@@ -950,7 +950,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     let title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream?.name} is no longer live!`
     // current issue with some getLiveStream from kick api returning the wrong stream title/category
     if (streamMessage.kickStreamData?.stream_title !== streamMessage.kickStreamerData?.livestream?.session_title) {
-      title = streamMessage.kickStreamerData?.livestream?.session_title || `${streamMessage.kickStream?.name} is no longer live!`
+      title = streamMessage.kickStreamerData?.livestream?.session_title || streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStream?.name} is no longer live!`
     }
     const kickBackupImage = streamMessage.kickVod ? streamMessage.kickVod.thumbnail.src : 'https://kick.com/img/default-channel-banners/offline-banner.webp'
     let image = (streamMessage.kickStreamerData?.offline_banner_image?.srcset && getBestImageFromSrcset(streamMessage.kickStreamerData?.offline_banner_image.srcset)) || kickBackupImage
