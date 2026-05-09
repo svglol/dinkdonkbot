@@ -115,7 +115,7 @@ DinkDonk Bot is packed with features to keep your community engaged and informed
   Clip Highlights
 
   #description
-  Keep your community engaged with hourly updates featuring new clips from your favorite Twitch streamers and their best moments.
+  Keep your community engaged with hourly updates featuring new clips from your favorite Twitch and Kick streamers and their best moments.
   :::
 
   :::u-page-card
