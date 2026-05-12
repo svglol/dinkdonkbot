@@ -624,7 +624,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
       : new Date(streamMessage.kickStreamData?.started_at || streamMessage.twitchStreamData?.started_at || Date.now()).toISOString()
 
     const twitchImage = streamMessage.twitchStreamData
-      ? `${streamMessage.twitchStreamData.thumbnail_url.replace('%{width}', '1280').replace('%{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${Date.now()}`
+      ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${Date.now()}`
       : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
 
     const kickImage = streamMessage.kickStreamData ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${Date.now()}` : 'https://kick.com/img/default_livestream_thumbnail.webp'
@@ -797,7 +797,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     const game = streamMessage.twitchStreamData?.game_name || 'No game'
     const status = 'Online'
     const timestamp = new Date(streamMessage.twitchStreamData?.started_at || Date.now()).toISOString()
-    const image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('%{width}', '1280').replace('%{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
+    const image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
     const url = `https://twitch.tv/${streamMessage.stream?.name}`
     const buttons: APIButtonComponent[] = []
     buttons.push({
