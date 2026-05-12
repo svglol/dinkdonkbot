@@ -355,7 +355,6 @@ export async function calculateChannelPermissions(guildId: string, channelId: st
   catch (error: DiscordAPIError | unknown) {
     if (error instanceof DiscordAPIError) {
       if (error.code === 50001) {
-        console.error(`Bot lacks access to channel ${channelId}`)
         return { permissions: 0n, checks: { ViewChannel: false } }
       }
     }
@@ -419,7 +418,6 @@ export async function calculateGuildPermissions(guildId: string, env: Env, permi
   catch (error: DiscordAPIError | unknown) {
     if (error instanceof DiscordAPIError) {
       if (error.code === 50001) {
-        console.error(`Bot lacks access to guild`, error, { guildId })
         return { permissions: 0n, checks: { ViewGuild: false } }
       }
     }
