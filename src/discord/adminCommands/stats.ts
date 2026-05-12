@@ -36,6 +36,7 @@ async function handleStatsCommand(interaction: APIApplicationCommandInteraction,
     birthdayConfigs,
     twitchSubscriptions,
     kickSubscriptions,
+    kickClips,
   ] = await Promise.all([
     rest.get(Routes.userGuilds()) as Promise<RESTGetAPICurrentUserGuildsResult>,
     db.query.streams.findMany(),
@@ -45,6 +46,7 @@ async function handleStatsCommand(interaction: APIApplicationCommandInteraction,
     db.query.birthdayConfig.findMany({ where: (config, { eq }) => eq(config.disabled, false), with: { birthdays: { where: (b, { eq }) => eq(b.disabled, false) } } }),
     getSubscriptions(env),
     getKickSubscriptions(env),
+    db.query.kickClips.findMany(),
   ])
 
   const serverCount = guilds.length
@@ -52,6 +54,7 @@ async function handleStatsCommand(interaction: APIApplicationCommandInteraction,
   const kickStreamCount = kickStreams.length
   const clipCount = clips.length
   const multistreamCount = multistreams.length
+  const kickClipCount = kickClips.length
 
   const uniqueTwitchSubscriptions = new Set(twitchSubscriptions?.data
     .filter(sub => sub.status === 'enabled')
@@ -71,7 +74,8 @@ async function handleStatsCommand(interaction: APIApplicationCommandInteraction,
 - Twitch Subscriptions Total Cost (API): ${twitchSubscriptions?.total_cost} / ${twitchSubscriptions?.max_total_cost}
 - Stored Kick Streams (DB): ${kickStreamCount}
 - Active Kick Webhook Subscriptions (API): ${uniqueKickSubscriptions.size}
-- Stored Clips (DB): ${clipCount}
+- Stored Twitch Clips (DB): ${clipCount}
+- Stored Kick Clips (DB): ${kickClipCount}
 - Stored Multistream Configurations (DB): ${multistreamCount}
 - Stored Birthday Configurations (DB): ${storedBirthdayConfigs.length}
 - Stored Birthdays (DB): ${storedBirthdays}
