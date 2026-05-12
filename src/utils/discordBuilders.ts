@@ -1,57 +1,35 @@
-import { CLIPPERS_EMOTE, KICK_EMOTE, TWITCH_EMOTE } from '@/utils/discordEmotes'
+import type { APIEmbed } from 'discord-api-types/v10'
 
 export function buildClipMessage(clips: {
   platform: 'kick' | 'twitch'
   channelUsername: string
+  channelIcon?: string
   title: string
   clipUrl: string
   thumbnailUrl: string
   creatorUsername: string
   unixTimestamp: number
 }[]) {
-  const removeEmojis = (str: string) => str.replace(/[^\w\s.,!?'\-":;()&%$#@]/g, '')
-
-  const sections = clips.map((clip) => {
-    const cleanTitle = removeEmojis(clip.title).trim() || 'No title'
+  const embeds = clips.map((clip) => {
     const isKick = clip.platform === 'kick'
     const accentColor = isKick ? 0x53FC18 : 0x6441A4
-    const platformLabel = isKick ? KICK_EMOTE.formatted : TWITCH_EMOTE.formatted
-
     return {
-      type: 17,
-      accent_color: accentColor,
-      components: [
-        {
-          type: 9,
-          components: [
-            {
-              type: 10,
-              content: `${CLIPPERS_EMOTE.formatted}${platformLabel} **${clip.channelUsername}**`,
-            },
-            {
-              type: 10,
-              content: `### [${cleanTitle}](${clip.clipUrl})`,
-            },
-            {
-              type: 10,
-              content: [
-                `-# 🎬 Clipped by \`${clip.creatorUsername}\``,
-                `-# 🕐 <t:${clip.unixTimestamp}:F>`,
-              ].join('\n'),
-            },
-          ],
-          accessory: {
-            type: 11,
-            media: { url: clip.thumbnailUrl },
-            description: `${clip.channelUsername} clip thumbnail`,
-          },
-        },
-      ],
-    }
+      title: clip.title,
+      url: clip.clipUrl,
+      color: accentColor,
+      author: {
+        name: `${clip.channelUsername}`,
+        icon_url: clip.channelIcon || undefined,
+      },
+      thumbnail: { url: clip.thumbnailUrl },
+      footer: {
+        text: `Clipped by ${clip.creatorUsername}`,
+      },
+      timestamp: new Date(clip.unixTimestamp * 1000).toISOString(),
+    } as APIEmbed
   })
 
   return {
-    flags: 1 << 15,
-    components: sections,
+    embeds,
   }
 }

@@ -29,7 +29,7 @@ export default {
   },
 }
 
-const CLIPS_PER_MESSAGE = 5
+const CLIPS_PER_MESSAGE = 10
 function chunkArray<T>(arr: T[], size: number): T[][] {
   return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
     arr.slice(i * size, i * size + size))
@@ -62,14 +62,16 @@ async function scheduledTwitchClips(env: Env) {
 
     for (const clip of clips) {
       const fetched = twitchClips.get(clip.broadcasterId)
-      if (!fetched)
+      if (!fetched || fetched.data.length === 0)
         continue
 
+      const twitchChannel = await getUserbyID(clip.broadcasterId, env)
       for (const twitchClip of fetched.data) {
         const unixTimestamp = Math.floor(new Date(twitchClip.created_at).getTime() / 1000)
         const entry = {
           platform: 'twitch' as const,
           channelUsername: twitchClip.broadcaster_name,
+          channelIcon: twitchChannel?.profile_image_url,
           title: twitchClip.title,
           clipUrl: twitchClip.url,
           thumbnailUrl: twitchClip.thumbnail_url,
@@ -115,7 +117,7 @@ async function scheduledKickClips(env: Env) {
 
     for (const clip of clips) {
       const fetched = kickClips.get(clip.streamer)
-      if (!fetched)
+      if (!fetched || fetched.length === 0)
         continue
 
       for (const kickClip of fetched) {
@@ -123,6 +125,7 @@ async function scheduledKickClips(env: Env) {
         const entry = {
           platform: 'kick' as const,
           channelUsername: kickClip.channel.username,
+          channelIcon: kickClip.channel.profile_picture,
           title: kickClip.title,
           clipUrl: kickClip.clip_url,
           thumbnailUrl: kickClip.thumbnail_url,
