@@ -49,7 +49,6 @@ export async function handleClipsKickAddCommand(interaction: APIApplicationComma
 
   if (missingPermissions.length > 0) {
     const permissionError = `Dinkdonk Bot does not have the required permissions use <#${channel}>.\nMissing permissions: ${missingPermissions.join(', ')}`
-    console.error(permissionError)
     return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(permissionError, env)] })
   }
 
