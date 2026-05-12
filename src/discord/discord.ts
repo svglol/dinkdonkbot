@@ -731,6 +731,10 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
       ? twitchImageResolved || kickImageResolved || `${env.WEBHOOK_URL}/static/default_image.png`
       : kickImageResolved || twitchImageResolved || `${env.WEBHOOK_URL}/static/default_image.png`
 
+    if (streamMessage.stream?.name.toLowerCase() !== 'Pestily') {
+      console.warn(`Image for ${streamMessage.stream?.name} is:`, image)
+    }
+
     const url = priority === 'twitch'
       ? `https://twitch.tv/${streamMessage.stream?.name}`
       : `https://kick.com/${streamMessage.kickStreamData?.slug}`
