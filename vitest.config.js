@@ -9,7 +9,7 @@ export default defineWorkersConfig({
         singleWorker: true,
         wrangler: { configPath: './wrangler.toml' },
         miniflare: {
-          compatibilityDate: '2024-01-01',
+          compatibilityDate: '2026-01-01',
           compatibilityFlags: [
             'nodejs_compat',
             'service_binding_extra_handlers',
