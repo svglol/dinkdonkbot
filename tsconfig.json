@@ -12,14 +12,15 @@
       "@server": ["./src/server.ts"],
       "@database": ["./src/database/db.ts"]
     },
-    "types": ["@cloudflare/workers-types", "@cloudflare/vitest-pool-workers"],
+    "types": [
+      "@cloudflare/workers-types",
+      "@cloudflare/vitest-pool-workers",
+      "node"
+    ],
     "strict": true,
     "noEmit": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true
   },
-  "exclude": [
-    "node_modules",
-    "docs"
-  ]
+  "exclude": ["node_modules", "docs"]
 }

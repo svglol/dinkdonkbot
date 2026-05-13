@@ -164,8 +164,8 @@ async function verifyTwitchRequest(request: Request, env: Env) {
   const message = `${messageId}${messageTimestamp}${body}`
 
   const encoder = new TextEncoder()
-  const data = encoder.encode(message)
-  const secretKey = encoder.encode(env.TWITCH_EVENT_SECRET)
+  const data = encoder.encode(message) as unknown as Uint8Array<ArrayBuffer>
+  const secretKey = encoder.encode(env.TWITCH_EVENT_SECRET) as unknown as Uint8Array<ArrayBuffer>
 
   const cryptoKey = await crypto.subtle.importKey(
     'raw',
