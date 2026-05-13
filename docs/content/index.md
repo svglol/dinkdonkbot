@@ -5,10 +5,10 @@ seo:
 ---
 
 ::u-page-hero
-# title
+#title
 Your Ultimate [Twitch & Kick]{class="text-yellow-500"} Companion for Discord
 
-# description
+#description
 DinkDonk Bot brings reliable Twitch and Kick notifications, multistream support, fun community games, and effortless emote management to your Discord server.
 
 #headline
@@ -49,13 +49,13 @@ modifiers: {'animated': true}
 headline: Never Miss a Stream
 ---
 
-# title
+#title
 Powerful Twitch & Kick Notifications
 
-# description
+#description
 Twitch and Kick stream notifications that are fully customizable, reliable, and easy to set up. Get instant alerts when your favorite streamers go live - even merge notifications for multistreams so you never miss a combined broadcast.
 
-# body
+#body
 ::config-preview
 :::
 
@@ -63,10 +63,10 @@ Twitch and Kick stream notifications that are fully customizable, reliable, and 
 ---
 headline: Built for Communities
 ---
-# title
+#title
 Everything you need for stream notifications and more
 
-# description
+#description
 DinkDonk Bot is packed with features to keep your community engaged and informed about Twitch and Kick streams, all while providing fun extras to enhance your server experience.
 
 #features
@@ -75,10 +75,10 @@ DinkDonk Bot is packed with features to keep your community engaged and informed
   spotlight: true
   icon: i-lucide-bell
   ---
-  # title
+  #title
   Live Stream Notifications
 
-  # description
+  #description
   Never miss a stream. Get instant notifications when Twitch and Kick streamers go live, with full customization including custom messages and ping roles.
   :::
 
@@ -87,10 +87,10 @@ DinkDonk Bot is packed with features to keep your community engaged and informed
   spotlight: true
   icon: i-lucide-link
   ---
-  # title
+  #title
   Multistream Support
 
-  # description
+  #description
   Automatically merge Twitch and Kick notifications into a single unified alert for multistreaming creators. Set platform priority and configure late-merge options for maximum flexibility.
   :::
 
@@ -99,10 +99,10 @@ DinkDonk Bot is packed with features to keep your community engaged and informed
   spotlight: true
   icon: i-lucide-smile
   ---
-  # title
+  #title
   Emote Management
 
-  # description
+  #description
   Easily add emotes from 7TV or other Discord servers to your own server in just a few clicks. Steal emotes directly from messages using the context menu.
   :::
 
@@ -111,10 +111,10 @@ DinkDonk Bot is packed with features to keep your community engaged and informed
   spotlight: true
   icon: i-lucide-film
   ---
-  # title
+  #title
   Clip Highlights
 
-  # description
+  #description
   Keep your community engaged with hourly updates featuring new clips from your favorite Twitch and Kick streamers and their best moments.
   :::
 
@@ -123,10 +123,10 @@ DinkDonk Bot is packed with features to keep your community engaged and informed
   spotlight: true
   icon: i-lucide-gamepad-2
   ---
-  # title
+  #title
   Interactive Games
 
-  # description
+  #description
   Engage your server with built-in community games like hangman, rock paper scissors, dice rolling, and more.
   :::
 
@@ -135,7 +135,7 @@ DinkDonk Bot is packed with features to keep your community engaged and informed
   spotlight: true
   icon: i-lucide-cake
   ---
-  # title
+  #title
   Birthday Management
   #description
   Track and celebrate your community's birthdays automatically. Set up birthday roles and announcements so no one's special day goes unnoticed.
@@ -146,10 +146,10 @@ DinkDonk Bot is packed with features to keep your community engaged and informed
   spotlight: true
   icon: i-lucide-wrench
   ---
-  # title
+  #title
   Utility Commands
 
-  # description
+  #description
   Handy tools like weather updates, world clocks, Discord timestamp generation, and fun extras like coin flips — all built right in.
   :::
 
@@ -159,7 +159,7 @@ DinkDonk Bot is packed with features to keep your community engaged and informed
   icon: i-lucide-sparkles
   coming-soon: true
   ---
-  # title
+  #title
   Coming Soon
   #description
   More exciting features are on the way. Stay tuned for updates!
