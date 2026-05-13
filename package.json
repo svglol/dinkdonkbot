@@ -45,7 +45,7 @@
     "eslint": "9.39.4",
     "tsx": "4.21.0",
     "typescript": "6.0.3",
-    "vite-tsconfig-paths": "5.1.4",
+    "vite-tsconfig-paths": "6.1.1",
     "vitest": "3.2.4",
     "wrangler": "4.85.0"
   }
