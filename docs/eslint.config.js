@@ -3,7 +3,9 @@ import eslintPluginBetterTailwindcss from 'eslint-plugin-better-tailwindcss'
 import nuxt from './.nuxt/eslint.config.mjs'
 
 export default antfu(
+  {},
   {
+    files: ['**/*.vue'],
     rules: {
       'vue/block-order': ['error', {
         order: ['template', 'script', 'style'],
@@ -11,6 +13,13 @@ export default antfu(
     },
   },
   {
+    files: ['**/*.md'],
+    rules: {
+      'markdown/no-multiple-h1': 'off',
+    },
+  },
+  {
+    files: ['**/*.vue'],
     plugins: {
       'better-tailwindcss': eslintPluginBetterTailwindcss,
     },
