@@ -36,7 +36,7 @@ export async function scheduledBirthdayCheck(env: Env) {
         }
       }
       else {
-        if (new Date().getTime() - new Date(birthday.announcedAt!).getTime() > 24 * 60 * 60 * 1000) {
+        if (Date.now() - new Date(birthday.announcedAt!).getTime() > 24 * 60 * 60 * 1000) {
           // birthday is over
           if (birthdayConfig.birthdayRoleId) {
             await removeRole(birthdayConfig.guildId, birthday.userId, birthdayConfig.birthdayRoleId, env)
