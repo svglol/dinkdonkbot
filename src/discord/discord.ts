@@ -256,14 +256,14 @@ export function messageBuilder(message: string, streamMessage: StreamMessage, ty
     const endedAt = streamMessage.twitchStreamEndedAt || streamMessage.kickStreamEndedAt
     timestampValue = endedAt
       ? Math.floor(new Date(endedAt).getTime() / 1000).toString()
-      : Math.floor(new Date().getTime() / 1000).toString()
+      : Math.floor(Date.now() / 1000).toString()
   }
   else {
     // Use started_at timestamps for online messages
     const startedAt = streamMessage.twitchStreamData?.started_at || streamMessage.kickStreamData?.started_at || streamMessage.twitchStreamStartedAt || streamMessage.kickStreamStartedAt
     timestampValue = startedAt
       ? Math.floor(new Date(startedAt).getTime() / 1000).toString()
-      : Math.floor(new Date().getTime() / 1000).toString()
+      : Math.floor(Date.now() / 1000).toString()
   }
 
   let game = streamMessage.twitchStreamData?.game_name || streamMessage.kickStreamData?.category.name || ''
@@ -717,7 +717,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     const TWITCH_FALLBACK = 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
     const KICK_FALLBACK = 'https://kick.com/img/default-channel-banners/offline-banner.webp'
 
-    const twitchBackupImage = streamMessage.twitchVod ? `${streamMessage.twitchVod.thumbnail_url.replace('%{width}', '1280').replace('%{height}', '720')}?b=${streamMessage.twitchVod.id}&t=${new Date().getTime()}` : TWITCH_FALLBACK
+    const twitchBackupImage = streamMessage.twitchVod ? `${streamMessage.twitchVod.thumbnail_url.replace('%{width}', '1280').replace('%{height}', '720')}?b=${streamMessage.twitchVod.id}&t=${Date.now()}` : TWITCH_FALLBACK
     const twitchImage = streamMessage.twitchStreamerData?.offline_image_url || twitchBackupImage
     const kickBackupImage = streamMessage.kickVod ? streamMessage.kickVod.thumbnail.src : KICK_FALLBACK
     const kickImage = (streamMessage.kickStreamerData?.offline_banner_image?.srcset && getBestImageFromSrcset(streamMessage.kickStreamerData?.offline_banner_image.srcset)) || kickBackupImage
@@ -795,7 +795,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     const game = streamMessage.twitchStreamData?.game_name || 'No game'
     const status = 'Online'
     const timestamp = new Date(streamMessage.twitchStreamData?.started_at || Date.now()).toISOString()
-    const image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${new Date().getTime()}` : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
+    const image = streamMessage.twitchStreamData ? `${streamMessage.twitchStreamData.thumbnail_url.replace('{width}', '1280').replace('{height}', '720')}?b=${streamMessage.twitchStreamData.id}&t=${Date.now()}` : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
     const url = `https://twitch.tv/${streamMessage.stream?.name}`
     const buttons: APIButtonComponent[] = []
     buttons.push({
@@ -837,7 +837,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     const status = 'Last online'
     const timestamp = new Date(streamMessage.twitchStreamEndedAt || Date.now()).toISOString()
     const backupImage = streamMessage.twitchVod
-      ? `${streamMessage.twitchVod.thumbnail_url.replace('%{width}', '1280').replace('%{height}', '720')}?b=${streamMessage.twitchVod.id}&t=${new Date().getTime()}`
+      ? `${streamMessage.twitchVod.thumbnail_url.replace('%{width}', '1280').replace('%{height}', '720')}?b=${streamMessage.twitchVod.id}&t=${Date.now()}`
       : 'https://static-cdn.jtvnw.net/jtv-static/404_preview-1920x1080.png'
     const image = streamMessage.twitchStreamerData?.offline_image_url || backupImage
     const url = `https://twitch.tv/${streamMessage.stream?.name}`
@@ -889,7 +889,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     let game = streamMessage.kickStreamData?.category.name || 'No game'
     const status = 'Online'
     const timestamp = new Date(streamMessage.kickStreamData?.started_at || Date.now()).toISOString()
-    let image = streamMessage.kickStreamData?.thumbnail ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${new Date().getTime()}` : 'https://kick.com/img/default_livestream_thumbnail.webp'
+    let image = streamMessage.kickStreamData?.thumbnail ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${Date.now()}` : 'https://kick.com/img/default_livestream_thumbnail.webp'
     if (!await validateThumbnail(image)) {
       image = 'https://kick.com/img/default_livestream_thumbnail.webp'
     }

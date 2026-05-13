@@ -136,7 +136,7 @@ async function autoCompleteHandler(interaction: APIApplicationCommandAutocomplet
     { name: 'UTC+12', value: 'UTC+12' },
     { name: 'UTC+13', value: 'UTC+13' },
   ]
-  if (interaction.data.options.find(option => option.name === 'utc_offset')) {
+  if (interaction.data.options.some(option => option.name === 'utc_offset')) {
     const utcOption = interaction.data.options.find(option => option.name === 'utc_offset')
     if (!utcOption || !('value' in utcOption) || !('focused' in utcOption)) {
       return autoCompleteResponse([])

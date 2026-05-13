@@ -280,7 +280,7 @@ export class HangmanGame extends DurableObject {
       await this.saveState()
       // Reset the alarm because the game is still ongoing
       const hangmanCard = this.buildComponents()
-      if (!hangmanCard.components.find(c => c.type === 1)) {
+      if (!hangmanCard.components.some(c => c.type === 1)) {
         // If there are no buttons, the game is over
         await this.reset()
       }
