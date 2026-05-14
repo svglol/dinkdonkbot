@@ -483,7 +483,7 @@ export async function getKickClipsLastHour(slug: string, env: Env) {
 
     cursor = response.nextCursor
   }
-  return allClips
+  return allClips.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
 }
 
 export async function searchKickChannels(query: string) {
