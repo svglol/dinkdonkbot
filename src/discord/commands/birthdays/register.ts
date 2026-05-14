@@ -2,10 +2,10 @@ import type { APIApplicationCommandAutocompleteInteraction, APIApplicationComman
 import { buildErrorEmbed, buildSuccessEmbed, fetchUser, findBotCommandMarkdown, updateInteraction } from '@discord-api'
 import { isGuildInteraction } from 'discord-api-types/utils'
 import { ApplicationCommandOptionType, PermissionFlagsBits } from 'discord-api-types/v10'
-import { birthdayOverviewUpdate, getTimezoneFromQuery, validateTimezone } from '@/birthdays'
+import { birthdayOverviewUpdate } from '@/birthdays'
 import { eq, tables, useDB } from '@/database/db'
 import { autoCompleteResponse } from '@/discord/interactionHandler'
-import { monthNames, ordinal } from '@/utils/dates'
+import { getTimezoneFromQuery, monthNames, ordinal, validateTimezone } from '@/utils/dates'
 
 export const BIRTHDAYS_REGISTER_COMMAND = {
   type: 1,

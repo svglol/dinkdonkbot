@@ -2,8 +2,8 @@ import type { APIApplicationCommandAutocompleteInteraction, APIApplicationComman
 import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '@discord-api'
 import { fromZonedTime } from 'date-fns-tz'
 import { isChatInputApplicationCommandInteraction } from 'discord-api-types/utils'
-import { getTimezoneFromQuery, validateTimezone } from '@/birthdays'
 import { autoCompleteResponse, interactionEphemeralLoading } from '@/discord/interactionHandler'
+import { getTimezoneFromQuery, validateTimezone } from '@/utils/dates'
 
 const TIMESTAMP_COMMAND = {
   name: 'timestamp',
