@@ -28,7 +28,7 @@ export async function getGeoData(location: string, env: Env) {
     geoData = await geoRes.json()
     if (!geoData.length)
       throw new Error('Location not found')
-    await env.KV.put(cacheKey, JSON.stringify(geoData), { expirationTtl: 86400 }) // 1 day
+    await env.KV.put(cacheKey, JSON.stringify(geoData), { expirationTtl: 60 * 60 * 24 * 30 }) // 30 days
   }
   return geoData
 }
