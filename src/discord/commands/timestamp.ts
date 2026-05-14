@@ -2,11 +2,12 @@ import type { APIApplicationCommandAutocompleteInteraction, APIApplicationComman
 import { buildErrorEmbed, buildSuccessEmbed, updateInteraction } from '@discord-api'
 import { fromZonedTime } from 'date-fns-tz'
 import { isChatInputApplicationCommandInteraction } from 'discord-api-types/utils'
+import { getTimezoneFromQuery, validateTimezone } from '@/birthdays'
 import { autoCompleteResponse, interactionEphemeralLoading } from '@/discord/interactionHandler'
 
 const TIMESTAMP_COMMAND = {
   name: 'timestamp',
-  description: 'Create a Discord timestamp for a specific date/time and UTC offset',
+  description: 'Create a Discord timestamp for a specific date/time and timezone',
   options: [
     {
       type: 3,
@@ -22,25 +23,10 @@ const TIMESTAMP_COMMAND = {
     },
     {
       type: 3,
-      name: 'utc_offset',
-      description: 'UTC offset (e.g., UTC+0, UTC+5, UTC-5)',
+      name: 'timezone',
+      description: 'Timezone in IANA format or UTC offset',
       required: true,
       autocomplete: true,
-    },
-    {
-      type: 3,
-      name: 'style',
-      description: 'Optional timestamp style',
-      required: false,
-      choices: [
-        { name: 'Short Time', value: 't' },
-        { name: 'Long Time', value: 'T' },
-        { name: 'Short Date', value: 'd' },
-        { name: 'Long Date', value: 'D' },
-        { name: 'Short Date/Time', value: 'f' },
-        { name: 'Long Date/Time', value: 'F' },
-        { name: 'Relative', value: 'R' },
-      ],
     },
   ],
   type: 1,
@@ -60,30 +46,25 @@ async function handleTimestampCommand(interaction: APIApplicationCommandInteract
 
   const dateOption = interaction.data.options.find(o => o.name === 'date')
   const timeOption = interaction.data.options.find(o => o.name === 'time')
-  const offsetOption = interaction.data.options.find(o => o.name === 'utc_offset')
-  const styleOption = interaction.data.options.find(o => o.name === 'style')
+  const timezoneOption = interaction.data.options.find(o => o.name === 'timezone')
 
-  if (!dateOption || !timeOption || !offsetOption || !('value' in dateOption) || !('value' in timeOption) || !('value' in offsetOption)) {
+  if (
+    !dateOption || !timeOption || !timezoneOption
+    || !('value' in dateOption) || !('value' in timeOption) || !('value' in timezoneOption)
+  ) {
     return await updateInteraction(interaction, env, {
       embeds: [buildErrorEmbed('Invalid arguments', env)],
     })
   }
 
   const dateStr = `${dateOption.value}T${timeOption.value}:00`
-  const utcInput = (offsetOption.value as string).toUpperCase()
-  const style = styleOption && 'value' in styleOption ? styleOption.value as string : 'f'
+  const ianaTz = timezoneOption.value as string
 
-  // Validate UTC offset format (UTC+/-X)
-  const match = utcInput.match(/^UTC([+-]\d{1,2})$/)
-  if (!match) {
+  if (!validateTimezone(ianaTz, true)) {
     return await updateInteraction(interaction, env, {
-      embeds: [buildErrorEmbed('Invalid UTC offset format. Use e.g. `UTC+0`, `UTC+5`, `UTC-5`', env)],
+      embeds: [buildErrorEmbed('Timezone is not valid, it should be a valid IANA timezone (e.g. Pacific/Auckland)', env)],
     })
   }
-
-  const offset = Number.parseInt(match[1], 10)
-
-  const ianaTz = offset === 0 ? 'Etc/GMT' : `Etc/GMT${offset > 0 ? '-' : '+'}${Math.abs(offset)}`
 
   const localDate = new Date(dateStr)
 
@@ -92,63 +73,44 @@ async function handleTimestampCommand(interaction: APIApplicationCommandInteract
       embeds: [buildErrorEmbed('Invalid date/time format, please use - date: \`YYYY-MM-DD\` time: \`HH:MM\`', env)],
     })
   }
+
   const utcDate = fromZonedTime(localDate, ianaTz)
   const unix = Math.floor(utcDate.getTime() / 1000)
-  const discordTimestamp = `<t:${unix}:${style}>`
+
+  const styles = [
+    { label: 'Short Time', style: 't' },
+    { label: 'Long Time', style: 'T' },
+    { label: 'Short Date', style: 'd' },
+    { label: 'Long Date', style: 'D' },
+    { label: 'Short Date/Time', style: 'f' },
+    { label: 'Long Date/Time', style: 'F' },
+    { label: 'Relative', style: 'R' },
+  ]
+
+  const lines = styles.map(({ label, style }) => {
+    const ts = `<t:${unix}:${style}>`
+    return `**${label}:** ${ts} — \`${ts}\``
+  })
 
   return updateInteraction(interaction, env, {
     embeds: [
       buildSuccessEmbed(
-        `Preview: ${discordTimestamp}\nTimestamp: \`${discordTimestamp}\`\nYou can copy and paste this into any message on Discord.`,
+        lines.join('\n'),
         env,
-        { title: '✅ Created Timestamp' },
+        { title: '✅ Created Timestamps' },
       ),
     ],
   })
 }
 
-async function autoCompleteHandler(interaction: APIApplicationCommandAutocompleteInteraction, _env: Env, _ctx: ExecutionContext) {
-  const utcOptions = [
-    { name: 'UTC-12', value: 'UTC-12' },
-    { name: 'UTC-11', value: 'UTC-11' },
-    { name: 'UTC-10', value: 'UTC-10' },
-    { name: 'UTC-9', value: 'UTC-9' },
-    { name: 'UTC-8', value: 'UTC-8' },
-    { name: 'UTC-7', value: 'UTC-7' },
-    { name: 'UTC-6', value: 'UTC-6' },
-    { name: 'UTC-5', value: 'UTC-5' },
-    { name: 'UTC-4', value: 'UTC-4' },
-    { name: 'UTC-3', value: 'UTC-3' },
-    { name: 'UTC-2', value: 'UTC-2' },
-    { name: 'UTC-1', value: 'UTC-1' },
-    { name: 'UTC+0', value: 'UTC+0' },
-    { name: 'UTC+1', value: 'UTC+1' },
-    { name: 'UTC+2', value: 'UTC+2' },
-    { name: 'UTC+3', value: 'UTC+3' },
-    { name: 'UTC+4', value: 'UTC+4' },
-    { name: 'UTC+5', value: 'UTC+5' },
-    { name: 'UTC+6', value: 'UTC+6' },
-    { name: 'UTC+7', value: 'UTC+7' },
-    { name: 'UTC+8', value: 'UTC+8' },
-    { name: 'UTC+9', value: 'UTC+9' },
-    { name: 'UTC+10', value: 'UTC+10' },
-    { name: 'UTC+11', value: 'UTC+11' },
-    { name: 'UTC+12', value: 'UTC+12' },
-    { name: 'UTC+13', value: 'UTC+13' },
-  ]
-  if (interaction.data.options.some(option => option.name === 'utc_offset')) {
-    const utcOption = interaction.data.options.find(option => option.name === 'utc_offset')
-    if (!utcOption || !('value' in utcOption) || !('focused' in utcOption)) {
-      return autoCompleteResponse([])
-    }
+async function autoCompleteHandler(interaction: APIApplicationCommandAutocompleteInteraction, env: Env, _ctx: ExecutionContext) {
+  const timezoneOption = interaction.data.options?.find(option => option.name === 'timezone')
+  if (!timezoneOption || !('value' in timezoneOption) || !('focused' in timezoneOption)) {
+    return autoCompleteResponse([])
+  }
 
-    if (utcOption.focused) {
-      const query = String(utcOption.value).toLowerCase()
-      const filtered = utcOptions.filter(opt =>
-        opt.name.toLowerCase().includes(query.replace(/^utc/, '')),
-      )
-      return autoCompleteResponse(filtered)
-    }
+  if (timezoneOption.focused) {
+    return autoCompleteResponse(await getTimezoneFromQuery(timezoneOption.value, env, true))
   }
   return autoCompleteResponse([])
 }

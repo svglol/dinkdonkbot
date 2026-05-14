@@ -116,7 +116,7 @@ Use `/help` for detailed commands or join our [Discord server](https://discord.g
 ### 🔧 Utility Commands
 - `/weather <location>` - Get the current weather for a location
 - `/time <location>` - Get the current time for a location
-- `/timestamp <date> <time> <utc_offset> [style]` - Create a Discord timestamp for a specific date/time and UTC offset
+- `/timestamp <date> <time> <timezone>` - Create a Discord timestamp for a specific date/time and UTC offset
 
 ### ℹ️ Bot Information
 - `/help` - Show help for DinkDonk Bot

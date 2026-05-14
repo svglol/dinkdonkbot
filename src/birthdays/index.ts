@@ -239,14 +239,24 @@ async function buildDescription(header: string, birthdayConfig: BirthdayConfigWi
   return description
 }
 
-export async function getTimezoneFromQuery(rawQuery: string, env: Env) {
+const UTC_OFFSETS = Array.from({ length: 27 }, (_, i) => i - 13).map(offset => ({
+  name: offset === 0 ? 'UTC' : `UTC${offset > 0 ? '+' : ''}${offset}`,
+  value: offset === 0 ? 'Etc/GMT' : `Etc/GMT${offset > 0 ? '-' : '+'}${Math.abs(offset)}`,
+}))
+
+export async function getTimezoneFromQuery(rawQuery: string, env: Env, includeUtcOffsets = false) {
   const query = String(rawQuery).toLowerCase().replace(/\s+/g, '_')
   const matches = Intl.supportedValuesOf('timeZone')
     .filter(tz => tz.toLowerCase().replace(/^[^/]+\//, '').includes(query))
     .slice(0, 25)
     .map(tz => ({ name: tz, value: tz }))
 
-  // lookup location from the query as well
+  if (includeUtcOffsets) {
+    const utcMatches = UTC_OFFSETS
+      .filter(tz => tz.name.toLowerCase().includes(query) && !matches.some(m => m.value === tz.value))
+    matches.unshift(...utcMatches)
+  }
+
   try {
     const geoData = await getGeoData(rawQuery, env)
     const tzMatch = tzlookup(geoData[0].lat, geoData[0].lon)
@@ -255,11 +265,12 @@ export async function getTimezoneFromQuery(rawQuery: string, env: Env) {
     }
   }
   catch {
-  // geodata lookup failed, continue with existing matches
+    // geodata lookup failed, continue with existing matches
   }
-  return matches
+  return matches.slice(0, 25)
 }
 
-export function validateTimezone(timezone: string) {
-  return Intl.supportedValuesOf('timeZone').includes(timezone)
+export function validateTimezone(timezone: string, includeUtcOffsets = false) {
+  const validUtc = includeUtcOffsets && UTC_OFFSETS.some(tz => tz.value === timezone)
+  return validUtc || Intl.supportedValuesOf('timeZone').includes(timezone)
 }
