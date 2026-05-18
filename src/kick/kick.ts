@@ -446,17 +446,27 @@ export async function getKickClips(slug: string, env: Env, sort?: 'views' | 'dat
     const response = await fetch(url, {
       method: 'GET',
       headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-          + '(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
         'Accept': 'application/json',
       },
     })
 
+    if (!response.ok) {
+      console.error('Kick clips API error:', response.status, response.statusText, { slug, sort, time })
+      return undefined
+    }
+
     const clips = await response.json() as KickClipsResponse
+
+    if (!Array.isArray(clips?.clips)) {
+      console.error('Kick clips unexpected response shape:', JSON.stringify(clips), { slug, sort, time })
+      return undefined
+    }
+
     for (const clip of clips.clips) {
       clip.clip_url = `https://kick.com/${clip.channel.slug}/clips/${clip.id}`
     }
+
     return clips
   }
   catch (error) {
