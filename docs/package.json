@@ -25,7 +25,7 @@
     "docus": "latest",
     "eslint-plugin-better-tailwindcss": "4.5.0",
     "nuxt": "4.4.4",
-    "stylelint": "17.11.0",
+    "stylelint": "17.11.1",
     "stylelint-config-recommended-vue": "1.6.1",
     "stylelint-config-standard": "40.0.0"
   }
