@@ -2,7 +2,7 @@
   "name": "docs",
   "type": "module",
   "version": "1.0.0",
-  "packageManager": "pnpm@11.0.9",
+  "packageManager": "pnpm@11.1.2",
   "description": "",
   "author": "",
   "license": "ISC",
@@ -18,10 +18,10 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
-    "@antfu/eslint-config": "8.2.0",
+    "@antfu/eslint-config": "8.3.0",
     "@nuxt/eslint": "1.15.2",
     "@pycord/discord-message-components-vue": "0.3.2",
-    "better-sqlite3": "12.9.0",
+    "better-sqlite3": "12.10.0",
     "docus": "latest",
     "eslint-plugin-better-tailwindcss": "4.5.0",
     "nuxt": "4.4.4",
