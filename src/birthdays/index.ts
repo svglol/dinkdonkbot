@@ -147,6 +147,9 @@ export async function birthdayOverviewUpdate(guildId: string, env: Env) {
     }
   }
 
+  if (messageId && messageId !== birthdayConfig.overviewMessageId) {
+    await useDB(env).update(tables.birthdayConfig).set({ overviewMessageId: messageId }).where(eq(tables.birthdayConfig.guildId, guildId))
+  }
   return messageId
 }
 
