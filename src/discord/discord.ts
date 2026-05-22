@@ -886,7 +886,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     const message = `${roleMention}${messageBuilder(streamMessage.kickStream?.liveMessage ? streamMessage.kickStream.liveMessage : '{{name}} is live!', streamMessage, 'online', 'kick')}`
     let title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream?.name} is live!`
     const description = `${KICK_EMOTE.formatted} ${streamMessage.kickStream?.name ?? streamMessage.kickStreamerData?.slug} is live on KICK!`
-    let game = streamMessage.kickStreamData?.category.name || 'No game'
+    let game = streamMessage.kickStreamData?.category?.name || 'No game'
     const status = 'Online'
     const timestamp = new Date(streamMessage.kickStreamData?.started_at || Date.now()).toISOString()
     let image = streamMessage.kickStreamData?.thumbnail ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${Date.now()}` : 'https://kick.com/img/default_livestream_thumbnail.webp'
@@ -900,8 +900,8 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     if (streamMessage.kickStreamData?.stream_title !== streamMessage.kickStreamerData?.livestream?.session_title) {
       title = streamMessage.kickStreamerData?.livestream?.session_title || streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStream?.name} is live!`
     }
-    if (streamMessage.kickStreamData?.category.name !== streamMessage.kickStreamerData?.livestream?.categories[0].name) {
-      game = streamMessage.kickStreamerData?.livestream?.categories[0].name || streamMessage.kickStreamData?.category.name || 'No game'
+    if (streamMessage.kickStreamData?.category?.name !== streamMessage.kickStreamerData?.livestream?.categories?.[0]?.name) {
+      game = streamMessage.kickStreamerData?.livestream?.categories?.[0]?.name || streamMessage.kickStreamData?.category.name || 'No game'
     }
 
     buttons.push({
