@@ -565,7 +565,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     duration: undefined,
     status: '‎ ',
     timestamp: new Date().toISOString(),
-    thumbnail: streamMessage.twitchStreamerData?.profile_image_url || streamMessage.kickStreamerData?.user.profile_pic || `${env.WEBHOOK_URL}/static/default_profile.png`,
+    thumbnail: streamMessage.twitchStreamerData?.profile_image_url || streamMessage.kickStreamerData?.user.profile_pic || undefined,
     image: `${env.WEBHOOK_URL}/static/default_image.png`,
     url: streamMessage.stream ? `https://twitch.tv/${streamMessage.twitchStreamerData?.login}` : `https://kick.com/${streamMessage.kickStreamerData?.slug}`,
     buttons: [],
