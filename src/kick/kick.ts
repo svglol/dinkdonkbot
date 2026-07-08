@@ -326,7 +326,7 @@ export async function getKickChannelV2(slug: string) {
     if (response.status === 401)
       throw new Error('Unauthorized')
     if (response.status === 403)
-      throw new Error('Forbidden')
+      throw new Error(`Forbidden: ${{ headers: Object.fromEntries(response.headers.entries()) }}`)
     if (!response.ok)
       throw new Error(`HTTP error! status: ${response.status}`)
 
