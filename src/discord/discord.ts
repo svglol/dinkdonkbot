@@ -752,7 +752,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
       buttons.push({
         type: 2,
         label: 'Watch KICK VOD',
-        url: `https://kick.com/${streamMessage.kickStreamerData?.slug}/videos/${streamMessage.kickVod.video.uuid}`,
+        url: `https://kick.com/${streamMessage.kickStreamData?.slug}/videos/${streamMessage.kickVod.video.uuid}`,
         style: 5,
         emoji: {
           name: KICK_EMOTE.name,
@@ -936,7 +936,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
       buttons.push({
         type: 2,
         label: 'Watch KICK VOD',
-        url: `https://kick.com/${streamMessage.kickStreamerData?.slug}/videos/${streamMessage.kickVod.video.uuid}`,
+        url: `https://kick.com/${streamMessage.kickStreamData?.slug}/videos/${streamMessage.kickVod.video.uuid}`,
         style: 5,
         emoji: {
           name: KICK_EMOTE.name,
