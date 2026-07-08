@@ -633,7 +633,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
 
     const url = priority === 'twitch'
       ? `https://twitch.tv/${streamMessage.stream?.name}`
-      : `https://kick.com/${streamMessage.kickStreamerData?.slug}`
+      : `https://kick.com/${streamMessage.kickStreamData?.slug}`
 
     const buttons: APIButtonComponent[] = []
     // Add both platform buttons
@@ -884,7 +884,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
   async function buildKickOnlineMessage(streamMessage: StreamMessage, _env: Env): Promise<Content> {
     const roleMention = streamMessage.kickStream?.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
     const message = `${roleMention}${messageBuilder(streamMessage.kickStream?.liveMessage ? streamMessage.kickStream.liveMessage : '{{name}} is live!', streamMessage, 'online', 'kick')}`
-    let title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream?.name} is live!`
+    let title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamData?.slug ?? streamMessage.kickStream?.name} is live!`
     const description = `${KICK_EMOTE.formatted} ${streamMessage.kickStream?.name ?? streamMessage.kickStreamerData?.slug} is live on KICK!`
     let game = streamMessage.kickStreamData?.category?.name || 'No game'
     const status = 'Online'
@@ -907,7 +907,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     buttons.push({
       type: 2,
       label: 'Watch on KICK',
-      url: `https://kick.com/${streamMessage.kickStreamerData?.slug}`,
+      url: `https://kick.com/${streamMessage.kickStreamData?.slug}`,
       style: 5,
       emoji: {
         name: KICK_EMOTE.name,
@@ -945,7 +945,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
         },
       })
     }
-    let title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamerData?.slug ?? streamMessage.kickStream?.name} is no longer live!`
+    let title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamData?.slug ?? streamMessage.kickStream?.name} is no longer live!`
     // current issue with some getLiveStream from kick api returning the wrong stream title/category
     if (streamMessage.kickStreamData?.stream_title !== streamMessage.kickStreamerData?.livestream?.session_title) {
       title = streamMessage.kickStreamerData?.livestream?.session_title || streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStream?.name} is no longer live!`
@@ -965,7 +965,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
       message: messageBuilder(streamMessage.kickStream?.offlineMessage ? streamMessage.kickStream?.offlineMessage : '{{name}} is now offline.', streamMessage, 'offline', 'kick'),
       title,
       color: OFFLINE_COLOR,
-      description: `${KICK_EMOTE.formatted} ${streamMessage.kickStream?.name ?? streamMessage.kickStreamerData?.slug} is no longer live on KICK!`,
+      description: `${KICK_EMOTE.formatted} ${streamMessage.kickStream?.name ?? streamMessage.kickStreamData?.slug} is no longer live on KICK!`,
       duration,
       status: '‎Last Online',
       timestamp: new Date(streamMessage.kickStreamEndedAt || Date.now()).toISOString(),
