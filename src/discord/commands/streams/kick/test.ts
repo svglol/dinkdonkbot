@@ -63,7 +63,7 @@ export async function handleKickTestCommand(interaction: APIApplicationCommandIn
   const multiStream = test.options?.find(option => option.name === 'multistream')?.value as boolean | undefined || false
 
   const [kickUser, kickLivestream] = await Promise.all([
-    await getKickChannelV2(stream.name),
+    await getKickChannelV2(stream.name, env),
     await getKickLivestream(Number(stream.broadcasterId), env),
   ])
 

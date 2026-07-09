@@ -1,3 +1,5 @@
+import { cachedFunction } from '@/utils/cache'
+
 const baseUrl = 'https://api.kick.com/public/v1'
 /**
  * Subscribes to Kick EventSub notifications for a given broadcaster's
@@ -306,37 +308,43 @@ export async function getKickLivestream(broadcasterId: number, env: Env) {
 }
 
 /**
- * Fetches a Kick channel by its slug.
+ * Fetches a Kick channel by its slug (cached).
  * @param slug - The slug of the channel to fetch.
+ * @param env - The environment bindings (must include KV).
+ * @param ttl - Cache TTL in seconds (default 60).
  * @returns A promise that resolves to a KickChannelV2 object containing the
- *          channel details, or throws an error if the channel was not found.
- * @throws If the request to fetch the channel fails.
+ *          channel details, or undefined if the channel was not found or an error occurred.
  */
-export async function getKickChannelV2(slug: string) {
-  try {
-    const response = await fetch(`https://kick.com/api/v2/channels/${slug.toLowerCase().replace(/_/g, '-')}`, {
-      method: 'GET',
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-          + '(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-        'Accept': 'application/json',
-      },
-    })
-    if (response.status === 401)
-      throw new Error('Unauthorized')
-    if (response.status === 403)
-      throw new Error(`Forbidden: ${JSON.stringify({ headers: Object.fromEntries(response.headers.entries()) })}`)
-    if (!response.ok)
-      throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`)
+export async function getKickChannelV2(slug: string, env: Env, ttl = 60) {
+  const normalizedSlug = slug.toLowerCase().replace(/_/g, '-')
+  const cacheKey = `kick:channelv2:${normalizedSlug}`
 
-    const channels = await response.json() as KickChannelV2
-    return channels
-  }
-  catch (error) {
-    console.error('Error fetching kick v2 channel:', error, { slug })
-    return undefined
-  }
+  return cachedFunction(cacheKey, async () => {
+    try {
+      const response = await fetch(`https://kick.com/api/v2/channels/${normalizedSlug}`, {
+        method: 'GET',
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+            + '(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+          'Accept': 'application/json',
+        },
+      })
+      if (response.status === 401)
+        throw new Error('Unauthorized')
+      if (response.status === 403)
+        throw new Error(`Forbidden: ${JSON.stringify({ headers: Object.fromEntries(response.headers.entries()) })}`)
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`)
+
+      const channels = await response.json() as KickChannelV2
+      return channels
+    }
+    catch (error) {
+      console.error('Error fetching kick v2 channel:', error, { slug })
+      return undefined
+    }
+  }, env, ttl)
 }
 
 /**

@@ -37,7 +37,7 @@ async function streamOnline(payload: KickLivestreamStatusUpdatedEvent, env: Env)
   const broadcasterName = payload.broadcaster.channel_slug
 
   const [kickUser, kickLivestream] = await Promise.all([
-    getKickChannelV2(broadcasterName),
+    getKickChannelV2(broadcasterName, env),
     getKickLivestream(broadcasterUserId, env),
   ])
 

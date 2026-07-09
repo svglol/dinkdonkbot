@@ -59,7 +59,7 @@ export async function handleClipsKickAddCommand(interaction: APIApplicationComma
   if (subscriptions.length > 0)
     return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`You are already subscribed to notifications for this streamer: \`${streamer}\``, env)] })
 
-  const kickChannel = await getKickChannelV2(streamer)
+  const kickChannel = await getKickChannelV2(streamer, env)
   if (!kickChannel)
     return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed(`Kick channel with name:\`${streamer}\` could not be found`, env)] })
 

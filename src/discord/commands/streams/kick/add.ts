@@ -143,7 +143,7 @@ export async function handleKickAddCommand(interaction: APIApplicationCommandInt
   if (stream && !stream.multiStream)
     details += `\nAutomatically made a multi-stream link with Twitch Stream: ${TWITCH_EMOTE.formatted} \`${stream.name}\`\n`
 
-  const kickChannelV2 = await getKickChannelV2(streamer)
+  const kickChannelV2 = await getKickChannelV2(streamer, env)
 
   return await updateInteraction(interaction, env, { embeds: [buildSuccessEmbed(details, env, {
     title: `${KICK_EMOTE.formatted} Subscribed to notifications for \`${subscription.name}\``,

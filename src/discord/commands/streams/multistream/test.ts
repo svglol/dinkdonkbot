@@ -97,7 +97,7 @@ export async function handleMultistreamTestCommand(interaction: APIApplicationCo
     return await updateInteraction(interaction, env, { embeds: [buildErrorEmbed('The specified Twitch or Kick streamer is not linked to a multistream, check they are linked correctly', env)] })
 
   const [kickUser, kickLivestream, twitchStreamerData, twitchStreamData] = await Promise.all([
-    await getKickChannelV2(kickStream.name),
+    await getKickChannelV2(kickStream.name, env),
     await getKickLivestream(Number(kickStream.broadcasterId), env),
     getStreamerDetails(twitchStream.name, env),
     getStreamDetails(twitchStream.name, env),

@@ -60,7 +60,7 @@ export async function handleTwitchTestCommand(interaction: APIApplicationCommand
   let kickStreamerData: KickChannelV2 | null = null
   if (multiStream) {
     [kickStreamerData, kickStreamData] = await Promise.all([
-      await getKickChannelV2(stream.multiStream.kickStream.name) ?? null,
+      await getKickChannelV2(stream.multiStream.kickStream.name, env) ?? null,
       await getKickLivestream(Number(stream.multiStream.kickStream.broadcasterId), env) ?? null,
     ])
   }
