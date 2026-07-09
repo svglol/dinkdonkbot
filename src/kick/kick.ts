@@ -326,7 +326,7 @@ export async function getKickChannelV2(slug: string) {
     if (response.status === 401)
       throw new Error('Unauthorized')
     if (response.status === 403)
-      throw new Error(`Forbidden: ${{ headers: Object.fromEntries(response.headers.entries()) }}`)
+      throw new Error(`Forbidden: ${JSON.stringify({ headers: Object.fromEntries(response.headers.entries()) })}`)
     if (!response.ok)
       throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`)
 
@@ -370,7 +370,7 @@ export async function getKickLatestVod(startedAt: string, slug: string) {
       throw new Error('Unauthorized: API key may be required')
     }
     if (response.status === 403) {
-      throw new Error('Forbidden: Access denied to this channel' + `: ${{ headers: Object.fromEntries(response.headers.entries()) }}`)
+      throw new Error('Forbidden: Access denied to this channel' + `: ${JSON.stringify({ headers: Object.fromEntries(response.headers.entries()) })}`)
     }
     if (response.status === 404) {
       throw new Error(`Channel "${slug}" not found`)
