@@ -482,6 +482,9 @@ export async function getKickClips(slug: string, env: Env, sort?: 'views' | 'dat
       },
     })
 
+    if (response.status === 403) {
+      throw new Error(`Forbidden kick clips: ${await response.text()}`)
+    }
     if (!response.ok) {
       console.error('Kick clips API error:', response.status, response.statusText, { slug, sort, time })
       return undefined
