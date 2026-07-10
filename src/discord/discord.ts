@@ -223,7 +223,7 @@ export async function uploadSticker(guildId: string, env: Env, stickerName: stri
  */
 export function messageBuilder(message: string, streamMessage: StreamMessage, type: 'online' | 'offline', service: 'twitch' | 'kick' | 'both' = 'twitch') {
   const twitchUrl = `https://twitch.tv/${streamMessage.stream?.name}`
-  const kickUrl = `https://kick.com/${streamMessage.kickStreamerData?.slug}`
+  const kickUrl = `https://kick.com/${streamMessage.kickStreamData?.slug}`
 
   let urlReplacement: string
   let nameReplacement: string
@@ -567,7 +567,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     timestamp: new Date().toISOString(),
     thumbnail: streamMessage.twitchStreamerData?.profile_image_url || streamMessage.kickStreamerData?.user.profile_pic || undefined,
     image: `${env.WEBHOOK_URL}/static/default_image.png`,
-    url: streamMessage.stream ? `https://twitch.tv/${streamMessage.twitchStreamerData?.login}` : `https://kick.com/${streamMessage.kickStreamerData?.slug}`,
+    url: streamMessage.stream ? `https://twitch.tv/${streamMessage.twitchStreamerData?.login}` : `https://kick.com/${streamMessage.kickStreamData?.slug}`,
     buttons: [],
   }
 
@@ -885,7 +885,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     const roleMention = streamMessage.kickStream?.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
     const message = `${roleMention}${messageBuilder(streamMessage.kickStream?.liveMessage ? streamMessage.kickStream.liveMessage : '{{name}} is live!', streamMessage, 'online', 'kick')}`
     let title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamData?.slug ?? streamMessage.kickStream?.name} is live!`
-    const description = `${KICK_EMOTE.formatted} ${streamMessage.kickStream?.name ?? streamMessage.kickStreamerData?.slug} is live on KICK!`
+    const description = `${KICK_EMOTE.formatted} ${streamMessage.kickStream?.name ?? streamMessage.kickStreamData?.slug} is live on KICK!`
     let game = streamMessage.kickStreamData?.category?.name || 'No game'
     const status = 'Online'
     const timestamp = new Date(streamMessage.kickStreamData?.started_at || Date.now()).toISOString()
@@ -971,7 +971,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
       timestamp: new Date(streamMessage.kickStreamEndedAt || Date.now()).toISOString(),
       image,
       buttons,
-      url: `https://kick.com/${streamMessage.kickStreamerData?.slug}`,
+      url: `https://kick.com/${streamMessage.kickStreamData?.slug}`,
     }
   }
 
@@ -1056,9 +1056,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     description: `**${fixedEscapeMarkdown(content.description || 'No description')}**`,
     fields,
     color: content.color || MULTI_COLOR,
-    thumbnail: {
-      url: content.thumbnail || `${env.WEBHOOK_URL}/static/default_profile.png`,
-    },
+    ...(content.thumbnail ? { thumbnail: { url: content.thumbnail } } : {}),
     image: {
       url: content.image || `${env.WEBHOOK_URL}/static/default_image.png`,
     },
