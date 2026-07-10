@@ -36,7 +36,7 @@ export class KickStreamUpdater extends DurableObject {
         return
 
       if (!streamMessage.kickStreamerData) {
-        streamMessage.kickStreamerData = await getKickChannelV2(streamMessage.kickStream?.broadcasterId || '', this.env) || null
+        streamMessage.kickStreamerData = await getKickChannelV2(streamMessage.kickStream?.name || '', this.env) || null
         await useDB(this.env).update(tables.streamMessages).set({
           kickStreamerData: streamMessage.kickStreamerData,
         }).where(eq(tables.streamMessages.id, streamMessageId)).execute()
