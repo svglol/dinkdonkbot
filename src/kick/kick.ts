@@ -307,6 +307,29 @@ export async function getKickLivestream(broadcasterId: number, env: Env) {
   return streams.data.find(s => s.broadcaster_user_id === broadcasterId)
 }
 
+async function fetchWithRetryOn403(
+  url: string,
+  init: RequestInit,
+  maxRetries = 3,
+  baseDelayMs = 500,
+): Promise<Response> {
+  let response: Response
+  let attempt = 0
+
+  while (true) {
+    response = await fetch(url, init)
+
+    if (response.status !== 403 || attempt >= maxRetries) {
+      return response
+    }
+
+    attempt++
+    const delay = baseDelayMs * 2 ** (attempt - 1) // 500ms, 1000ms, 2000ms
+    console.warn(`403 received, retrying (${attempt}/${maxRetries}) after ${delay}ms`, { url })
+    await new Promise(resolve => setTimeout(resolve, delay))
+  }
+}
+
 /**
  * Fetches a Kick channel by its slug (cached).
  * @param slug - The slug of the channel to fetch.
@@ -321,7 +344,7 @@ export async function getKickChannelV2(slug: string, env: Env, ttl = 60) {
 
   return cachedFunction(cacheKey, async () => {
     try {
-      const response = await fetch(`https://kick.com/api/v2/channels/${normalizedSlug}`, {
+      const response = await fetchWithRetryOn403(`https://kick.com/api/v2/channels/${normalizedSlug}`, {
         method: 'GET',
         headers: {
           'User-Agent':
@@ -364,7 +387,7 @@ export async function getKickLatestVod(startedAt: string, slug: string) {
       throw new Error('Channel slug is required')
     }
 
-    const response = await fetch(`https://kick.com/api/v2/channels/${encodeURIComponent(slug.toLowerCase().replace(/_/g, '-'))}/videos`, {
+    const response = await fetchWithRetryOn403(`https://kick.com/api/v2/channels/${encodeURIComponent(slug.toLowerCase().replace(/_/g, '-'))}/videos`, {
       method: 'GET',
       headers: {
         'User-Agent':
@@ -378,7 +401,7 @@ export async function getKickLatestVod(startedAt: string, slug: string) {
       throw new Error('Unauthorized: API key may be required')
     }
     if (response.status === 403) {
-      throw new Error(`Forbidden: ${await response.text()}`)
+      throw new Error(`Forbidden: Access denied to this channel: ${await response.text()}`)
     }
     if (response.status === 404) {
       throw new Error(`Channel "${slug}" not found`)
