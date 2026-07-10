@@ -1,6 +1,7 @@
 import { DurableObject } from 'cloudflare:workers'
 import { eq, tables, useDB } from '@/database/db'
 import { bodyBuilder, updateMessage } from '@/discord/discord'
+import { getKickChannelV2 } from '@/kick/kick'
 
 export class KickStreamUpdater extends DurableObject {
   state: DurableObjectState
@@ -33,6 +34,13 @@ export class KickStreamUpdater extends DurableObject {
 
       if (!streamMessage?.discordMessageId)
         return
+
+      if (!streamMessage.kickStreamerData) {
+        streamMessage.kickStreamerData = await getKickChannelV2(streamMessage.kickStream?.broadcasterId || '', this.env) || null
+        await useDB(this.env).update(tables.streamMessages).set({
+          kickStreamerData: streamMessage.kickStreamerData,
+        }).where(eq(tables.streamMessages.id, streamMessageId)).execute()
+      }
 
       const discordMessage = await bodyBuilder(streamMessage, this.env)
       await updateMessage(streamMessage.discordChannelId, streamMessage.discordMessageId, this.env, discordMessage)
