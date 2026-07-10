@@ -881,7 +881,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     }
   }
 
-  async function buildKickOnlineMessage(streamMessage: StreamMessage, _env: Env): Promise<Content> {
+  async function buildKickOnlineMessage(streamMessage: StreamMessage, env: Env): Promise<Content> {
     const roleMention = streamMessage.kickStream?.roleId && streamMessage.kickStream.roleId !== streamMessage.kickStream.guildId ? `<@&${streamMessage.kickStream.roleId}> ` : ''
     const message = `${roleMention}${messageBuilder(streamMessage.kickStream?.liveMessage ? streamMessage.kickStream.liveMessage : '{{name}} is live!', streamMessage, 'online', 'kick')}`
     let title = streamMessage.kickStreamData?.stream_title || `${streamMessage.kickStreamData?.slug ?? streamMessage.kickStream?.name} is live!`
@@ -890,7 +890,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     const status = 'Online'
     const timestamp = new Date(streamMessage.kickStreamData?.started_at || Date.now()).toISOString()
     let image = streamMessage.kickStreamData?.thumbnail ? `${streamMessage.kickStreamData?.thumbnail}?b=${streamMessage.kickStreamData?.started_at}&t=${Date.now()}` : 'https://kick.com/img/default_livestream_thumbnail.webp'
-    if (!await validateThumbnail(image)) {
+    if (!await validateThumbnail(image, env)) {
       image = 'https://kick.com/img/default_livestream_thumbnail.webp'
     }
     const url = `https://kick.com/${streamMessage.kickStreamData?.slug}`
@@ -952,7 +952,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     }
     const kickBackupImage = streamMessage.kickVod ? streamMessage.kickVod.thumbnail.src : 'https://kick.com/img/default-channel-banners/offline-banner.webp'
     let image = (streamMessage.kickStreamerData?.offline_banner_image?.srcset && getBestImageFromSrcset(streamMessage.kickStreamerData?.offline_banner_image.srcset)) || kickBackupImage
-    if (!await validateThumbnail(image)) {
+    if (!await validateThumbnail(image, _env)) {
       image = kickBackupImage
     }
 
@@ -1212,18 +1212,24 @@ export async function directMessageUser(env: Env, userId: string, body: RESTPost
   }
 }
 
-async function validateThumbnail(url: string) {
-  try {
-    const res = await fetch(url, { method: 'HEAD' })
-    if (!res.ok)
-      return false
-
-    const contentType = res.headers.get('content-type') || ''
-    return contentType.startsWith('image/')
-  }
-  catch {
-    return false
-  }
+async function validateThumbnail(url: string, env: Env) {
+  return cachedFunction(
+    `thumbnail-valid:${url}`,
+    async () => {
+      try {
+        const res = await fetch(url, { method: 'HEAD' })
+        if (!res.ok)
+          return false
+        const contentType = res.headers.get('content-type') || ''
+        return contentType.startsWith('image/')
+      }
+      catch {
+        return false
+      }
+    },
+    env,
+    120,
+  )
 }
 
 async function findFallbackChannel(guildId: string, env: Env, excludeChannelId?: string, preferredChannelId?: string): Promise<string | null> {
