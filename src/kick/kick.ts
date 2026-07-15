@@ -310,7 +310,7 @@ export async function getKickLivestream(broadcasterId: number, env: Env) {
 async function fetchWithRetryOn403(
   url: string,
   init: RequestInit,
-  maxRetries = 3,
+  maxRetries = 5,
   baseDelayMs = 500,
 ): Promise<Response> {
   let response: Response
