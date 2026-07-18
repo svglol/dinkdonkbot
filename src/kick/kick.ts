@@ -319,13 +319,17 @@ async function fetchWithRetryOn403(
   while (true) {
     response = await fetch(url, init)
 
-    if (response.status !== 403 || attempt >= maxRetries) {
+    if (response.status !== 403) {
+      return response
+    }
+
+    if (attempt >= maxRetries) {
+      console.warn(`403 received, giving up after ${maxRetries} retries`, { url })
       return response
     }
 
     attempt++
-    const delay = baseDelayMs * 2 ** (attempt - 1) // 500ms, 1000ms, 2000ms
-    console.warn(`403 received, retrying (${attempt}/${maxRetries}) after ${delay}ms`, { url })
+    const delay = baseDelayMs * 2 ** (attempt - 1)
     await new Promise(resolve => setTimeout(resolve, delay))
   }
 }
