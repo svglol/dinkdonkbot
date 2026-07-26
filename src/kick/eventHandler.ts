@@ -48,18 +48,18 @@ async function streamOnline(payload: KickLivestreamStatusUpdatedEvent, env: Env)
     },
   })
 
-  for (const kickStream of kickStreams) {
-    if (kickStream.multiStream) {
-      const durableObjectId = env.LIVESTREAM.idFromName(`multistream:${kickStream.multiStream.id}:${kickStream.multiStream.streamId}:${kickStream.multiStream.kickStreamId}`)
+  await Promise.allSettled(
+    kickStreams.map((kickStream) => {
+      const name = kickStream.multiStream
+        ? `multistream:${kickStream.multiStream.id}:${kickStream.multiStream.streamId}:${kickStream.multiStream.kickStreamId}`
+        : `kick:${kickStream.id}`
+
+      const durableObjectId = env.LIVESTREAM.idFromName(name)
       const durableObject: DurableObjectStub<LiveStream> = env.LIVESTREAM.get(durableObjectId)
-      await durableObject.handleStream({ platform: 'kick', payload, stream: kickStream, streamerData: kickUser, streamData: kickLivestream })
-    }
-    else {
-      const durableObjectId = env.LIVESTREAM.idFromName(`kick:${kickStream.id}`)
-      const durableObject: DurableObjectStub<LiveStream> = env.LIVESTREAM.get(durableObjectId)
-      await durableObject.handleStream({ platform: 'kick', payload, stream: kickStream, streamerData: kickUser, streamData: kickLivestream })
-    }
-  }
+
+      return durableObject.handleStream({ platform: 'kick', payload, stream: kickStream, streamerData: kickUser, streamData: kickLivestream })
+    }),
+  )
 }
 
 /**
