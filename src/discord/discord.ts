@@ -24,8 +24,9 @@ import { formatDuration } from '@/utils/formatDuration'
 export async function sendMessage(channelId: string, body: RESTPostAPIChannelMessageJSONBody, env: Env) {
   try {
     const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+    const nonce = crypto.randomUUID().slice(0, 25)
     const message = await rest.post(Routes.channelMessages(channelId), {
-      body,
+      body: { ...body, nonce, enforce_nonce: true },
     }) as RESTPostAPIChannelMessageResult
 
     return message.id
