@@ -224,7 +224,8 @@ export async function uploadSticker(guildId: string, env: Env, stickerName: stri
  */
 export function messageBuilder(message: string, streamMessage: StreamMessage, type: 'online' | 'offline', service: 'twitch' | 'kick' | 'both' = 'twitch') {
   const twitchUrl = `https://twitch.tv/${streamMessage.stream?.name}`
-  const kickUrl = `https://kick.com/${streamMessage.kickStreamData?.slug}`
+  const kickSlug = streamMessage.kickStreamData?.slug || streamMessage.kickStreamerData?.slug || streamMessage.kickStream?.name
+  const kickUrl = `https://kick.com/${kickSlug}`
 
   let urlReplacement: string
   let nameReplacement: string
@@ -568,7 +569,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     timestamp: new Date().toISOString(),
     thumbnail: streamMessage.twitchStreamerData?.profile_image_url || streamMessage.kickStreamerData?.user.profile_pic || undefined,
     image: `${env.WEBHOOK_URL}/static/default_image.png`,
-    url: streamMessage.stream ? `https://twitch.tv/${streamMessage.twitchStreamerData?.login}` : `https://kick.com/${streamMessage.kickStreamData?.slug}`,
+    url: streamMessage.stream ? `https://twitch.tv/${streamMessage.twitchStreamerData?.login}` : `https://kick.com/${streamMessage.kickStreamData?.slug || streamMessage.kickStreamerData?.slug || streamMessage.kickStream?.name}`,
     buttons: [],
   }
 
@@ -634,7 +635,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
 
     const url = priority === 'twitch'
       ? `https://twitch.tv/${streamMessage.stream?.name}`
-      : `https://kick.com/${streamMessage.kickStreamData?.slug}`
+      : `https://kick.com/${streamMessage.kickStreamData?.slug || streamMessage.kickStreamerData?.slug || streamMessage.kickStream?.name}`
 
     const buttons: APIButtonComponent[] = []
     // Add both platform buttons
@@ -652,7 +653,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     buttons.push({
       type: 2,
       label: 'Watch on Kick',
-      url: `https://kick.com/${streamMessage.kickStreamData?.slug}`,
+      url: `https://kick.com/${streamMessage.kickStreamData?.slug || streamMessage.kickStreamerData?.slug || streamMessage.kickStream?.name}`,
       style: 5,
       emoji: {
         name: KICK_EMOTE.name,
@@ -732,7 +733,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
 
     const url = priority === 'twitch'
       ? `https://twitch.tv/${streamMessage.stream?.name}`
-      : `https://kick.com/${streamMessage.kickStreamData?.slug}`
+      : `https://kick.com/${streamMessage.kickStreamData?.slug || streamMessage.kickStreamerData?.slug || streamMessage.kickStream?.name}`
 
     const buttons: APIButtonComponent[] = []
     // Add VOD buttons if available
@@ -753,7 +754,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
       buttons.push({
         type: 2,
         label: 'Watch KICK VOD',
-        url: `https://kick.com/${streamMessage.kickStreamData?.slug}/videos/${streamMessage.kickVod.video.uuid}`,
+        url: `https://kick.com/${streamMessage.kickStreamData?.slug || streamMessage.kickStreamerData?.slug || streamMessage.kickStream?.name}/videos/${streamMessage.kickVod.video.uuid}`,
         style: 5,
         emoji: {
           name: KICK_EMOTE.name,
@@ -894,7 +895,8 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     if (!await validateThumbnail(image, env)) {
       image = 'https://kick.com/img/default_livestream_thumbnail.webp'
     }
-    const url = `https://kick.com/${streamMessage.kickStreamData?.slug}`
+    const slug = streamMessage.kickStreamData?.slug || streamMessage.kickStreamerData?.slug || streamMessage.kickStream?.name
+    const url = `https://kick.com/${slug}`
     const buttons: APIButtonComponent[] = []
 
     // current issue with some getLiveStream from kick api returning the wrong stream title/category
@@ -908,7 +910,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
     buttons.push({
       type: 2,
       label: 'Watch on KICK',
-      url: `https://kick.com/${streamMessage.kickStreamData?.slug}`,
+      url: `https://kick.com/${slug}`,
       style: 5,
       emoji: {
         name: KICK_EMOTE.name,
@@ -932,12 +934,13 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
   }
 
   async function buildKickOfflineMessage(streamMessage: StreamMessage, _env: Env): Promise<Content> {
+    const slug = streamMessage.kickStreamData?.slug || streamMessage.kickStreamerData?.slug || streamMessage.kickStream?.name
     const buttons: APIButtonComponent[] = []
     if (streamMessage.kickVod) {
       buttons.push({
         type: 2,
         label: 'Watch KICK VOD',
-        url: `https://kick.com/${streamMessage.kickStreamData?.slug}/videos/${streamMessage.kickVod.video.uuid}`,
+        url: `https://kick.com/${slug}/videos/${streamMessage.kickVod.video.uuid}`,
         style: 5,
         emoji: {
           name: KICK_EMOTE.name,
@@ -972,7 +975,7 @@ export async function bodyBuilder(streamMessage: StreamMessage, env: Env): Promi
       timestamp: new Date(streamMessage.kickStreamEndedAt || Date.now()).toISOString(),
       image,
       buttons,
-      url: `https://kick.com/${streamMessage.kickStreamData?.slug}`,
+      url: `https://kick.com/${slug}`,
     }
   }
 
