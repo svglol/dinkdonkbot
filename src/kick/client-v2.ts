@@ -138,7 +138,7 @@ export async function kickV2Fetch<T = unknown>(
         : backoffMs
 
       console.warn(`Kick v2 API ${response.status}, retrying`, {
-        headers: response.headers,
+        headers: Object.fromEntries(response.headers.entries()),
         url: fullUrl.toString(),
         attempt,
         maxRetries,
