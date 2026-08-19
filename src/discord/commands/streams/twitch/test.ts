@@ -65,7 +65,7 @@ export async function handleTwitchTestCommand(interaction: APIApplicationCommand
     ])
   }
 
-  const kickVod = multiStream ? messageType === 'live' ? null : await getKickLatestVod(kickStreamData?.started_at || new Date().toISOString(), stream.name) : null
+  const kickVod = multiStream ? messageType === 'live' ? null : await getKickLatestVod(kickStreamData?.started_at || new Date().toISOString(), stream.name, env) : null
   const twitchVod = messageType === 'live' ? null : await getLatestVOD(stream.broadcasterId, streamData?.id || '', env)
 
   // build a fake stream message object

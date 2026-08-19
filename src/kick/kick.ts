@@ -1,4 +1,4 @@
-import { cachedFunction } from '@/utils/cache'
+import { kickV2Fetch } from '@/kick/client-v2'
 
 const baseUrl = 'https://api.kick.com/public/v1'
 /**
@@ -307,33 +307,6 @@ export async function getKickLivestream(broadcasterId: number, env: Env) {
   return streams.data.find(s => s.broadcaster_user_id === broadcasterId)
 }
 
-async function fetchWithRetryOn403(
-  url: string,
-  init: RequestInit,
-  maxRetries = 5,
-  baseDelayMs = 500,
-): Promise<Response> {
-  let response: Response
-  let attempt = 0
-
-  while (true) {
-    response = await fetch(url, init)
-
-    if (response.status !== 403) {
-      return response
-    }
-
-    if (attempt >= maxRetries) {
-      console.warn(`403 received, giving up after ${maxRetries} retries`, { url })
-      return response
-    }
-
-    attempt++
-    const delay = baseDelayMs * 2 ** (attempt - 1)
-    await new Promise(resolve => setTimeout(resolve, delay))
-  }
-}
-
 /**
  * Fetches a Kick channel by its slug (cached).
  * @param slug - The slug of the channel to fetch.
@@ -344,34 +317,9 @@ async function fetchWithRetryOn403(
  */
 export async function getKickChannelV2(slug: string, env: Env, ttl = 60) {
   const normalizedSlug = slug.toLowerCase().replace(/_/g, '-')
-  const cacheKey = `kick:channelv2:${normalizedSlug}`
-
-  return cachedFunction(cacheKey, async () => {
-    try {
-      const response = await fetchWithRetryOn403(`https://kick.com/api/v2/channels/${normalizedSlug}`, {
-        method: 'GET',
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-            + '(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-          'Accept': 'application/json',
-        },
-      })
-      if (response.status === 401)
-        throw new Error('Unauthorized')
-      if (response.status === 403)
-        throw new Error(`Forbidden: ${await response.text()}`)
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`)
-
-      const channels = await response.json() as KickChannelV2
-      return channels
-    }
-    catch (error) {
-      console.error('Error fetching kick v2 channel:', error, { slug })
-      return undefined
-    }
-  }, env, ttl)
+  return await kickV2Fetch<KickChannelV2>(`https://kick.com/api/v2/channels/${normalizedSlug}`, env, {
+    cacheTtl: ttl,
+  })
 }
 
 /**
@@ -385,39 +333,15 @@ export async function getKickChannelV2(slug: string, env: Env, ttl = 60) {
  *         Specific errors are thrown for unauthorized access, forbidden access, channel not found,
  *         rate limits, or other HTTP errors.
  */
-export async function getKickLatestVod(startedAt: string, slug: string) {
+export async function getKickLatestVod(startedAt: string, slug: string, env: Env) {
   try {
     if (!slug || slug.trim() === '') {
       throw new Error('Channel slug is required')
     }
 
-    const response = await fetchWithRetryOn403(`https://kick.com/api/v2/channels/${encodeURIComponent(slug.toLowerCase().replace(/_/g, '-'))}/videos`, {
-      method: 'GET',
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-          + '(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-        'Accept': 'application/json',
-      },
+    const videos = await kickV2Fetch<KickVOD[]>(`https://kick.com/api/v2/channels/${encodeURIComponent(slug.toLowerCase().replace(/_/g, '-'))}/videos`, env, {
+      cache: false,
     })
-
-    if (response.status === 401) {
-      throw new Error('Unauthorized: API key may be required')
-    }
-    if (response.status === 403) {
-      throw new Error(`Forbidden: Access denied to this channel: ${await response.text()}`)
-    }
-    if (response.status === 404) {
-      throw new Error(`Channel "${slug}" not found`)
-    }
-    if (response.status === 429) {
-      throw new Error('Rate limited: Too many requests')
-    }
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    const videos = await response.json() as KickVOD[]
 
     // Check if videos array exists and has content
     if (!Array.isArray(videos)) {
@@ -477,24 +401,7 @@ export async function getKickClips(slug: string, env: Env, sort?: 'views' | 'dat
       params.set('cursor', cursor)
 
     const url = `https://kick.com/api/v2/channels/${slug.toLowerCase().replace(/_/g, '-')}/clips${params.size ? `?${params}` : ''}`
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-        'Accept': 'application/json',
-      },
-    })
-
-    if (response.status === 403) {
-      throw new Error(`Forbidden kick clips: ${await response.text()}`)
-    }
-    if (!response.ok) {
-      console.error('Kick clips API error:', response.status, response.statusText, { slug, sort, time })
-      return undefined
-    }
-
-    const clips = await response.json() as KickClipsResponse
+    const clips = await kickV2Fetch<KickClipsResponse>(url, env, { cache: true, cacheTtl: 60 })
 
     if (!Array.isArray(clips?.clips)) {
       console.error('Kick clips unexpected response shape:', JSON.stringify(clips), { slug, sort, time })

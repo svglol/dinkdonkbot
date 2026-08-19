@@ -103,7 +103,7 @@ export async function handleMultistreamTestCommand(interaction: APIApplicationCo
     getStreamDetails(twitchStream.name, env),
   ])
 
-  const kickVod = messageType === 'live' ? null : await getKickLatestVod(kickLivestream?.started_at || new Date().toISOString(), kickStream.name)
+  const kickVod = messageType === 'live' ? null : await getKickLatestVod(kickLivestream?.started_at || new Date().toISOString(), kickStream.name, env)
   const twitchVod = messageType === 'live' ? null : await getLatestVOD(twitchStream.broadcasterId, twitchStreamData?.id || '', env)
 
   const streamMessage = {

@@ -76,7 +76,7 @@ export async function handleKickTestCommand(interaction: APIApplicationCommandIn
     ])
   }
 
-  const kickVod = messageType === 'live' ? null : await getKickLatestVod(kickLivestream?.started_at || new Date().toISOString(), stream.name)
+  const kickVod = messageType === 'live' ? null : await getKickLatestVod(kickLivestream?.started_at || new Date().toISOString(), stream.name, env)
   const twitchVod = multiStream ? messageType === 'live' ? null : await getLatestVOD(stream.multiStream.stream.broadcasterId, twitchStreamData?.id || '', env) : null
 
   // build a fake stream message object
@@ -103,7 +103,6 @@ export async function handleKickTestCommand(interaction: APIApplicationCommandIn
     kickOnline: messageType === 'live',
     createdAt: new Date().toISOString(),
   } satisfies StreamMessage
-
   const body = await bodyBuilder(streamMessage, env)
   if (global) {
     await sendMessage(stream.channelId, body, env)
