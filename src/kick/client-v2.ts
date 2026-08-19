@@ -1,22 +1,5 @@
 import { cachedFunction } from '@/utils/cache'
 
-const KICK_V2_MIN_INTERVAL_MS = 750
-const RATE_LIMIT_KEY = 'kick:v2:last_request_at'
-
-async function waitForKickV2RateLimit(env: Env, minIntervalMs = KICK_V2_MIN_INTERVAL_MS) {
-  const last = await env.KV.get(RATE_LIMIT_KEY)
-  const lastTs = last ? Number(last) : 0
-  const now = Date.now()
-  const elapsed = now - lastTs
-  const wait = minIntervalMs - elapsed
-
-  if (wait > 0) {
-    await new Promise(resolve => setTimeout(resolve, wait))
-  }
-
-  await env.KV.put(RATE_LIMIT_KEY, String(Date.now()), { expirationTtl: 60 })
-}
-
 function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
@@ -200,8 +183,6 @@ export async function kickV2Fetch<T = unknown>(
     let attempt = 0
 
     while (true) {
-      await waitForKickV2RateLimit(env)
-
       const cookieJar = await loadCookieJar(env, fullUrl.hostname)
       const cookieHeader = buildCookieHeader(cookieJar)
 
@@ -267,6 +248,7 @@ export async function kickV2Fetch<T = unknown>(
         : backoffMs
 
       console.warn(`Kick v2 API ${response.status}, retrying`, {
+        body: await response.clone().text().catch(() => undefined),
         headers: Object.fromEntries(response.headers.entries()),
         url: fullUrl.toString(),
         attempt,
