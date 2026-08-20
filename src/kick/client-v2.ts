@@ -234,7 +234,7 @@ export async function kickV2Fetch<T = unknown>(
         const errorBody = await response.text().catch(() => undefined)
         console.error(
           `Kick v2 API error: ${response.status} ${response.statusText}`,
-          { url: fullUrl.toString(), body: errorBody },
+          { url: fullUrl.toString(), body: errorBody, headers: Object.fromEntries(response.headers.entries()) },
         )
         return undefined
       }
@@ -247,10 +247,11 @@ export async function kickV2Fetch<T = unknown>(
         ? Math.max(retryAfterMs, backoffMs)
         : backoffMs
 
-      console.warn(`Kick v2 API ${response.status}, retrying`, {
+      // eslint-disable-next-line no-console
+      console.info(`Kick v2 API ${response.status}, retrying`, {
+        url: fullUrl.toString(),
         body: await response.clone().text().catch(() => undefined),
         headers: Object.fromEntries(response.headers.entries()),
-        url: fullUrl.toString(),
         attempt,
         maxRetries,
         delayMs: delay,
