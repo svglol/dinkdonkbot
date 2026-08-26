@@ -338,17 +338,20 @@ export async function getKickLatestVod(startedAt: string, slug: string, env: Env
     if (!slug || slug.trim() === '') {
       throw new Error('Channel slug is required')
     }
-
-    const videos = await kickV2Fetch<KickVOD[]>(`https://kick.com/api/v2/channels/${encodeURIComponent(slug.toLowerCase().replace(/_/g, '-'))}/videos`, env, {
+    const channel = await getKickChannelV2(slug, env)
+    if (!channel) {
+      return null
+    }
+    const videos = await kickV2Fetch<{ data: KickVOD[] }>(`https://web.kick.com/api/v1/channels/${channel.id}/videos`, env, {
       cache: false,
     })
 
     // Check if videos array exists and has content
-    if (!Array.isArray(videos)) {
+    if (!Array.isArray(videos?.data)) {
       throw new TypeError('Invalid response format: expected array of videos')
     }
 
-    if (videos.length === 0) {
+    if (videos.data.length === 0) {
       return null
     }
     function toUTC(dateStr: string): string {
@@ -361,7 +364,7 @@ export async function getKickLatestVod(startedAt: string, slug: string, env: Env
     const startedTime = new Date(startedAt).getTime()
     const tolerance = 2 * 60 * 1000
 
-    for (const video of videos) {
+    for (const video of videos.data) {
       const videoTime = new Date(toUTC(video.start_time)).getTime()
       if (Math.abs(videoTime - startedTime) <= tolerance) {
         return video

@@ -507,26 +507,44 @@ declare global {
     banner: KickCategoryBanner
   }
 
+  // export interface KickVOD {
+  //   id: number
+  //   slug: string
+  //   channel_id: number
+  //   created_at: string
+  //   session_title: string
+  //   is_live: boolean
+  //   risk_level_id: number | null
+  //   start_time: string
+  //   source: string
+  //   twitch_channel: string | null
+  //   duration: number // Duration in milliseconds
+  //   language: string
+  //   is_mature: boolean
+  //   viewer_count: number
+  //   tags: string[]
+  //   thumbnail: KickThumbnail
+  //   views: number
+  //   video: KickVideo
+  //   categories: KickCategory[]
+  // }
+
   export interface KickVOD {
-    id: number
-    slug: string
-    channel_id: number
-    created_at: string
-    session_title: string
+    category: KickCategoryFull
+    channel: KickChannel
+    duration: number // Duration in seconds
+    end_time: string
+    featured_details: Record<string, unknown>
+    id: string // UUID
     is_live: boolean
-    risk_level_id: number | null
-    start_time: string
-    source: string
-    twitch_channel: string | null
-    duration: number // Duration in milliseconds
-    language: string
     is_mature: boolean
+    language: string
+    start_time: string
+    status: string
+    thumbnail: KickThumbnailAlt
+    tier: string
+    title: string
     viewer_count: number
-    tags: string[]
-    thumbnail: KickThumbnail
-    views: number
-    video: KickVideo
-    categories: KickCategory[]
   }
 
   export interface DiscordAPIApplicationCommand {
