@@ -3,7 +3,7 @@ import type { Birthday, BirthdayConfigWithBirthdays } from '@/database/db'
 import { toZonedTime } from 'date-fns-tz'
 
 import { eq, tables, useDB } from '@/database/db'
-import { fetchGuild, findBotCommandMarkdown, isUserInGuild, removeRole, sendMessage, setRole, updateMessage } from '@/discord/discord'
+import { fetchGuild, fetchGuildUser, findBotCommandMarkdown, isUserInGuild, removeRole, sendMessage, setRole, updateMessage } from '@/discord/discord'
 import { ordinal } from '@/utils/dates'
 
 export async function scheduledBirthdayCheck(env: Env) {
@@ -16,16 +16,16 @@ export async function scheduledBirthdayCheck(env: Env) {
     const todaysBirthdays: Birthday[] = []
     for (const birthday of birthdayConfig.birthdays) {
       if (!birthday.announcedAt) {
-        // check if it is the users birthday
+      // check if it is the users birthday
         const timezone = birthday.timezone || birthdayConfig.timezone || 'UTC'
         const nowInTimezone = toZonedTime(new Date(), timezone)
         const isBirthday = nowInTimezone.getDate() === birthday.day && (nowInTimezone.getMonth() + 1) === birthday.month
         if (isBirthday) {
-          // check if the user is still in the server
+        // check if the user is still in the server
           const userInGuild = await isUserInGuild(birthdayConfig.guildId, birthday.userId, env)
           if (!userInGuild || !birthdayConfig.announcementChannelId) {
             if (!userInGuild) {
-              // if the user has left the server we disable their birthday so it doesnt keep trying to announce every year
+            // if the user has left the server we disable their birthday so it doesnt keep trying to announce every year
               await useDB(env).update(tables.birthday).set({ disabled: true }).where(eq(tables.birthday.id, birthday.id))
             }
             continue
@@ -65,30 +65,16 @@ export async function scheduledBirthdayCheck(env: Env) {
   }
 }
 
-export async function buildAnnouncementMessage(birthdays: Birthday[], env: Env) {
+export async function buildAnnouncementMessage(birthdays: Birthday[], _env: Env) {
   const descriptions = birthdays.map((birthday) => {
     return `<@${birthday.userId}>${birthday.year ? ` (turning ${new Date().getFullYear() - birthday.year})` : ''}`
   })
 
   const description = birthdays.length === 1
-    ? `Today is <@${birthdays[0].userId}>'s birthday! Wish them a happy birthday!${birthdays[0].year ? `\nThey are turning ${new Date().getFullYear() - birthdays[0].year} years old!` : ''}`
-    : `Today is ${descriptions.slice(0, -1).join(', ')} and ${descriptions.at(-1)}'s birthday! Wish them a happy birthday!`
+    ? `🎉 Today is <@${birthdays[0].userId}>'s birthday! Wish them a happy birthday!${birthdays[0].year ? `\nThey are turning ${new Date().getFullYear() - birthdays[0].year} years old!` : ''}`
+    : `🎉 Today is ${descriptions.slice(0, -1).join(', ')} and ${descriptions.at(-1)}'s birthday! Wish them a happy birthday!`
 
-  const embed = {
-    title: `🎉 Happy Birthday!`,
-    description,
-    color: 0xFF69B4,
-    thumbnail: {
-      url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/birthday.gif` : '',
-    },
-    timestamp: new Date().toISOString(),
-    footer: {
-      text: 'DinkDonk Bot',
-      icon_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/static/dinkdonk.png` : '',
-    },
-  } satisfies APIEmbed
-
-  return { embeds: [embed] }
+  return { content: description }
 }
 
 export async function scheduledBirthdayOverviewUpdate(env: Env) {
@@ -220,12 +206,20 @@ async function buildDescription(header: string, birthdayConfig: BirthdayConfigWi
     return acc
   }, [] as { month: string, birthdays: Birthday[] }[])
 
-  const lines = grouped.flatMap(({ month, birthdays }) => [
-    `\n**${month}**`,
-    ...birthdays.map((b) => {
-      return `<@${b.userId}> - ${ordinal(b.day)} ${MONTHS[b.month - 1]}`
-    }),
-  ])
+  const lines = (
+    await Promise.all(
+      grouped.map(async ({ month, birthdays }) => {
+        const birthdayLines = await Promise.all(
+          birthdays.map(async (b) => {
+            const user = await fetchGuildUser(birthdayConfig.guildId, b.userId, env)
+            const displayName = user ? `@${user.nick || user.user.username}` : `<@${b.userId}>`
+            return `${displayName} - ${ordinal(b.day)} ${MONTHS[b.month - 1]}`
+          }),
+        )
+        return [`\n**${month}**`, ...birthdayLines]
+      }),
+    )
+  ).flat()
 
   let description = header
   for (let i = 0; i < lines.length; i++) {
