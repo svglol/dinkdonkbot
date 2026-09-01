@@ -463,6 +463,18 @@ export async function fetchUser(userId: string, env: Env) {
   }
 }
 
+export async function fetchGuildUser(guildId: string, userId: string, env: Env) {
+  try {
+    const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
+    const user = await rest.get(Routes.guildMember(guildId, userId)) as RESTGetAPIGuildMemberResult
+    return user
+  }
+  catch (error: unknown) {
+    console.error('Failed to fetch guild user:', error, { guildId, userId })
+    return null
+  }
+}
+
 export async function setRole(guildId: string, userId: string, roleId: string, env: Env) {
   try {
     const rest = new REST({ version: '10', makeRequest: fetch.bind(globalThis) as any }).setToken(env.DISCORD_TOKEN)
