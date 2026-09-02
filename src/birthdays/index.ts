@@ -67,13 +67,12 @@ export async function scheduledBirthdayCheck(env: Env) {
 
 export async function buildAnnouncementMessage(birthdays: Birthday[], _env: Env) {
   const descriptions = birthdays.map((birthday) => {
-    return `<@${birthday.userId}>${birthday.year ? ` (turning ${new Date().getFullYear() - birthday.year})` : ''}`
+    return `<@${birthday.userId}>${birthday.year ? ` (${new Date().getFullYear() - birthday.year})` : ''}`
   })
 
-  const description = birthdays.length === 1
-    ? `🎉 Today is <@${birthdays[0].userId}>'s birthday! Wish them a happy birthday!${birthdays[0].year ? `\nThey are turning ${new Date().getFullYear() - birthdays[0].year} years old!` : ''}`
-    : `🎉 Today is ${descriptions.slice(0, -1).join(', ')} and ${descriptions.at(-1)}'s birthday! Wish them a happy birthday!`
-
+  const description = descriptions.length === 1
+    ? `🎉 Today is ${descriptions[0]}'s birthday! Wish them a happy birthday!`
+    : `🎉 Today is ${descriptions.slice(0, -1).join(', ')} and ${descriptions.at(-1)}'s birthdays! Wish them a happy birthday!`
   return { content: description }
 }
 
