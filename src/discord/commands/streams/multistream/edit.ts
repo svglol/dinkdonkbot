@@ -96,7 +96,7 @@ export async function handleMultistreamEditCommand(interaction: APIApplicationCo
   return await updateInteraction(interaction, env, {
     embeds: [
       buildSuccessEmbed(`${priority ? `Priority updated to: ${priority}` : ''}  ${lateMerge !== undefined ? `Late merge updated to: ${lateMerge}` : ''}`, env, {
-        title: `Successfully updated \`${streamerName}\` multistream settings`,
+        title: `Successfully updated ${streamerName} multistream settings`,
       }),
     ],
   })
