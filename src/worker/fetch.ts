@@ -9,6 +9,7 @@ import { Router } from 'itty-router'
 import { buildQuickstartMessage } from '@/discord/commands/quickstart'
 import { discordInteractionAutoCompleteHandler, discordInteractionHandler, discordInteractionMessageComponentHandler, discordInteractionModalHandler } from '@/discord/interactionHandler'
 import { kickEventHandler } from '@/kick/eventHandler'
+import { getKickPublicKey } from '@/kick/kick'
 import { twitchEventHandler } from '@/twitch/eventHandler'
 import { DINKDONK_EMOTE } from '@/utils/discordEmotes'
 import { JsonResponse } from '@/utils/jsonResponse'
@@ -216,12 +217,12 @@ async function verifyDiscordRequest(request: Request, env: Env) {
 /**
  * Verify a request came from Kick, and that it's not a replay attack.
  * @param request The request to verify
- * @param _env The environment variables to use
+ * @param env The environment variables to use
  * @returns An object with 2 properties: `isValid` and `body`
  * - `isValid` will be `true` if the request is valid, and `false` otherwise.
  * - `body` will be the parsed JSON payload of the request, or `undefined` if the request is invalid.
  */
-export async function verifyKickRequest(request: Request, _env: Env) {
+export async function verifyKickRequest(request: Request, env: Env) {
   const signatureBase64 = request.headers.get('Kick-Event-Signature') ?? ''
   const messageId = request.headers.get('Kick-Event-Message-Id') ?? ''
   const timestamp = request.headers.get('Kick-Event-Message-Timestamp') ?? ''
@@ -230,17 +231,7 @@ export async function verifyKickRequest(request: Request, _env: Env) {
   if (!signatureBase64 || !messageId || !timestamp) {
     return { isValid: false, body }
   }
-  const publicKeyPem = `
------BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAq/+l1WnlRrGSolDMA+A8
-6rAhMbQGmQ2SapVcGM3zq8ANXjnhDWocMqfWcTd95btDydITa10kDvHzw9WQOqp2
-MZI7ZyrfzJuz5nhTPCiJwTwnEtWft7nV14BYRDHvlfqPUaZ+1KR4OCaO/wWIk/rQ
-L/TjY0M70gse8rlBkbo2a8rKhu69RQTRsoaf4DVhDPEeSeI5jVrRDGAMGL3cGuyY
-6CLKGdjVEM78g3JfYOvDU/RvfqD7L89TZ3iN94jrmWdGz34JNlEI5hqK8dd7C5EF
-BEbZ5jgB8s8ReQV8H+MkuffjdAj3ajDDX3DOJMIut1lBrUVD1AaSrGCKHooWoL2e
-twIDAQAB
------END PUBLIC KEY-----
-`
+  const publicKeyPem = await getKickPublicKey(env)
 
   const payload = `${messageId}.${timestamp}.${body}`
   const verifier = crypto.createVerify('RSA-SHA256')

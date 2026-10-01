@@ -250,9 +250,10 @@ export async function getKickPublicKey(env: Env) {
 
   if (response.ok) {
     const data = await response.json() as { data: { public_key: string } }
-    await env.KV.put('kick-public-key', data.data.public_key, { expirationTtl: 60 * 60 * 24 * 7 })
+    await env.KV.put('kick-public-key', data.data.public_key, { expirationTtl: 60 * 60 * 24 })
     return data.data.public_key
   }
+  throw new Error(`Failed to fetch Kick public key: ${response.status} ${response.statusText}`)
 }
 
 /**
