@@ -642,6 +642,33 @@ declare global {
   export interface KickMultiSearchResponse {
     results: KickSearchResult[]
   }
+  interface KickSearchChannel {
+    is_live: boolean
+    is_verified: boolean
+    profile_picture: string
+    slug: string
+    username: string
+  }
+
+  interface KickSearchResponse {
+    data: {
+      categories: {
+        is_mature: boolean
+        name: string
+        slug: string
+        thumbnail: { src: string, srcset: string }
+      }[]
+      channels: KickSearchChannel[]
+      livestreams: {
+        is_mature: boolean
+        language: string
+        slug: string
+        thumbnail: { src: string, srcset: string }
+        title: string
+      }[]
+    }
+    message: string
+  }
 }
 
 declare module 'cloudflare:workers' {

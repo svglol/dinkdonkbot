@@ -445,28 +445,28 @@ export async function getKickClipsLastHour(slug: string, env: Env) {
   return allClips.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
 }
 
-export async function searchKickChannels(query: string) {
+export async function searchKickChannels(query: string): Promise<KickSearchChannel[]> {
+  if (query.trim() === '') {
+    return []
+  }
   try {
-    const res = await fetch('https://search.kick.com/multi_search', {
-      method: 'POST',
+    const url = new URL('https://search.kick.com/api/v1/search')
+    url.searchParams.set('query', query)
+
+    const res = await fetch(url, {
       headers: {
         'User-Agent':
-           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-           + '(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+          + '(KHTML, like Gecko) Chrome/151.0.7422.201 Safari/537.36',
         'Accept': 'application/json',
-        'X-TYPESENSE-API-KEY': 'nXIMW0iEN6sMujFYjFuhdrSwVow3pDQu',
-        'Content-Type': 'text/plain;charset=UTF-8',
       },
-      body: JSON.stringify({
-        searches: [{ preset: 'channel_search', q: query }],
-      }),
     })
 
     if (!res.ok)
       throw new Error(`HTTP error! status: ${res.status}`)
 
-    const json = await res.json<KickMultiSearchResponse>()
-    return json.results[0]?.hits?.map(h => h.document) ?? []
+    const json = await res.json<KickSearchResponse>()
+    return json.data?.channels ?? []
   }
   catch (error) {
     console.error('Error searching kick channels:', error, { query })
